@@ -2270,12 +2270,22 @@ if(expressionTokens.length===0){
 }
 
 let html=expressionTokens.map(token=>{
-    const display=token==="*"?"×":token;
+    const display=
+        token==="*"?"×":
+        token==="/"?"÷":
+        token==="-"?"−":
+        token;
     return `<span class="eq-token">${display}</span>`;
 }).join("");
 
 if(pendingOperator){
-    html+=`<span class="eq-token">${pendingOperator==="*"?"×":pendingOperator}</span>`;
+    const pendingDisplay=
+        pendingOperator==="*"?"×":
+        pendingOperator==="/"?"÷":
+        pendingOperator==="-"?"−":
+        pendingOperator;
+
+    html+=`<span class="eq-token">${pendingDisplay}</span>`;
 }
 
 line.innerHTML=html;
@@ -2350,16 +2360,6 @@ if(!tokens.length){
     return null;
 }
 
-/*
-Make Ten uses sequential calculation:
-operations are applied in the order the player chooses them.
-
-Example:
-16 + 4 × 2
-= (16 + 4) × 2
-= 40
-*/
-
 let total=Number(tokens[0]);
 
 for(let i=1;i<tokens.length;i+=2){
@@ -2369,14 +2369,23 @@ for(let i=1;i<tokens.length;i+=2){
 
     if(operator==="+"){
         total+=value;
+
     }else if(operator==="-"){
         total-=value;
+
     }else if(operator==="*"){
         total*=value;
+
     }else if(operator==="/"){
-        if(value===0||total%value!==0){
+
+        if(
+            value===0 ||
+            !Number.isFinite(total) ||
+            total%value!==0
+        ){
             return NaN;
         }
+
         total/=value;
     }
 }
@@ -2402,14 +2411,54 @@ return output;
 
 function evaluateExpressionAttempt(){
 
-if(inputLocked)return;
-
-inputLocked=true;
-movesLeft--;
+if(inputLocked){
+    return;
+}
 
 const total=evaluateTokens(expressionTokens);
 const used=[...expressionTileIndexes];
 const equation=expressionText();
+
+if(Number.isNaN(total)){
+
+    mistakesThisLevel++;
+    movesLeft--;
+    updateHUD();
+
+    document.getElementById("feedback").textContent=
+        "➗ That division does not give a whole number.";
+
+    document.getElementById("feedback").className=
+        "feedback wrong";
+
+    const buttons=document.querySelectorAll(".tile");
+
+    used.forEach(index=>{
+        if(buttons[index]){
+            buttons[index].classList.add("wrong-shake");
+        }
+    });
+
+    inputLocked=true;
+
+    setTimeout(()=>{
+        clearExpression(false);
+        inputLocked=false;
+        renderGrid();
+        updateEquationBuilder();
+        updateOperatorControls();
+        resetSelectionText();
+
+        if(movesLeft<=0){
+            failLevel();
+        }
+    },330);
+
+    return;
+}
+
+inputLocked=true;
+movesLeft--;
 
 const locksSatisfied=
     !currentLevel.lockedCount ||
@@ -2417,61 +2466,140 @@ const locksSatisfied=
         index=>used.includes(index)
     );
 
-if(total===currentLevel.target&&locksSatisfied){
+if(
+    total===currentLevel.target &&
+    locksSatisfied
+){
+
     solutionsDone++;
     updateHUD();
-    document.getElementById("feedback").textContent="Perfect!";
-    document.getElementById("feedback").className="feedback correct";
+
+    document.getElementById("feedback").textContent=
+        "Perfect!";
+
+    document.getElementById("feedback").className=
+        "feedback correct";
+
     document.getElementById("selectionText").innerHTML=
         `${equation} = <strong>${currentLevel.target}</strong>`;
 
     tickBombs(used);
 
     const buttons=document.querySelectorAll(".tile");
-    used.forEach(i=>buttons[i]&&buttons[i].classList.add("correct-pop"));
+
+    used.forEach(index=>{
+        if(buttons[index]){
+            buttons[index].classList.add("correct-pop");
+        }
+    });
 
     if(bombExplosionMessage){
-        document.getElementById("feedback").textContent=bombExplosionMessage;
-        document.getElementById("feedback").className="feedback wrong";
+        document.getElementById("feedback").textContent=
+            bombExplosionMessage;
+
+        document.getElementById("feedback").className=
+            "feedback wrong";
     }
+
+    /*
+    A successful equation must always leave this state.
+    Either the level is finished, or the board is refreshed.
+    */
 
     if(solutionsDone>=currentLevel.goal){
-        setTimeout(completeLevel,420);
-        return;
+
+        setTimeout(()=>{
+            completeLevel();
+        },420);
+
+    }else{
+
+        setTimeout(()=>{
+            replaceExpressionTiles(used);
+        },340);
     }
 
-    setTimeout(()=>replaceExpressionTiles(used),340);
-}else{
-    mistakesThisLevel++;
-    updateHUD();
-    document.getElementById("feedback").textContent=
-        total===currentLevel.target&&!locksSatisfied
-        ? (currentLevel.lockedCount===1
-            ? "Use the locked tile!"
-            : "Use both locked tiles!")
-        : `${equation} = ${total} — not ${currentLevel.target}`;
-    document.getElementById("feedback").className="feedback wrong";
-
-    const buttons=document.querySelectorAll(".tile");
-    used.forEach(i=>buttons[i]&&buttons[i].classList.add("wrong-shake"));
-
-    setTimeout(()=>{
-        clearExpression(false);
-        inputLocked=false;
-        if(movesLeft<=0)failLevel();
-    },330);
+    return;
 }
+
+mistakesThisLevel++;
+updateHUD();
+
+document.getElementById("feedback").textContent=
+    total===currentLevel.target&&!locksSatisfied
+    ? (
+        currentLevel.lockedCount===1
+        ? "Use the locked tile!"
+        : "Use both locked tiles!"
+      )
+    : `${equation} = ${total} — not ${currentLevel.target}`;
+
+document.getElementById("feedback").className=
+    "feedback wrong";
+
+const buttons=document.querySelectorAll(".tile");
+
+used.forEach(index=>{
+    if(buttons[index]){
+        buttons[index].classList.add("wrong-shake");
+    }
+});
+
+setTimeout(()=>{
+
+    clearExpression(false);
+    inputLocked=false;
+    renderGrid();
+    updateEquationBuilder();
+    updateOperatorControls();
+    resetSelectionText();
+
+    if(movesLeft<=0){
+        failLevel();
+    }
+
+},330);
 }
 
 function replaceExpressionTiles(indexes){
 
-if(currentLevel.lockedCount){
+try{
+
+    if(currentLevel.lockedCount){
+
+        tiles=generateBoard();
+
+        newTileIndexes=
+            Array.from(
+                {length:GRID_SIZE},
+                (_,index)=>index
+            );
+
+    }else{
+
+        indexes.forEach(index=>{
+            tiles[index]=randomNumber();
+        });
+
+        guaranteeSolutionOnBoard(tiles);
+
+        newTileIndexes=[...indexes];
+    }
+
+}catch(error){
+
+    /*
+    Fail-safe: a board-generation problem should never trap the player
+    on a completed equation.
+    */
+
     tiles=generateBoard();
-    newTileIndexes=Array.from({length:GRID_SIZE},(_,i)=>i);
-}else{
-    indexes.forEach(i=>tiles[i]=randomNumber());
-    guaranteeSolutionOnBoard(tiles);
-    newTileIndexes=[...indexes];
+
+    newTileIndexes=
+        Array.from(
+            {length:GRID_SIZE},
+            (_,index)=>index
+        );
 }
 
 expressionTokens=[];
@@ -2485,7 +2613,12 @@ updateEquationBuilder();
 updateOperatorControls();
 resetSelectionText();
 
-if(movesLeft<=0&&solutionsDone<currentLevel.goal){
+document.getElementById("feedback").textContent="";
+
+if(
+    movesLeft<=0 &&
+    solutionsDone<currentLevel.goal
+){
     failLevel();
 }
 }
