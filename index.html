@@ -751,21 +751,6 @@ backdrop-filter:blur(7px);
 .mode-choice[data-mode="arcade"].selected{background:linear-gradient(180deg,#fff,#eef7ff)}
 .mode-choice[data-mode="endless"].selected{background:linear-gradient(180deg,#fff,#f4f0fa)}
 
-
-.tile{transition:transform .12s ease,box-shadow .12s ease}
-.tile:active{transform:scale(.94)}
-.tile.selected{animation:tileSelect .18s ease}
-@keyframes tileSelect{50%{transform:scale(1.07)}}
-.feedback.correct{animation:feedbackGood .35s ease}
-.feedback.wrong{animation:feedbackBad .32s ease}
-@keyframes feedbackGood{50%{transform:scale(1.06)}}
-@keyframes feedbackBad{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
-.target-number.target-pop{animation:targetPop .32s ease}
-@keyframes targetPop{50%{transform:scale(1.12)}}
-.float-feedback{position:fixed;z-index:450;left:50%;top:29%;transform:translate(-50%,-50%);font-size:25px;font-weight:1000;pointer-events:none;animation:floatFeedback .7s ease forwards}
-@keyframes floatFeedback{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-95%) scale(1)}}
-.settings-mini{position:fixed;right:12px;bottom:12px;z-index:200;border:1px solid var(--border);background:rgba(255,255,255,.88);border-radius:999px;padding:8px 11px;font-weight:900;font-size:11px;box-shadow:var(--shadow);cursor:pointer}
-
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1423,7 +1408,6 @@ document.getElementById("unlockCelebrationIcon").textContent=u[0];
 document.getElementById("unlockCelebrationTitle").textContent=u[1];
 document.getElementById("unlockCelebrationCopy").textContent=u[2];
 document.getElementById("unlockCelebration").style.display="flex";
-sfx("unlock");haptic([35,40,35]);
 }
 function closeUnlockCelebration(){document.getElementById("unlockCelebration").style.display="none";}
 function arcadeScoreBurst(points){
@@ -1925,7 +1909,6 @@ modeStats.equations++;saveModeStats();
 if(gameMode==="arcade"){
  modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
  const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);
- if(modeCombo>=2)sfx("combo");
  const comboCard=document.getElementById("arcadeComboCard");
  comboCard.classList.remove("combo-hot");
  void comboCard.offsetWidth;
@@ -1962,65 +1945,6 @@ if(gameMode==="daily"){
 function exitModeOrLevel(){
 if(gameMode==="campaign")exitLevel();
 else{clearModeTimer();inputLocked=true;openPlayMenu();}
-}
-
-let soundEnabled=localStorage.getItem("numbleSoundEnabled")!=="false";
-let audioCtx=null;
-
-function getAudioCtx(){
-if(!audioCtx){
-    const Ctx=window.AudioContext||window.webkitAudioContext;
-    if(Ctx)audioCtx=new Ctx();
-}
-return audioCtx;
-}
-
-function tone(freq,duration=.07,type="sine",volume=.03,delay=0){
-if(!soundEnabled)return;
-const ctx=getAudioCtx();
-if(!ctx)return;
-const osc=ctx.createOscillator();
-const gain=ctx.createGain();
-osc.type=type;
-osc.frequency.value=freq;
-gain.gain.setValueAtTime(.0001,ctx.currentTime+delay);
-gain.gain.exponentialRampToValueAtTime(volume,ctx.currentTime+delay+.01);
-gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+delay+duration);
-osc.connect(gain);gain.connect(ctx.destination);
-osc.start(ctx.currentTime+delay);
-osc.stop(ctx.currentTime+delay+duration+.02);
-}
-
-function sfx(kind){
-if(kind==="tap")tone(330,.045,"sine",.016);
-if(kind==="correct"){tone(520,.08,"sine",.028);tone(700,.1,"sine",.025,.07);}
-if(kind==="wrong"){tone(180,.10,"square",.014);tone(140,.11,"square",.012,.06);}
-if(kind==="combo"){tone(620,.05,"triangle",.02);tone(820,.06,"triangle",.02,.05);}
-if(kind==="unlock"){tone(440,.08,"sine",.02);tone(660,.09,"sine",.02,.08);tone(880,.13,"sine",.025,.16);}
-}
-
-function haptic(pattern){
-if(navigator.vibrate)navigator.vibrate(pattern);
-}
-
-function toggleSound(){
-soundEnabled=!soundEnabled;
-localStorage.setItem("numbleSoundEnabled",String(soundEnabled));
-updateSoundToggle();
-if(soundEnabled)sfx("tap");
-}
-
-function updateSoundToggle(){
-const b=document.getElementById("soundToggle");
-if(b)b.textContent=soundEnabled?"🔊 SOUND":"🔇 SOUND";
-}
-
-function floatFeedback(text){
-const el=document.createElement("div");
-el.className="float-feedback";
-el.textContent=text;
-document.body.appendChild(el);
-setTimeout(()=>el.remove(),750);
 }
 function shuffle(array){
 const copy=[...array];
@@ -3039,8 +2963,6 @@ newTileIndexes=[];
 }
 
 function selectTile(index){
-sfx("tap");
-
 if(inputLocked)return;
 
 if(selectedIndexes.includes(index)){
@@ -3555,8 +3477,6 @@ line.innerHTML=html;
 }
 
 function selectExpressionTile(index){
-sfx("tap");
-
 
 if(inputLocked||expressionTileIndexes.includes(index)){
     return;
@@ -3815,7 +3735,6 @@ document.getElementById("feedback").textContent=
 
 document.getElementById("feedback").className=
     "feedback wrong";
-sfx("wrong");haptic([25,35,25]);
 
 const buttons=document.querySelectorAll(".tile");
 
@@ -4369,8 +4288,6 @@ document.addEventListener(
         }
     }
 );
-
-updateSoundToggle();
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -4380,6 +4297,5 @@ updateSoundToggle();
 <button class="main-btn" onclick="closeUnlockCelebration()">AWESOME</button>
 </div>
 </div>
-<button class="settings-mini" id="soundToggle" onclick="toggleSound()">🔊 SOUND</button>
 </body>
 </html>
