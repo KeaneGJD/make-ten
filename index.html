@@ -636,7 +636,7 @@ You can now subtract as well as add. Pick an operator, then tap two numbers in t
 <div class="mechanic-icon">×</div>
 <h2>New Mechanic!</h2>
 <p>
-You can now multiply as part of an equation. Later puzzles let you mix × with + and − to reach the target.
+You can now multiply as part of an equation. Calculations happen in the order you build them — for example, 16 + 4 × 2 becomes 20 × 2 = 40.
 </p>
 <button class="main-btn" onclick="closeMultiplyMechanicIntro()">GOT IT</button>
 </div>
@@ -701,11 +701,11 @@ const LEVELS=[
 {target:30,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
 {target:40,goal:7,moves:10,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:1},
 {target:48,goal:8,moves:11,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:2},
-{target:20,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:4},
-{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:3},
-{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:2},
-{target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:1,bombFuse:2},
-{target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:3}
+{target:20,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:4,bombSpawnEvery:2},
+{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:3,bombSpawnEvery:2},
+{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
+{target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
+{target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:2,bombSpawnEvery:1}
 ];
 
 const GRID_SIZE=16;
@@ -745,6 +745,7 @@ let expressionTileIndexes=[];
 let pendingOperator=null;
 let bombStates={};
 let bombExplosionMessage="";
+let successfulSolutionsSinceBombSpawn=0;
 let pendingInterstitialNextIndex=null;
 let lockedIndexes=[];
 let pendingChapterNextIndex=null;
@@ -1417,6 +1418,7 @@ selectedOperator=currentLevel.operators.includes("+")
 : currentLevel.operators[0];
 
 tiles=generateBoard();
+successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
 
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
@@ -1426,7 +1428,9 @@ document.getElementById("solutionsGoal").textContent=currentLevel.goal;
 if(currentLevel.expressionMode){
     let objectiveText="";
 
-    if(currentLevel.freeForm){
+    if(currentLevel.maxTiles){
+        objectiveText=`Make ${currentLevel.target} using up to ${currentLevel.maxTiles} tiles.`;
+    }else if(currentLevel.freeForm){
         objectiveText=`Make ${currentLevel.target}. Use as many tiles as you need.`;
     }else{
         objectiveText=`Make ${currentLevel.target} using exactly ${currentLevel.selectionCount} tiles.`;
@@ -1455,7 +1459,7 @@ if(currentLevel.expressionMode){
 
 if(currentLevel.bombCount){
     document.getElementById("objectiveText").textContent+=
-    ` 💣 Use bomb tiles before their fuse reaches 0.`;
+    ` 💣 Bombs return during the level. Fuse 1 means the next successful equation must use that bomb.`;
 }
 
 updateOperatorControls();
@@ -1490,7 +1494,11 @@ function makeGuaranteedSolution(){
 
 if(currentLevel.expressionMode){
 
-    const count=currentLevel.freeForm?3:currentLevel.selectionCount;
+    const count=currentLevel.maxTiles
+        ? Math.min(3,currentLevel.maxTiles)
+        : currentLevel.freeForm
+        ? 3
+        : currentLevel.selectionCount;
 
     /* Try random tile combinations/operators and keep one that exactly hits target. */
     for(let attempt=0;attempt<3000;attempt++){
@@ -1618,7 +1626,11 @@ solution.values.forEach((value,i)=>board[indexes[i]]=value);
 function boardHasSolution(board){
 
 if(currentLevel.expressionMode){
-    const counts=currentLevel.freeForm?[2,3]:[currentLevel.selectionCount];
+    const counts=currentLevel.maxTiles
+    ? Array.from({length:currentLevel.maxTiles-1},(_,i)=>i+2)
+    : currentLevel.freeForm
+    ? [2,3]
+    : [currentLevel.selectionCount];
 
     for(const count of counts){
         const indexSets=[];
@@ -1718,7 +1730,7 @@ if(newTileIndexes.includes(index)){
     button.classList.add("new-tile");
 }
 
-if(typeof lockedTileIndexes!=="undefined"&&lockedTileIndexes.includes(index)){
+if(typeof lockedIndexes!=="undefined"&&lockedIndexes.includes(index)){
     button.classList.add("locked-tile");
     button.innerHTML=`<span class="lock-icon">🔒</span>${value}`;
 }
@@ -1759,7 +1771,9 @@ function resetSelectionText(){
 
 if(currentLevel&&currentLevel.expressionMode){
     document.getElementById("selectionText").innerHTML=
-        currentLevel.freeForm
+        currentLevel.maxTiles
+        ? `Build an equation using up to ${currentLevel.maxTiles} tiles.`
+        : currentLevel.freeForm
         ? "Build an equation. Hit the target when you're ready."
         : `Build an equation using exactly ${currentLevel.selectionCount} tiles.`;
     return;
@@ -1892,28 +1906,197 @@ document.getElementById("lockMechanicOverlay").style.display="none";
 
 
 
+
+function findValidSolutionIndexes(board,requiredIndexes=[]){
+
+const requiredSet=new Set(requiredIndexes.map(Number));
+
+const counts=currentLevel.maxTiles
+    ? Array.from({length:currentLevel.maxTiles-1},(_,i)=>i+2)
+    : currentLevel.freeForm
+    ? [2,3,4]
+    : [currentLevel.selectionCount];
+
+function operatorSearch(values,index,tokens){
+
+    if(index>=values.length){
+        return evaluateTokens(tokens)===currentLevel.target;
+    }
+
+    for(const operator of currentLevel.operators){
+        const next=[...tokens,operator,values[index]];
+
+        if(operatorSearch(values,index+1,next)){
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function indexSearch(count,chosen){
+
+    if(chosen.length===count){
+
+        for(const required of requiredSet){
+            if(!chosen.includes(required)){
+                return null;
+            }
+        }
+
+        const values=chosen.map(index=>board[index]);
+
+        if(operatorSearch(values,1,[values[0]])){
+            return [...chosen];
+        }
+
+        return null;
+    }
+
+    for(let index=0;index<board.length;index++){
+
+        if(chosen.includes(index)){
+            continue;
+        }
+
+        const next=[...chosen,index];
+
+        const remaining=count-next.length;
+
+        let missingRequired=0;
+
+        for(const required of requiredSet){
+            if(!next.includes(required)){
+                missingRequired++;
+            }
+        }
+
+        if(missingRequired>remaining){
+            continue;
+        }
+
+        const result=indexSearch(count,next);
+
+        if(result){
+            return result;
+        }
+    }
+
+    return null;
+}
+
+for(const count of counts){
+
+    if(!count||requiredSet.size>count){
+        continue;
+    }
+
+    const result=indexSearch(count,[]);
+
+    if(result){
+        return result;
+    }
+}
+
+return null;
+}
+
+
+function findBombCandidate(excluded=[]){
+
+const excludedSet=new Set(excluded.map(Number));
+
+const candidates=shuffle(
+    Array.from(
+        {length:tiles.length},
+        (_,index)=>index
+    )
+    .filter(index=>!excludedSet.has(index))
+);
+
+for(const index of candidates){
+
+    if(
+        findValidSolutionIndexes(
+            tiles,
+            [index]
+        )
+    ){
+        return index;
+    }
+}
+
+return null;
+}
+
+
 function initializeBombs(){
+
 bombStates={};
-if(!currentLevel.bombCount)return;
 
-const candidates=shuffle(Array.from({length:tiles.length},(_,i)=>i));
-const count=Math.min(currentLevel.bombCount,candidates.length);
+if(!currentLevel.bombCount){
+    return;
+}
 
-for(let i=0;i<count;i++){
-    bombStates[candidates[i]]=currentLevel.bombFuse||3;
+/*
+Start Bomb Squad levels with a single pressure point.
+Additional bombs arrive later according to bombSpawnEvery.
+*/
+
+spawnBomb();
+successfulSolutionsSinceBombSpawn=0;
 }
+
+
+function spawnBomb(){
+
+if(!currentLevel.bombCount){
+    return false;
 }
+
+const maxConcurrent=currentLevel.bombCount;
+
+if(Object.keys(bombStates).length>=maxConcurrent){
+    return false;
+}
+
+const occupied=Object.keys(bombStates).map(Number);
+
+let candidate=findBombCandidate(occupied);
+
+if(candidate===null){
+    guaranteeSolutionOnBoard(tiles);
+    candidate=findBombCandidate(occupied);
+}
+
+if(candidate===null){
+    return false;
+}
+
+bombStates[candidate]=currentLevel.bombFuse||3;
+successfulSolutionsSinceBombSpawn=0;
+
+return true;
+}
+
 
 function tickBombs(usedIndexes){
 
-if(!currentLevel.bombCount)return;
+if(!currentLevel.bombCount){
+    return;
+}
 
 const used=new Set(usedIndexes||[]);
 const next={};
 let exploded=0;
 
 Object.entries(bombStates).forEach(([key,fuse])=>{
+
     const index=Number(key);
+
+    /*
+    Using a bomb tile in a successful equation clears it safely.
+    */
 
     if(used.has(index)){
         return;
@@ -1931,28 +2114,89 @@ Object.entries(bombStates).forEach(([key,fuse])=>{
 bombStates=next;
 
 if(exploded>0){
-    movesLeft=Math.max(0,movesLeft-exploded);
-    bombExplosionMessage=exploded===1
-        ?"💥 Bomb exploded — lost 1 move!"
-        :`💥 ${exploded} bombs exploded — lost ${exploded} moves!`;
+
+    movesLeft=Math.max(
+        0,
+        movesLeft-exploded
+    );
+
+    bombExplosionMessage=
+        exploded===1
+        ? "💥 Bomb exploded — lost 1 move!"
+        : `💥 ${exploded} bombs exploded — lost ${exploded} moves!`;
+
 }else{
     bombExplosionMessage="";
+}
+
+successfulSolutionsSinceBombSpawn++;
+
+const spawnEvery=
+    currentLevel.bombSpawnEvery||2;
+
+/*
+Bombs recur throughout the level rather than all arriving up front.
+If the current wave has been dealt with/exploded, another arrives
+after the configured number of successful equations.
+
+Finale levels with bombCount:2 can escalate to two concurrent bombs.
+*/
+
+if(
+    successfulSolutionsSinceBombSpawn>=spawnEvery
+){
+    spawnBomb();
+
+    if(
+        currentLevel.bombCount>1 &&
+        solutionsDone>=Math.ceil(currentLevel.goal/2)
+    ){
+        spawnBomb();
+    }
 }
 }
 
 function remapBombsAfterReplacement(indexes){
 
-if(!currentLevel.bombCount)return;
+if(!currentLevel.bombCount){
+    return;
+}
 
-/* Cleared/expired bombs are replaced so the pressure continues through the level. */
-const desired=currentLevel.bombCount;
-const occupied=new Set(Object.keys(bombStates).map(Number));
-const candidates=shuffle(Array.from({length:tiles.length},(_,i)=>i)
-    .filter(i=>!occupied.has(i)));
+const validated={};
 
-while(Object.keys(bombStates).length<desired&&candidates.length){
-    const i=candidates.pop();
-    bombStates[i]=currentLevel.bombFuse||3;
+/*
+Keep an active bomb only if it is still usable in a valid solution
+after new tiles fall. If not, move that bomb to another solvable tile,
+without forcing extra bombs to appear immediately.
+*/
+
+Object.entries(bombStates)
+.forEach(([key,fuse])=>{
+
+    const index=Number(key);
+
+    if(
+        findValidSolutionIndexes(
+            tiles,
+            [index]
+        )
+    ){
+        validated[index]=Number(fuse);
+    }
+});
+
+const bombsLostToInvalidBoard=
+    Object.keys(bombStates).length-
+    Object.keys(validated).length;
+
+bombStates=validated;
+
+for(
+    let i=0;
+    i<bombsLostToInvalidBoard;
+    i++
+){
+    spawnBomb();
 }
 }
 
@@ -2026,7 +2270,21 @@ if(!currentLevel.freeForm&&tileCount===currentLevel.selectionCount){
     return;
 }
 
-if(currentLevel.freeForm&&tileCount>=2){
+if(currentLevel.maxTiles&&tileCount>=2){
+    const total=evaluateTokens(expressionTokens);
+
+    if(total===currentLevel.target){
+        evaluateExpressionAttempt();
+        return;
+    }
+
+    if(tileCount>=currentLevel.maxTiles){
+        evaluateExpressionAttempt();
+        return;
+    }
+}
+
+if(currentLevel.freeForm&&!currentLevel.maxTiles&&tileCount>=2){
     const total=evaluateTokens(expressionTokens);
     if(total===currentLevel.target){
         evaluateExpressionAttempt();
@@ -2036,28 +2294,34 @@ if(currentLevel.freeForm&&tileCount>=2){
 
 function evaluateTokens(tokens){
 
-if(!tokens.length)return null;
-
-/* Standard arithmetic precedence: multiplication before + / -. */
-const collapsed=[tokens[0]];
-
-for(let i=1;i<tokens.length;i+=2){
-    const op=tokens[i];
-    const value=tokens[i+1];
-
-    if(op==="*"){
-        collapsed[collapsed.length-1]*=value;
-    }else{
-        collapsed.push(op,value);
-    }
+if(!tokens.length){
+    return null;
 }
 
-let total=collapsed[0];
+/*
+Make Ten uses sequential calculation:
+operations are applied in the order the player chooses them.
 
-for(let i=1;i<collapsed.length;i+=2){
-    const op=collapsed[i];
-    const value=collapsed[i+1];
-    total=op==="+"?total+value:total-value;
+Example:
+16 + 4 × 2
+= (16 + 4) × 2
+= 40
+*/
+
+let total=Number(tokens[0]);
+
+for(let i=1;i<tokens.length;i+=2){
+
+    const operator=tokens[i];
+    const value=Number(tokens[i+1]);
+
+    if(operator==="+"){
+        total+=value;
+    }else if(operator==="-"){
+        total-=value;
+    }else if(operator==="*"){
+        total*=value;
+    }
 }
 
 return total;
