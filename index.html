@@ -454,6 +454,34 @@ button{font:inherit}
 }
 .ad-countdown{font-size:12px;color:var(--muted);margin-bottom:10px}
 
+
+.tile.frozen{
+    outline:3px solid #8fd3ff;
+    outline-offset:-3px;
+    filter:saturate(.85);
+}
+
+.freeze-icon{
+    position:absolute;
+    top:5px;
+    left:6px;
+    font-size:16px;
+}
+
+.tile.frozen::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    background:rgba(180,225,255,.16);
+    pointer-events:none;
+}
+
+.freeze-note{
+    color:#4e8fb8;
+    font-weight:900;
+}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -654,6 +682,17 @@ Locked tiles must be used in the successful equation. Hit the target without the
 </div>
 </div>
 
+<div class="mechanic-overlay" id="frozenMechanicOverlay">
+<div class="mechanic-card">
+<div class="mechanic-icon">🧊</div>
+<h2>New Mechanic!</h2>
+<p>
+Frozen tiles can’t be selected at first. Use a tile directly next to them in a successful equation to thaw them.
+</p>
+<button class="main-btn" onclick="closeFrozenIntro()">GOT IT</button>
+</div>
+</div>
+
 <div class="ad-overlay" id="interstitialOverlay">
 <div class="ad-card">
 <div style="font-size:11px;font-weight:900;color:var(--muted);letter-spacing:1px">TEST INTERSTITIAL</div>
@@ -705,7 +744,12 @@ const LEVELS=[
 {target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:3,bombSpawnEvery:2},
 {target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
 {target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
-{target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:2,bombSpawnEvery:1}
+{target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:2,bombSpawnEvery:1},
+{target:18,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,frozenCount:1},
+{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,frozenCount:2},
+{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,frozenCount:3},
+{target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,freeForm:true,frozenCount:3},
+{target:42,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,freeForm:true,frozenCount:4}
 ];
 
 const GRID_SIZE=16;
@@ -724,6 +768,7 @@ let newTileIndexes=[];
 let selectedOperator="+";
 const SUBTRACTION_INTRO_KEY="makeTenSubtractionIntroSeen";
 const MULTIPLICATION_INTRO_KEY="makeTenMultiplicationIntroSeen";
+const FROZEN_INTRO_KEY="makeTenFrozenIntroSeen";
 const LOCK_INTRO_KEY="makeTenLockIntroSeen";
 
 const MAX_LIVES=5;
@@ -747,6 +792,7 @@ let bombStates={};
 let bombExplosionMessage="";
 let successfulSolutionsSinceBombSpawn=0;
 let pendingInterstitialNextIndex=null;
+let frozenIndexes=[];
 let lockedIndexes=[];
 let pendingChapterNextIndex=null;
 
@@ -1335,7 +1381,8 @@ if(level.chapter!==lastChapter){
     level.chapter==="Add It Up"?1:
     level.chapter==="Take It Away"?2:
     level.chapter==="Multiply"?3:
-    level.chapter==="Locked In"?4:5;
+    level.chapter==="Locked In"?4:
+    level.chapter==="Bomb Squad"?5:6;
 
 heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
     container.appendChild(heading);
@@ -1420,6 +1467,7 @@ selectedOperator=currentLevel.operators.includes("+")
 tiles=generateBoard();
 successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
+initializeFrozenTiles();
 
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
@@ -1462,6 +1510,11 @@ if(currentLevel.bombCount){
     ` 💣 Bombs return during the level. Fuse 1 means the next successful equation must use that bomb.`;
 }
 
+if(currentLevel.frozenCount){
+    document.getElementById("objectiveText").textContent+=
+    ` 🧊 Thaw frozen tiles by using an adjacent tile in a successful equation.`;
+}
+
 updateOperatorControls();
 updateEquationBuilder();
 
@@ -1483,6 +1536,10 @@ if(index===20&&!localStorage.getItem(MULTIPLICATION_INTRO_KEY)){
 
 if(index===25&&!localStorage.getItem(LOCK_INTRO_KEY)){
     document.getElementById("lockMechanicOverlay").style.display="flex";
+}
+
+if(index===35&&!localStorage.getItem(FROZEN_INTRO_KEY)){
+    document.getElementById("frozenMechanicOverlay").style.display="flex";
 }
 }
 
@@ -1740,9 +1797,22 @@ if(bombStates&&Object.prototype.hasOwnProperty.call(bombStates,index)){
     button.innerHTML+=`<span class="bomb-symbol">💣</span><span class="bomb-badge">${bombStates[index]}</span>`;
 }
 
-button.onclick=()=>currentLevel.expressionMode
-    ? selectExpressionTile(index)
-    : selectTile(index);
+if(frozenIndexes.includes(index)){
+    button.classList.add("frozen");
+    button.innerHTML+=`<span class="freeze-icon">🧊</span>`;
+}
+
+button.onclick=()=>{
+    if(frozenIndexes.includes(index)){
+        document.getElementById("feedback").textContent="🧊 Frozen — thaw it first!";
+        document.getElementById("feedback").className="feedback wrong";
+        return;
+    }
+
+    currentLevel.expressionMode
+        ? selectExpressionTile(index)
+        : selectTile(index);
+};
 
 grid.appendChild(button);
 });
@@ -2200,6 +2270,142 @@ for(
 }
 }
 
+
+function orthogonalNeighbors(index){
+
+const row=Math.floor(index/4);
+const col=index%4;
+const neighbors=[];
+
+if(row>0)neighbors.push(index-4);
+if(row<3)neighbors.push(index+4);
+if(col>0)neighbors.push(index-1);
+if(col<3)neighbors.push(index+1);
+
+return neighbors;
+}
+
+function initializeFrozenTiles(){
+
+frozenIndexes=[];
+
+if(!currentLevel.frozenCount){
+    return;
+}
+
+const candidates=shuffle(
+    Array.from({length:tiles.length},(_,i)=>i)
+);
+
+for(const index of candidates){
+
+    if(frozenIndexes.length>=currentLevel.frozenCount){
+        break;
+    }
+
+    /*
+    Don't freeze every tile around the same area.
+    Also require at least one non-frozen neighbour so the tile can be thawed.
+    */
+
+    const neighbours=orthogonalNeighbors(index);
+
+    if(!neighbours.length){
+        continue;
+    }
+
+    frozenIndexes.push(index);
+}
+}
+
+function thawAdjacentFrozenTiles(usedIndexes){
+
+if(!currentLevel.frozenCount||!frozenIndexes.length){
+    return 0;
+}
+
+const usedSet=new Set(usedIndexes||[]);
+const thawed=[];
+
+for(const frozenIndex of frozenIndexes){
+
+    const neighbours=orthogonalNeighbors(frozenIndex);
+
+    if(
+        neighbours.some(index=>usedSet.has(index))
+    ){
+        thawed.push(frozenIndex);
+    }
+}
+
+if(!thawed.length){
+    return 0;
+}
+
+frozenIndexes=frozenIndexes.filter(
+    index=>!thawed.includes(index)
+);
+
+return thawed.length;
+}
+
+function replenishFrozenTiles(){
+
+if(!currentLevel.frozenCount){
+    return;
+}
+
+/*
+Frozen tiles are a chapter-wide board constraint.
+As tiles are thawed, new frozen tiles can appear later so the mechanic
+continues to matter across the level.
+*/
+
+const desired=Math.min(
+    currentLevel.frozenCount,
+    4
+);
+
+if(frozenIndexes.length>=desired){
+    return;
+}
+
+const occupied=new Set(frozenIndexes);
+
+const candidates=shuffle(
+    Array.from({length:tiles.length},(_,i)=>i)
+    .filter(index=>!occupied.has(index))
+);
+
+while(
+    frozenIndexes.length<desired &&
+    candidates.length
+){
+    const index=candidates.pop();
+
+    if(
+        orthogonalNeighbors(index).some(
+            neighbour=>!frozenIndexes.includes(neighbour)
+        )
+    ){
+        frozenIndexes.push(index);
+    }
+}
+}
+
+function closeFrozenIntro(){
+
+localStorage.setItem(
+    FROZEN_INTRO_KEY,
+    "1"
+);
+
+document.getElementById(
+    "frozenMechanicOverlay"
+).style.display="none";
+}
+
+
 function updateEquationBuilder(){
 
 const builder=document.getElementById("equationBuilder");
@@ -2358,12 +2564,20 @@ if(total===currentLevel.target&&locksSatisfied){
 
     tickBombs(used);
 
+    const thawedCount=thawAdjacentFrozenTiles(used);
+
     const buttons=document.querySelectorAll(".tile");
     used.forEach(i=>buttons[i]&&buttons[i].classList.add("correct-pop"));
 
     if(bombExplosionMessage){
         document.getElementById("feedback").textContent=bombExplosionMessage;
         document.getElementById("feedback").className="feedback wrong";
+    }else if(thawedCount>0){
+        document.getElementById("feedback").textContent=
+            thawedCount===1
+            ? "🧊 Tile thawed!"
+            : `🧊 ${thawedCount} tiles thawed!`;
+        document.getElementById("feedback").className="feedback correct";
     }
 
     if(solutionsDone>=currentLevel.goal){
