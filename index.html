@@ -303,6 +303,87 @@ button{font:inherit}
     font-weight:900;
 }
 
+
+.tile.locked-tile{
+    outline:3px solid #e6a43a;
+    position:relative;
+}
+
+.lock-badge{
+    position:absolute;
+    top:6px;
+    right:7px;
+    font-size:16px;
+    line-height:1;
+}
+
+.locked-objective{
+    color:#b97b1e;
+    font-weight:900;
+}
+
+.chapter-complete-card{
+    padding:30px 22px;
+    text-align:center;
+}
+
+.chapter-complete-icon{
+    width:98px;
+    height:98px;
+    border-radius:30px;
+    margin:0 auto 18px;
+    background:linear-gradient(145deg,var(--yellow),#ffeaa8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:48px;
+}
+
+.chapter-complete-card h2{
+    margin:0;
+    font-size:34px;
+}
+
+.chapter-name{
+    color:var(--muted);
+    font-size:14px;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-top:5px;
+}
+
+.chapter-unlock-box{
+    margin:22px 0;
+    padding:18px;
+    border-radius:17px;
+    background:#f7f4ee;
+}
+
+.chapter-unlock-label{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+
+.chapter-unlock-name{
+    margin-top:5px;
+    font-size:25px;
+    font-weight:900;
+}
+
+.chapter-reward{
+    margin:10px 0;
+    padding:12px;
+    border-radius:14px;
+    background:#eefaf4;
+    color:#3d8d69;
+    font-size:13px;
+    font-weight:900;
+}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -407,6 +488,43 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 </section>
 
+
+<section class="screen" id="chapterCompleteScreen">
+<div class="card chapter-complete-card">
+
+<div class="chapter-complete-icon">🏆</div>
+
+<h2>Chapter Complete!</h2>
+<div class="chapter-name" id="completedChapterName"></div>
+
+<div class="complete-stats">
+<div class="complete-stat">
+<strong id="chapterStarsEarned">0/0</strong>
+<span>Chapter Stars</span>
+</div>
+
+<div class="complete-stat">
+<strong>❤️ ×5</strong>
+<span>Lives Restored</span>
+</div>
+</div>
+
+<div class="chapter-unlock-box">
+<div class="chapter-unlock-label">New Chapter Unlocked</div>
+<div class="chapter-unlock-name" id="unlockedChapterName"></div>
+</div>
+
+<div class="chapter-reward">
+Full lives restored for your next chapter.
+</div>
+
+<button class="main-btn" onclick="continueAfterChapter()">
+CONTINUE
+</button>
+
+</div>
+</section>
+
 <section class="screen" id="failedScreen">
 <div class="card failed-card">
 <h2>Out of Moves</h2>
@@ -449,6 +567,18 @@ You can now multiply as part of an equation. Later puzzles let you mix × with +
 </div>
 </div>
 
+
+<div class="mechanic-overlay" id="lockMechanicOverlay">
+<div class="mechanic-card">
+<div class="mechanic-icon">🔒</div>
+<h2>New Mechanic!</h2>
+<p>
+Locked tiles must be used in the successful equation. Hit the target without the lock and it won't count.
+</p>
+<button class="main-btn" onclick="closeLockMechanicIntro()">GOT IT</button>
+</div>
+</div>
+
 <script>
 const LEVELS=[
 {target:10,goal:4,moves:7,maxNumber:9,selectionCount:2,operators:["+"],chapter:"Add It Up"},
@@ -477,7 +607,13 @@ const LEVELS=[
 {target:18,goal:6,moves:9,maxNumber:10,selectionCount:3,operators:["+","*"],chapter:"Multiply",expressionMode:true},
 {target:24,goal:7,moves:10,maxNumber:12,selectionCount:3,operators:["+","-","*"],chapter:"Multiply",expressionMode:true},
 {target:30,goal:7,moves:10,maxNumber:14,selectionCount:null,operators:["+","-","*"],chapter:"Multiply",expressionMode:true,freeForm:true},
-{target:36,goal:8,moves:11,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Multiply",expressionMode:true,freeForm:true}
+{target:36,goal:8,moves:11,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Multiply",expressionMode:true,freeForm:true},
+
+{target:20,goal:5,moves:8,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
+{target:24,goal:6,moves:9,maxNumber:12,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
+{target:30,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
+{target:40,goal:7,moves:10,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:1},
+{target:48,goal:8,moves:11,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:2}
 ];
 
 const GRID_SIZE=16;
@@ -496,6 +632,7 @@ let newTileIndexes=[];
 let selectedOperator="+";
 const SUBTRACTION_INTRO_KEY="makeTenSubtractionIntroSeen";
 const MULTIPLICATION_INTRO_KEY="makeTenMultiplicationIntroSeen";
+const LOCK_INTRO_KEY="makeTenLockIntroSeen";
 
 const MAX_LIVES=5;
 const LIFE_REGEN_MS=30*60*1000;
@@ -511,6 +648,8 @@ let mistakesThisLevel=0;
 let expressionTokens=[];
 let expressionTileIndexes=[];
 let pendingOperator=null;
+let lockedIndexes=[];
+let pendingChapterNextIndex=null;
 
 function shuffle(array){
 const copy=[...array];
@@ -1095,7 +1234,9 @@ if(level.chapter!==lastChapter){
     ? 1
     : level.chapter==="Take It Away"
     ? 2
-    : 3;
+    : level.chapter==="Multiply"
+    ? 3
+    : 4;
 
 heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
     container.appendChild(heading);
@@ -1162,6 +1303,7 @@ mistakesThisLevel=0;
 expressionTokens=[];
 expressionTileIndexes=[];
 pendingOperator=null;
+lockedIndexes=[];
 
 currentLevelIndex=index;
 currentLevel=LEVELS[index];
@@ -1182,13 +1324,21 @@ document.getElementById("targetDisplay").textContent=currentLevel.target;
 document.getElementById("solutionsGoal").textContent=currentLevel.goal;
 
 if(currentLevel.expressionMode){
+    let objectiveText="";
+
     if(currentLevel.freeForm){
-        document.getElementById("objectiveText").textContent=
-        `Make ${currentLevel.target}. Use as many tiles as you need.`;
+        objectiveText=`Make ${currentLevel.target}. Use as many tiles as you need.`;
     }else{
-        document.getElementById("objectiveText").textContent=
-        `Make ${currentLevel.target} using exactly ${currentLevel.selectionCount} tiles.`;
+        objectiveText=`Make ${currentLevel.target} using exactly ${currentLevel.selectionCount} tiles.`;
     }
+
+    if(currentLevel.lockedCount){
+        objectiveText+=currentLevel.lockedCount===1
+        ? " Use the locked tile."
+        : " Use both locked tiles.";
+    }
+
+    document.getElementById("objectiveText").textContent=objectiveText;
 }else if(currentLevel.selectionCount===3){
     document.getElementById("objectiveText").textContent=
     `Use exactly 3 tiles to make ${currentLevel.target}.`;
@@ -1220,6 +1370,10 @@ if(index===15&&!localStorage.getItem(SUBTRACTION_INTRO_KEY)){
 
 if(index===20&&!localStorage.getItem(MULTIPLICATION_INTRO_KEY)){
     document.getElementById("multiplyMechanicOverlay").style.display="flex";
+}
+
+if(index===25&&!localStorage.getItem(LOCK_INTRO_KEY)){
+    document.getElementById("lockMechanicOverlay").style.display="flex";
 }
 }
 
@@ -1311,7 +1465,40 @@ return currentLevel.operators[
 }
 
 function generateBoard(){
+
 const board=Array.from({length:GRID_SIZE},()=>randomNumber());
+
+if(currentLevel.lockedCount){
+    const solution=makeGuaranteedSolution();
+
+    const indexes=
+        shuffle(
+            Array.from(
+                {length:board.length},
+                (_,i)=>i
+            )
+        )
+        .slice(
+            0,
+            solution.values.length
+        );
+
+    solution.values.forEach(
+        (value,i)=>{
+            board[indexes[i]]=value;
+        }
+    );
+
+    lockedIndexes=
+        shuffle(indexes)
+        .slice(
+            0,
+            currentLevel.lockedCount
+        );
+
+    return board;
+}
+
 guaranteeSolutionOnBoard(board);
 return board;
 }
@@ -1413,8 +1600,15 @@ container.innerHTML="";
 tiles.forEach((value,index)=>{
 const button=document.createElement("button");
 button.className="tile";
-button.textContent=value;
 button.dataset.index=index;
+
+if(lockedIndexes.includes(index)){
+    button.classList.add("locked-tile");
+    button.innerHTML=`<span class="lock-badge">🔒</span><span>${value}</span>`;
+}else{
+    button.textContent=value;
+}
+
 if(selectedIndexes.includes(index))button.classList.add("selected");
 if(newTileIndexes.includes(index))button.classList.add("drop-in");
 button.onclick=()=>currentLevel.expressionMode?selectExpressionTile(index):selectTile(index);
@@ -1565,6 +1759,16 @@ localStorage.setItem(
 document.getElementById("multiplyMechanicOverlay").style.display="none";
 }
 
+function closeLockMechanicIntro(){
+
+localStorage.setItem(
+    LOCK_INTRO_KEY,
+    "1"
+);
+
+document.getElementById("lockMechanicOverlay").style.display="none";
+}
+
 
 function updateEquationBuilder(){
 
@@ -1688,7 +1892,13 @@ const total=evaluateTokens(expressionTokens);
 const used=[...expressionTileIndexes];
 const equation=expressionText();
 
-if(total===currentLevel.target){
+const locksSatisfied=
+    !currentLevel.lockedCount ||
+    lockedIndexes.every(
+        index=>used.includes(index)
+    );
+
+if(total===currentLevel.target&&locksSatisfied){
     solutionsDone++;
     updateHUD();
     document.getElementById("feedback").textContent="Perfect!";
@@ -1709,7 +1919,11 @@ if(total===currentLevel.target){
     mistakesThisLevel++;
     updateHUD();
     document.getElementById("feedback").textContent=
-        `${equation} = ${total} — not ${currentLevel.target}`;
+        total===currentLevel.target&&!locksSatisfied
+        ? (currentLevel.lockedCount===1
+            ? "Use the locked tile!"
+            : "Use both locked tiles!")
+        : `${equation} = ${total} — not ${currentLevel.target}`;
     document.getElementById("feedback").className="feedback wrong";
 
     const buttons=document.querySelectorAll(".tile");
@@ -1725,9 +1939,14 @@ if(total===currentLevel.target){
 
 function replaceExpressionTiles(indexes){
 
-indexes.forEach(i=>tiles[i]=randomNumber());
-guaranteeSolutionOnBoard(tiles);
-newTileIndexes=[...indexes];
+if(currentLevel.lockedCount){
+    tiles=generateBoard();
+    newTileIndexes=Array.from({length:GRID_SIZE},(_,i)=>i);
+}else{
+    indexes.forEach(i=>tiles[i]=randomNumber());
+    guaranteeSolutionOnBoard(tiles);
+    newTileIndexes=[...indexes];
+}
 
 expressionTokens=[];
 expressionTileIndexes=[];
@@ -1876,11 +2095,6 @@ inputLocked=true;
 const levelNumber=currentLevelIndex+1;
 const stars=calculateStars();
 const previousStars=Number(progress.stars[levelNumber]||0);
-progress.stars[levelNumber]=Math.max(previousStars,stars);
-
-if(levelNumber<LEVELS.length){
-progress.unlocked=Math.max(progress.unlocked,levelNumber+1);
-}
 
 const nextLevelData=
     LEVELS[
@@ -1894,11 +2108,74 @@ const chapterCompleted=
         currentLevel.chapter
     );
 
-if(chapterCompleted){
+const unlockingNextChapterNow=
+    Boolean(
+        chapterCompleted &&
+        progress.unlocked<
+        levelNumber+1
+    );
+
+progress.stars[levelNumber]=
+    Math.max(
+        previousStars,
+        stars
+    );
+
+if(levelNumber<LEVELS.length){
+    progress.unlocked=
+        Math.max(
+            progress.unlocked,
+            levelNumber+1
+        );
+}
+
+if(unlockingNextChapterNow){
     refillLives();
 }
 
 saveProgress();
+
+document.getElementById("starDisplay").textContent=
+    "★".repeat(stars)+
+    "☆".repeat(3-stars);
+
+document.getElementById("completeSolutions").textContent=
+    solutionsDone;
+
+document.getElementById("completeMoves").textContent=
+    movesLeft;
+
+let perfectLabel=
+    document.getElementById(
+        "perfectLabel"
+    );
+
+if(!perfectLabel){
+    perfectLabel=
+        document.createElement(
+            "div"
+        );
+
+    perfectLabel.id=
+        "perfectLabel";
+
+    perfectLabel.className=
+        "perfect-label";
+
+    document
+        .getElementById(
+            "starDisplay"
+        )
+        .insertAdjacentElement(
+            "afterend",
+            perfectLabel
+        );
+}
+
+perfectLabel.textContent=
+    mistakesThisLevel===0
+    ? "PERFECT — NO MISTAKES"
+    : "";
 
 const refillMessage=
     document.getElementById(
@@ -1907,33 +2184,109 @@ const refillMessage=
 
 if(refillMessage){
     refillMessage.style.display=
-        chapterCompleted
-        ? "block"
-        : "none";
+        "none";
 }
 
-document.getElementById("starDisplay").textContent="★".repeat(stars)+"☆".repeat(3-stars);
-document.getElementById("completeSolutions").textContent=solutionsDone;
-document.getElementById("completeMoves").textContent=movesLeft;
+if(unlockingNextChapterNow){
 
-let perfectLabel=document.getElementById("perfectLabel");
-if(!perfectLabel){
-    perfectLabel=document.createElement("div");
-    perfectLabel.id="perfectLabel";
-    perfectLabel.className="perfect-label";
-    document.getElementById("starDisplay").insertAdjacentElement("afterend",perfectLabel);
+    pendingChapterNextIndex=
+        currentLevelIndex+1;
+
+    const chapterLevels=
+        LEVELS
+        .map((level,index)=>({level,index}))
+        .filter(
+            item=>
+                item.level.chapter===
+                currentLevel.chapter
+        );
+
+    const chapterStars=
+        chapterLevels.reduce(
+            (sum,item)=>
+                sum+
+                Number(
+                    progress.stars[
+                        item.index+1
+                    ]||0
+                ),
+            0
+        );
+
+    document
+        .getElementById(
+            "completedChapterName"
+        )
+        .textContent=
+        currentLevel.chapter;
+
+    document
+        .getElementById(
+            "chapterStarsEarned"
+        )
+        .textContent=
+        `${chapterStars}/${chapterLevels.length*3}`;
+
+    document
+        .getElementById(
+            "unlockedChapterName"
+        )
+        .textContent=
+        nextLevelData.chapter;
+
+    showScreen(
+        "chapterCompleteScreen"
+    );
+
+    updateLifeUI();
+
+    return;
 }
-perfectLabel.textContent=mistakesThisLevel===0?"PERFECT — NO MISTAKES":"";
 
-const nextButton=document.getElementById("nextLevelButton");
-if(currentLevelIndex>=LEVELS.length-1){
-nextButton.textContent="LEVEL SELECT";
-nextButton.onclick=openLevels;
+const nextButton=
+    document
+    .getElementById(
+        "nextLevelButton"
+    );
+
+if(
+    currentLevelIndex>=
+    LEVELS.length-1
+){
+    nextButton.textContent=
+        "LEVEL SELECT";
+
+    nextButton.onclick=
+        openLevels;
 }else{
-nextButton.textContent="NEXT LEVEL";
-nextButton.onclick=nextLevel;
+    nextButton.textContent=
+        "NEXT LEVEL";
+
+    nextButton.onclick=
+        nextLevel;
 }
-showScreen("completeScreen");
+
+showScreen(
+    "completeScreen"
+);
+}
+
+function continueAfterChapter(){
+
+if(
+    pendingChapterNextIndex===null
+){
+    openLevels();
+    return;
+}
+
+const next=
+    pendingChapterNextIndex;
+
+pendingChapterNextIndex=
+    null;
+
+startLevel(next);
 }
 
 function failLevel(){
