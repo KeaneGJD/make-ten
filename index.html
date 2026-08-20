@@ -468,6 +468,112 @@ button{font:inherit}
 .how-section:first-of-type{border-top:0}.how-section strong{display:block;margin-bottom:4px}
 .mode-pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#f2efe9;margin:3px;font-size:11px;font-weight:900}
 
+
+.mode-selector{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:14px;
+}
+
+.mode-choice{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:20px;
+    padding:18px 14px;
+    min-height:122px;
+    text-align:left;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+
+.mode-choice:hover{
+    transform:translateY(-2px);
+}
+
+.mode-choice.selected{
+    transform:scale(1.045);
+    border-color:#cfc7bb;
+    box-shadow:0 14px 30px rgba(60,55,50,.12);
+}
+
+.mode-choice-icon{
+    font-size:30px;
+    display:block;
+    margin-bottom:10px;
+}
+
+.mode-choice strong{
+    display:block;
+    font-size:18px;
+    margin-bottom:4px;
+}
+
+.mode-choice span{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+}
+
+.mode-detail-card{
+    margin-top:16px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:20px;
+    box-shadow:0 16px 34px rgba(60,55,50,.10);
+    transform:translateY(0);
+    animation:modeFloat .2s ease;
+}
+
+.mode-detail-top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:10px;
+}
+
+.mode-detail-icon{
+    width:54px;
+    height:54px;
+    border-radius:16px;
+    background:#f6f2eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    flex:0 0 auto;
+}
+
+.mode-detail-card h3{
+    margin:0;
+    font-size:24px;
+}
+
+.mode-detail-card p{
+    margin:8px 0 16px;
+    color:var(--muted);
+    line-height:1.5;
+    font-size:13px;
+}
+
+@keyframes modeFloat{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+}
+
+@media(max-width:430px){
+    .mode-selector{
+        grid-template-columns:1fr 1fr;
+        gap:9px;
+    }
+    .mode-choice{
+        min-height:108px;
+        padding:15px 12px;
+    }
+}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -517,13 +623,49 @@ Prototype only — this simulates the future rewarded-ad restore.
 
 <section class="screen" id="playMenuScreen">
 <div class="card home-card">
-<div class="level-header"><button class="back-btn" onclick="showScreen('homeScreen')">←</button><h2>Play</h2><div style="width:42px"></div></div>
+<div class="level-header">
+<button class="back-btn" onclick="showScreen('homeScreen')">←</button>
+<h2>Choose Mode</h2>
+<div style="width:42px"></div>
+</div>
+
 <div class="unlock-strip" id="unlockedMechanicsText">Unlocked: ➕</div>
-<div class="mode-list">
-<button class="mode-card" onclick="openLevels()"><span class="mode-icon">🗺️</span><strong>Campaign</strong><span id="campaignMenuCopy">Continue your journey.</span></button>
-<button class="mode-card" onclick="startDailyMode()"><span class="mode-icon">📅</span><strong>Daily Challenge</strong><span>Five puzzles. One challenge each day.</span></button>
-<button class="mode-card" onclick="startArcadeMode()"><span class="mode-icon">⏱️</span><strong>Arcade</strong><span>60 seconds. Build a combo and chase a high score.</span></button>
-<button class="mode-card" onclick="startEndlessMode()"><span class="mode-icon">♾️</span><strong>Endless</strong><span>Three mistakes. See how long you can survive.</span></button>
+
+<div class="mode-selector">
+<button class="mode-choice selected" id="modeChoiceCampaign" onclick="selectGameMode('campaign')">
+<span class="mode-choice-icon">🗺️</span>
+<strong>Campaign</strong>
+<span>Progress & unlocks</span>
+</button>
+
+<button class="mode-choice" id="modeChoiceDaily" onclick="selectGameMode('daily')">
+<span class="mode-choice-icon">📅</span>
+<strong>Daily</strong>
+<span>5 puzzles today</span>
+</button>
+
+<button class="mode-choice" id="modeChoiceArcade" onclick="selectGameMode('arcade')">
+<span class="mode-choice-icon">⏱️</span>
+<strong>Arcade</strong>
+<span>60 second score run</span>
+</button>
+
+<button class="mode-choice" id="modeChoiceEndless" onclick="selectGameMode('endless')">
+<span class="mode-choice-icon">♾️</span>
+<strong>Endless</strong>
+<span>Survive 3 mistakes</span>
+</button>
+</div>
+
+<div class="mode-detail-card" id="modeDetailCard">
+<div class="mode-detail-top">
+<div class="mode-detail-icon" id="modeDetailIcon">🗺️</div>
+<div>
+<h3 id="modeDetailTitle">Campaign</h3>
+</div>
+</div>
+<p id="modeDetailCopy">Work through the campaign, earn stars and unlock new mechanics for every other mode.</p>
+<button class="main-btn" id="modeDetailPlayButton" onclick="launchSelectedMode()">PLAY CAMPAIGN</button>
 </div>
 </div>
 </section>
@@ -845,6 +987,7 @@ let lockedIndexes=[];
 let pendingChapterNextIndex=null;
 
 let gameMode="campaign";
+let selectedMenuMode="campaign";
 let modeScore=0;
 let modeCombo=0;
 let modeBestCombo=0;
@@ -908,13 +1051,107 @@ if(f.locks)a.push("🔒 Locks");
 if(f.bombs)a.push("💣 Bombs");
 return a.join(" · ");
 }
+function modeMenuData(mode){
+
+const data={
+    campaign:{
+        icon:"🗺️",
+        title:"Campaign",
+        copy:`Work through ${LEVELS.length} levels, earn stars and unlock new mechanics for every other mode.`,
+        button:"PLAY CAMPAIGN"
+    },
+    daily:{
+        icon:"📅",
+        title:"Daily Challenge",
+        copy:"Five puzzles generated for today. Build your streak and come back tomorrow for a fresh challenge.",
+        button:"PLAY DAILY"
+    },
+    arcade:{
+        icon:"⏱️",
+        title:"Arcade",
+        copy:"You have 60 seconds. Solve quickly, build your combo and chase a new high score.",
+        button:"PLAY ARCADE"
+    },
+    endless:{
+        icon:"♾️",
+        title:"Endless",
+        copy:"No timer. Keep solving until you make three mistakes. Difficulty increases as your run continues.",
+        button:"PLAY ENDLESS"
+    }
+};
+
+return data[mode]||data.campaign;
+}
+
+function selectGameMode(mode){
+
+selectedMenuMode=mode;
+
+["campaign","daily","arcade","endless"].forEach(name=>{
+    const id=
+        "modeChoice"+
+        name.charAt(0).toUpperCase()+
+        name.slice(1);
+
+    const el=
+        document.getElementById(id);
+
+    if(el){
+        el.classList.toggle(
+            "selected",
+            name===mode
+        );
+    }
+});
+
+const data=modeMenuData(mode);
+
+document.getElementById("modeDetailIcon").textContent=data.icon;
+document.getElementById("modeDetailTitle").textContent=data.title;
+document.getElementById("modeDetailCopy").textContent=data.copy;
+document.getElementById("modeDetailPlayButton").textContent=data.button;
+
+const card=document.getElementById("modeDetailCard");
+card.style.animation="none";
+void card.offsetWidth;
+card.style.animation="";
+}
+
+function launchSelectedMode(){
+
+if(selectedMenuMode==="campaign"){
+    openLevels();
+    return;
+}
+
+if(selectedMenuMode==="daily"){
+    startDailyMode();
+    return;
+}
+
+if(selectedMenuMode==="arcade"){
+    startArcadeMode();
+    return;
+}
+
+if(selectedMenuMode==="endless"){
+    startEndlessMode();
+}
+}
+
 function openPlayMenu(){
+
 gameMode="campaign";
 clearModeTimer();
-document.getElementById("unlockedMechanicsText").textContent="Unlocked: "+mechanicsLabel();
-document.getElementById("campaignMenuCopy").textContent=`Continue from Level ${Math.min(progress.unlocked,LEVELS.length)} of ${LEVELS.length}.`;
+
+document.getElementById("unlockedMechanicsText").textContent=
+    "Unlocked: "+mechanicsLabel();
+
+selectedMenuMode="campaign";
 showScreen("playMenuScreen");
+selectGameMode("campaign");
 }
+
 function openHowToPlay(){
 document.getElementById("howUnlockedMechanics").innerHTML=mechanicsLabel().split(" · ").map(x=>`<span class="mode-pill">${x}</span>`).join("");
 showScreen("howToScreen");
