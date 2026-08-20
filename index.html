@@ -574,6 +574,25 @@ button{font:inherit}
     }
 }
 
+
+.mechanics-track{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:12px 0 4px}
+.mechanic-chip{width:42px;height:42px;border-radius:13px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 10px rgba(0,0,0,.04)}
+.mechanic-chip.locked{filter:grayscale(1);opacity:.28}
+.mode-progress{margin:12px 0 2px;text-align:left}
+.mode-progress-row{display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:var(--muted);margin-bottom:6px}
+.mini-progress{height:8px;background:#eeeae3;border-radius:99px;overflow:hidden}
+.mini-progress-fill{height:100%;background:#333;border-radius:99px;transition:width .25s ease}
+.arcade-score-pop{position:fixed;z-index:400;left:50%;top:34%;transform:translate(-50%,-50%);font-size:32px;font-weight:1000;pointer-events:none;animation:scorePop .65s ease forwards}
+@keyframes scorePop{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}35%{opacity:1;transform:translate(-50%,-55%) scale(1.12)}100%{opacity:0;transform:translate(-50%,-100%) scale(1)}}
+.mode-status-urgent{animation:urgentPulse .7s infinite alternate;font-weight:1000}
+@keyframes urgentPulse{to{transform:scale(1.035)}}
+.unlock-celebration{display:none;position:fixed;inset:0;z-index:350;background:rgba(40,42,46,.72);align-items:center;justify-content:center;padding:22px}
+.unlock-card{width:100%;max-width:360px;background:#fff;border-radius:24px;padding:26px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.2)}
+.unlock-icon{font-size:52px;margin-bottom:8px}
+.daily-results{display:flex;justify-content:center;gap:7px;margin:14px 0}
+.daily-result-dot{width:38px;height:38px;border-radius:12px;background:#f1eee8;display:flex;align-items:center;justify-content:center;font-weight:1000}
+.stats-section-title{grid-column:1/-1;text-align:left;font-size:12px;font-weight:1000;letter-spacing:.7px;color:var(--muted);margin-top:8px}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -629,7 +648,12 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div style="width:42px"></div>
 </div>
 
-<div class="unlock-strip" id="unlockedMechanicsText">Unlocked: ➕</div>
+<div class="unlock-strip" id="unlockedMechanicsText">Unlocked Mechanics</div>
+<div class="mechanics-track" id="mechanicsTrack"></div>
+<div class="mode-progress">
+<div class="mode-progress-row"><span id="campaignProgressLabel">Campaign</span><span id="campaignStarsLabel">0 ⭐</span></div>
+<div class="mini-progress"><div class="mini-progress-fill" id="campaignProgressFill" style="width:0%"></div></div>
+</div>
 
 <div class="mode-selector">
 <button class="mode-choice selected" id="modeChoiceCampaign" onclick="selectGameMode('campaign')">
@@ -674,13 +698,16 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div class="card home-card">
 <div class="level-header"><button class="back-btn" onclick="showScreen('homeScreen')">←</button><h2>Stats</h2><div style="width:42px"></div></div>
 <div class="stats-grid">
+<div class="stats-section-title">CAMPAIGN</div>
 <div class="stats-tile"><strong id="statLevels">0/40</strong><span>LEVELS CLEARED</span></div>
 <div class="stats-tile"><strong id="statStars">0/120</strong><span>CAMPAIGN STARS</span></div>
 <div class="stats-tile"><strong id="statPerfect">0</strong><span>PERFECT LEVELS</span></div>
 <div class="stats-tile"><strong id="statEquations">0</strong><span>EQUATIONS SOLVED</span></div>
+<div class="stats-section-title">ARCADE & ENDLESS</div>
 <div class="stats-tile"><strong id="statArcade">0</strong><span>ARCADE BEST</span></div>
 <div class="stats-tile"><strong id="statCombo">×0</strong><span>BEST COMBO</span></div>
 <div class="stats-tile"><strong id="statEndless">0</strong><span>ENDLESS BEST</span></div>
+<div class="stats-section-title">DAILY</div>
 <div class="stats-tile"><strong id="statDaily">0</strong><span>DAILIES COMPLETE</span></div>
 <div class="stats-tile"><strong id="statStreak">0</strong><span>DAILY STREAK</span></div>
 <div class="stats-tile"><strong id="statBestStreak">0</strong><span>BEST STREAK</span></div>
@@ -705,6 +732,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div class="complete-badge" id="modeCompleteIcon">✓</div>
 <h2 id="modeCompleteTitle">Run Complete!</h2>
 <p class="home-copy" id="modeCompleteCopy"></p>
+<div class="daily-results" id="dailyResults" style="display:none"></div>
 <div class="complete-actions">
 <button class="main-btn" id="modeReplayButton">PLAY AGAIN</button>
 <button class="secondary-btn" onclick="openPlayMenu()">MODES</button>
@@ -997,6 +1025,8 @@ let modeTimeLeft=0;
 let modeTimer=null;
 let dailyPuzzleNumber=0;
 let dailyDateKey="";
+let dailyResults=[];
+let lastKnownUnlock=Number(progress.unlocked||1);
 const MODE_STATS_KEY="makeTenModeStatsV011";
 let modeStats=loadModeStats();
 
@@ -1139,13 +1169,56 @@ if(selectedMenuMode==="endless"){
 }
 }
 
+
+function renderMechanicsTrack(){
+const f=unlockedFeatureSet();
+const items=[
+ ["➕",true,"Addition"],
+ ["➖",f.subtract,"Subtraction"],
+ ["✖️",f.multiply,"Multiplication"],
+ ["➗",f.divide,"Division"],
+ ["🔒",f.locks,"Locked Tiles"],
+ ["💣",f.bombs,"Bombs"]
+];
+document.getElementById("mechanicsTrack").innerHTML=items.map(([icon,on,label])=>
+`<div class="mechanic-chip ${on?"":"locked"}" title="${on?label:"Locked"}">${icon}</div>`
+).join("");
+}
+function updateMenuProgress(){
+const completed=Object.keys(progress.stars).length;
+const stars=Object.values(progress.stars).reduce((s,v)=>s+Number(v),0);
+document.getElementById("campaignProgressLabel").textContent=`Campaign · Level ${Math.min(progress.unlocked,LEVELS.length)}/${LEVELS.length}`;
+document.getElementById("campaignStarsLabel").textContent=`${stars} ⭐`;
+document.getElementById("campaignProgressFill").style.width=`${Math.min(100,(completed/LEVELS.length)*100)}%`;
+renderMechanicsTrack();
+}
+function unlockForLevel(level){
+if(level===6)return["➖","Subtraction Unlocked!","Subtraction can now appear in Daily, Arcade and Endless."];
+if(level===11)return["✖️","Multiplication Unlocked!","Multiplication can now appear in Daily, Arcade and Endless."];
+if(level===16)return["➗","Division Unlocked!","Division can now appear in Daily, Arcade and Endless."];
+if(level===26)return["🔒","Locked Tiles Unlocked!","Locked tiles can now appear in your other game modes."];
+if(level===31)return["💣","Bombs Unlocked!","Bombs can now appear in Arcade and Endless runs."];
+return null;
+}
+function showUnlockCelebration(level){
+const u=unlockForLevel(level);if(!u)return;
+document.getElementById("unlockCelebrationIcon").textContent=u[0];
+document.getElementById("unlockCelebrationTitle").textContent=u[1];
+document.getElementById("unlockCelebrationCopy").textContent=u[2];
+document.getElementById("unlockCelebration").style.display="flex";
+}
+function closeUnlockCelebration(){document.getElementById("unlockCelebration").style.display="none";}
+function arcadeScoreBurst(points){
+const el=document.createElement("div");el.className="arcade-score-pop";el.textContent=`+${points}`;
+document.body.appendChild(el);setTimeout(()=>el.remove(),700);
+}
 function openPlayMenu(){
 
 gameMode="campaign";
 clearModeTimer();
 
-document.getElementById("unlockedMechanicsText").textContent=
-    "Unlocked: "+mechanicsLabel();
+document.getElementById("unlockedMechanicsText").textContent="Unlocked Mechanics";
+updateMenuProgress();
 
 selectedMenuMode="campaign";
 showScreen("playMenuScreen");
@@ -1238,8 +1311,15 @@ renderGrid();resetSelectionText();updateEquationBuilder();updateOperatorControls
 }
 function updateModeStatus(){
 const el=document.getElementById("modeStatus");
-if(gameMode==="arcade")el.textContent=`⏱ ${modeTimeLeft}s · Score ${modeScore} · Combo ×${Math.max(1,modeCombo)}`;
-else if(gameMode==="endless")el.textContent=`♾️ Solved ${modeSolved} · Strikes ${modeMistakes}/3`;
+if(gameMode==="arcade"){
+ el.textContent=`⏱ ${modeTimeLeft}s · Score ${modeScore} · Combo ×${Math.max(1,modeCombo)}`;
+ el.classList.toggle("mode-status-urgent",modeTimeLeft<=10);
+}
+else if(gameMode==="endless"){
+ const hearts="❤️".repeat(Math.max(0,3-modeMistakes))+"🖤".repeat(Math.min(3,modeMistakes));
+ el.textContent=`♾️ Solved ${modeSolved} · ${hearts}`;
+ el.classList.remove("mode-status-urgent");
+}
 else if(gameMode==="daily")el.textContent=`📅 Puzzle ${dailyPuzzleNumber+1}/5 · Mistakes ${modeMistakes}`;
 else el.style.display="none";
 }
@@ -1267,7 +1347,7 @@ modeStats.endlessBest=Math.max(modeStats.endlessBest,modeSolved);saveModeStats()
 showModeComplete("♾️","Endless Complete",`You solved ${modeSolved} puzzle${modeSolved===1?"":"s"}. Best: ${modeStats.endlessBest}`,startEndlessMode);
 }
 function startDailyMode(){
-gameMode="daily";modeSolved=0;modeMistakes=0;dailyPuzzleNumber=0;
+gameMode="daily";modeSolved=0;modeMistakes=0;dailyPuzzleNumber=0;dailyResults=[];
 const d=dateSeed();dailyDateKey=d.key;
 startModePuzzle(makeModeLevel("daily",0,d.seed),"DAILY");
 }
@@ -1287,19 +1367,25 @@ if(!already){
  modeStats.dailyCompleted++;modeStats.lastDailyDate=dailyDateKey;saveModeStats();
 }
 showModeComplete("📅","Daily Complete",`5/5 solved · ${modeMistakes} mistake${modeMistakes===1?"":"s"} · 🔥 ${modeStats.dailyStreak} day streak`,startDailyMode);
+const results=document.getElementById("dailyResults");
+results.style.display="flex";
+results.innerHTML=dailyResults.map(x=>`<div class="daily-result-dot">${x}</div>`).join("");
 }
 function showModeComplete(icon,title,copy,replay){
 clearModeTimer();
 document.getElementById("modeCompleteIcon").textContent=icon;
 document.getElementById("modeCompleteTitle").textContent=title;
 document.getElementById("modeCompleteCopy").textContent=copy;
+document.getElementById("dailyResults").style.display="none";
+document.getElementById("dailyResults").innerHTML="";
 document.getElementById("modeReplayButton").onclick=replay;
 showScreen("modeCompleteScreen");
 }
 function modeCorrect(){
 modeStats.equations++;saveModeStats();
 if(gameMode==="arcade"){
- modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);modeScore+=100*Math.max(1,modeCombo);
+ modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
+ const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);
  setTimeout(()=>startModePuzzle(makeModeLevel("arcade",modeSolved),"ARCADE"),260);
  return true;
 }
@@ -1309,7 +1395,7 @@ if(gameMode==="endless"){
  return true;
 }
 if(gameMode==="daily"){
- modeSolved++;
+ modeSolved++;dailyResults.push("✓");
  setTimeout(nextDailyPuzzle,260);
  return true;
 }
@@ -3365,6 +3451,13 @@ if(unlockingNextChapterNow){
 
 saveProgress();
 
+const newlyUnlocked=Number(progress.unlocked||1);
+if(newlyUnlocked>lastKnownUnlock){
+    const crossed=[6,11,16,26,31].find(n=>n>lastKnownUnlock&&n<=newlyUnlocked);
+    lastKnownUnlock=newlyUnlocked;
+    if(crossed)setTimeout(()=>showUnlockCelebration(crossed),650);
+}
+
 if(testMode&&testProgressSnapshot){
     progress=JSON.parse(testProgressSnapshot);
 }
@@ -3653,5 +3746,13 @@ document.addEventListener(
     }
 );
 </script>
+<div class="unlock-celebration" id="unlockCelebration">
+<div class="unlock-card">
+<div class="unlock-icon" id="unlockCelebrationIcon">🎉</div>
+<h2 id="unlockCelebrationTitle">New Mechanic Unlocked!</h2>
+<p id="unlockCelebrationCopy"></p>
+<button class="main-btn" onclick="closeUnlockCelebration()">AWESOME</button>
+</div>
+</div>
 </body>
 </html>
