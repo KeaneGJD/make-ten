@@ -764,6 +764,83 @@ font-size:11px;font-weight:800;line-height:1.35;
 box-shadow:0 8px 24px rgba(0,0,0,.25);word-break:break-word;
 }
 
+
+/* v0.17 — Safe Game Feel Pass */
+.tile{
+    transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;
+}
+
+.tile:active{
+    transform:scale(.94);
+}
+
+.tile.selected{
+    animation:tileSelectPulse .18s ease;
+}
+
+@keyframes tileSelectPulse{
+    50%{transform:scale(1.065)}
+}
+
+.feedback.correct{
+    animation:feedbackCorrect .34s ease;
+}
+
+.feedback.wrong{
+    animation:feedbackWrong .32s ease;
+}
+
+@keyframes feedbackCorrect{
+    50%{transform:scale(1.055)}
+}
+
+@keyframes feedbackWrong{
+    25%{transform:translateX(-5px)}
+    50%{transform:translateX(5px)}
+    75%{transform:translateX(-3px)}
+}
+
+.target-number.numble-target-pop{
+    animation:targetPop .30s ease;
+}
+
+@keyframes targetPop{
+    50%{transform:scale(1.10)}
+}
+
+.numble-success-float{
+    position:fixed;
+    left:50%;
+    top:30%;
+    transform:translate(-50%,-50%);
+    z-index:500;
+    font-size:25px;
+    font-weight:1000;
+    pointer-events:none;
+    animation:numbleSuccessFloat .70s ease forwards;
+}
+
+@keyframes numbleSuccessFloat{
+    0%{opacity:0;transform:translate(-50%,-20%) scale(.82)}
+    30%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}
+    100%{opacity:0;transform:translate(-50%,-95%) scale(1)}
+}
+
+.sound-toggle{
+    position:fixed;
+    right:10px;
+    bottom:10px;
+    z-index:9000;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.92);
+    border-radius:999px;
+    padding:7px 10px;
+    font-size:10px;
+    font-weight:900;
+    box-shadow:var(--shadow);
+    cursor:pointer;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1161,6 +1238,217 @@ function numbleSafeAction(name,action){
         console.error(name,error);
     }
 }
+
+let numbleSoundEnabled =
+    localStorage.getItem("numbleSoundEnabled") !== "false";
+
+let numbleAudioContext = null;
+
+function numbleGetAudioContext(){
+
+    if(!numbleAudioContext){
+
+        const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if(AudioContextClass){
+            numbleAudioContext =
+                new AudioContextClass();
+        }
+    }
+
+    return numbleAudioContext;
+}
+
+function numbleTone(
+    frequency,
+    duration=.07,
+    type="sine",
+    volume=.025,
+    delay=0
+){
+
+    if(!numbleSoundEnabled){
+        return;
+    }
+
+    const ctx =
+        numbleGetAudioContext();
+
+    if(!ctx){
+        return;
+    }
+
+    const oscillator =
+        ctx.createOscillator();
+
+    const gain =
+        ctx.createGain();
+
+    oscillator.type =
+        type;
+
+    oscillator.frequency.value =
+        frequency;
+
+    const start =
+        ctx.currentTime + delay;
+
+    gain.gain.setValueAtTime(
+        .0001,
+        start
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        volume,
+        start + .01
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        .0001,
+        start + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(start);
+    oscillator.stop(
+        start + duration + .02
+    );
+}
+
+function numbleSfx(kind){
+
+    if(kind==="tap"){
+        numbleTone(
+            330,.045,"sine",.014
+        );
+    }
+
+    if(kind==="correct"){
+        numbleTone(
+            520,.08,"sine",.025
+        );
+
+        numbleTone(
+            700,.10,"sine",.022,.065
+        );
+    }
+
+    if(kind==="wrong"){
+        numbleTone(
+            180,.10,"square",.012
+        );
+
+        numbleTone(
+            145,.11,"square",.010,.055
+        );
+    }
+
+    if(kind==="combo"){
+        numbleTone(
+            650,.05,"triangle",.018
+        );
+
+        numbleTone(
+            830,.06,"triangle",.018,.045
+        );
+    }
+}
+
+function numbleHaptic(pattern){
+
+    if(
+        typeof navigator !== "undefined" &&
+        navigator.vibrate
+    ){
+        navigator.vibrate(pattern);
+    }
+}
+
+function numbleToggleSound(){
+
+    numbleSoundEnabled =
+        !numbleSoundEnabled;
+
+    localStorage.setItem(
+        "numbleSoundEnabled",
+        String(numbleSoundEnabled)
+    );
+
+    numbleUpdateSoundToggle();
+
+    if(numbleSoundEnabled){
+        numbleSfx("tap");
+    }
+}
+
+function numbleUpdateSoundToggle(){
+
+    const button =
+        document.getElementById(
+            "soundToggle"
+        );
+
+    if(button){
+        button.textContent =
+            numbleSoundEnabled
+            ? "🔊 SOUND"
+            : "🔇 SOUND";
+    }
+}
+
+function numbleSuccessFeedback(){
+
+    numbleSfx("correct");
+    numbleHaptic(30);
+
+    const target =
+        document.getElementById(
+            "targetDisplay"
+        );
+
+    if(target){
+        target.classList.remove(
+            "numble-target-pop"
+        );
+
+        void target.offsetWidth;
+
+        target.classList.add(
+            "numble-target-pop"
+        );
+    }
+
+    const float =
+        document.createElement(
+            "div"
+        );
+
+    float.className =
+        "numble-success-float";
+
+    float.textContent =
+        "PERFECT!";
+
+    document.body.appendChild(
+        float
+    );
+
+    setTimeout(
+        ()=>float.remove(),
+        750
+    );
+}
+
+function numbleWrongFeedback(){
+
+    numbleSfx("wrong");
+    numbleHaptic([20,30,20]);
+}
+
 
 const LEVELS=[
 {target:10,goal:4,moves:7,maxNumber:9,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
@@ -1991,6 +2279,7 @@ modeStats.equations++;saveModeStats();
 if(gameMode==="arcade"){
  modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
  const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);
+ if(modeCombo>=2)numbleSfx("combo");
  const comboCard=document.getElementById("arcadeComboCard");
  comboCard.classList.remove("combo-hot");
  void comboCard.offsetWidth;
@@ -3048,6 +3337,8 @@ newTileIndexes=[];
 }
 
 function selectTile(index){
+numbleSfx("tap");
+
 if(inputLocked)return;
 
 if(selectedIndexes.includes(index)){
@@ -3562,6 +3853,8 @@ line.innerHTML=html;
 }
 
 function selectExpressionTile(index){
+numbleSfx("tap");
+
 
 if(inputLocked||expressionTileIndexes.includes(index)){
     return;
@@ -3582,6 +3875,7 @@ if(expressionTokens.length===0){
 if(!pendingOperator){
     document.getElementById("feedback").textContent="Choose an operator first.";
     document.getElementById("feedback").className="feedback wrong";
+numbleWrongFeedback();
     return;
 }
 
@@ -3692,6 +3986,7 @@ const equation=expressionText();
 if(Number.isNaN(total)){
 
     mistakesThisLevel++;
+    numbleWrongFeedback();
     if(gameMode==="campaign")movesLeft--;
     else modeWrong();
     updateHUD();
@@ -3746,12 +4041,14 @@ if(
         inputLocked=true;
         document.getElementById("feedback").textContent="Perfect!";
         document.getElementById("feedback").className="feedback correct";
+        numbleSuccessFeedback();
         document.getElementById("selectionText").innerHTML=
             `${equation} = <strong>${currentLevel.target}</strong>`;
         modeCorrect();
         return;
     }
 
+    numbleSuccessFeedback();
     solutionsDone++;
     modeStats.equations++;
     saveModeStats();
@@ -3806,6 +4103,7 @@ if(
 }
 
 mistakesThisLevel++;
+numbleWrongFeedback();
 if(gameMode!=="campaign")modeWrong();
 updateHUD();
 
@@ -3973,6 +4271,7 @@ solutionsDone++;
 updateHUD();
 document.getElementById("feedback").textContent="Perfect!";
 document.getElementById("feedback").className="feedback correct";
+numbleSuccessFeedback();
 document.getElementById("selectionText").innerHTML=
 currentLevel.selectionCount===3
 ? `${values.join(" + ")} = <strong>${currentLevel.target}</strong>`
@@ -4373,6 +4672,15 @@ document.addEventListener(
         }
     }
 );
+
+if(document.readyState==="loading"){
+    document.addEventListener(
+        "DOMContentLoaded",
+        numbleUpdateSoundToggle
+    );
+}else{
+    numbleUpdateSoundToggle();
+}
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -4383,6 +4691,7 @@ document.addEventListener(
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.16.4</div>
+<button class="sound-toggle" id="soundToggle" onclick="numbleToggleSound()">🔊 SOUND</button>
+<div class="build-marker">NUMBLE BUILD v0.17</div>
 </body>
 </html>
