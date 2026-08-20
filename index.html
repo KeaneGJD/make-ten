@@ -1275,17 +1275,7 @@ body.tile-theme-mint .preview-accent{
     background:#51b8a5;
 }
 
-.profile-badge{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    margin-top:6px;
-    padding:5px 8px;
-    border-radius:999px;
-    background:var(--soft);
-    font-size:10px;
-    font-weight:1000;
-}
+
 
 body.tile-theme-crystal .tile{
     box-shadow:
@@ -1295,7 +1285,7 @@ body.tile-theme-crystal .tile{
 
 body.tile-theme-crystal .tile::after{
     content:"";
-    position:absolute;
+    
     inset:5px;
     border-radius:10px;
     border:1px solid rgba(255,255,255,.22);
@@ -1343,32 +1333,14 @@ body.tile-theme-mint.theme-dark .card{
 }
 
 /* Level 15: visible equipped badge */
-.player-badge-emblem{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:26px;
-    height:26px;
-    margin-left:6px;
-    border-radius:9px;
-    background:linear-gradient(145deg,#f5d878,#c9972f);
-    color:#2d2410;
-    border:1px solid rgba(70,50,10,.22);
-    box-shadow:0 3px 8px rgba(0,0,0,.12);
-    font-size:14px;
-    vertical-align:middle;
-}
 
-.profile-badge{
-    border:1px solid rgba(201,151,47,.35);
-    background:linear-gradient(145deg,#fff8df,#f2df9d);
-    color:#4b3a12;
-}
+
+
 
 /* Level 20: Crystal Tile Set */
 body.tile-theme-crystal .tile{
-    position:relative;
-    overflow:hidden;
+    
+    
     background:
         linear-gradient(145deg,rgba(255,255,255,.94),rgba(211,235,255,.72));
     border:1px solid rgba(104,159,205,.65);
@@ -1381,20 +1353,20 @@ body.tile-theme-crystal .tile{
 
 body.tile-theme-crystal .tile::before{
     content:"";
-    position:absolute;
+    
     left:8%;
     top:7%;
-    width:62%;
-    height:25%;
+    
+    
     border-radius:999px;
     background:linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,0));
-    transform:rotate(-7deg);
+    
     pointer-events:none;
 }
 
 body.tile-theme-crystal .tile::after{
     content:"";
-    position:absolute;
+    
     inset:4px;
     border-radius:10px;
     border:1px solid rgba(255,255,255,.62);
@@ -1435,8 +1407,8 @@ body.tile-theme-crystal.theme-dark .operator-btn{
 
 /* Mint — green tiles with leafy accents */
 body.tile-theme-mint .tile{
-    position:relative;
-    overflow:hidden;
+    
+    
     background:linear-gradient(145deg,#e8f8e9,#bfe7c2);
     border:1px solid #86bf8a;
     color:#214d27;
@@ -1445,12 +1417,12 @@ body.tile-theme-mint .tile{
 
 body.tile-theme-mint .tile::before{
     content:"❧";
-    position:absolute;
+    
     right:7px;
     top:3px;
     font-size:15px;
     opacity:.28;
-    transform:rotate(18deg);
+    
     pointer-events:none;
 }
 
@@ -1462,8 +1434,8 @@ body.tile-theme-mint .operator-btn{
 
 /* Ember — red/orange tiles with a subtle flame shimmer */
 body.tile-theme-ember .tile{
-    position:relative;
-    overflow:hidden;
+    
+    
     background:
         linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d);
     border:1px solid #c74a35;
@@ -1473,11 +1445,11 @@ body.tile-theme-ember .tile{
 
 body.tile-theme-ember .tile::before{
     content:"";
-    position:absolute;
+    
     left:10%;
     right:10%;
     bottom:-14px;
-    height:28px;
+    
     border-radius:50% 50% 20% 20%;
     background:
         radial-gradient(circle at 25% 80%,rgba(255,230,120,.9),transparent 36%),
@@ -1501,8 +1473,8 @@ body.tile-theme-ember .operator-btn{
 
 /* Deep Sea — cool blue tiles with rising bubble accents */
 body.tile-theme-deepsea .tile{
-    position:relative;
-    overflow:hidden;
+    
+    
     background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd);
     border:1px solid #3c8caf;
     color:#0e3851;
@@ -1512,23 +1484,23 @@ body.tile-theme-deepsea .tile{
 body.tile-theme-deepsea .tile::before,
 body.tile-theme-deepsea .tile::after{
     content:"";
-    position:absolute;
+    
     border:1px solid rgba(255,255,255,.65);
     border-radius:50%;
     pointer-events:none;
 }
 
 body.tile-theme-deepsea .tile::before{
-    width:9px;
-    height:9px;
+    
+    
     right:10px;
     bottom:8px;
     animation:bubbleRise 1.8s ease-in-out infinite;
 }
 
 body.tile-theme-deepsea .tile::after{
-    width:5px;
-    height:5px;
+    
+    
     right:22px;
     bottom:15px;
     animation:bubbleRise 1.45s ease-in-out infinite .3s;
@@ -1547,8 +1519,8 @@ body.tile-theme-deepsea .operator-btn{
 
 /* Crystal remains the premium late unlock */
 body.tile-theme-crystal .tile{
-    position:relative;
-    overflow:hidden;
+    
+    
     background:
         linear-gradient(145deg,rgba(255,255,255,.94),rgba(211,235,255,.72));
     border:1px solid rgba(104,159,205,.65);
@@ -1561,20 +1533,20 @@ body.tile-theme-crystal .tile{
 
 body.tile-theme-crystal .tile::before{
     content:"";
-    position:absolute;
+    
     left:8%;
     top:7%;
-    width:62%;
-    height:25%;
+    
+    
     border-radius:999px;
     background:linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,0));
-    transform:rotate(-7deg);
+    
     pointer-events:none;
 }
 
 body.tile-theme-crystal .tile::after{
     content:"";
-    position:absolute;
+    
     inset:4px;
     border-radius:10px;
     border:1px solid rgba(255,255,255,.62);
@@ -1592,51 +1564,7 @@ body.tile-theme-crystal .operator-btn{
 .deepsea-preview{background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd)!important;border-color:#3c8caf!important}
 
 
-/* v0.21.4 — Cosmetic Layout Stability */
-.tile,
-.operator-btn,
-.cosmetic-option,
-.preview-tile{
-    box-sizing:border-box;
-}
-
-/* Themed tiles must never alter layout metrics */
-body.tile-theme-mint .tile,
-body.tile-theme-ember .tile,
-body.tile-theme-deepsea .tile,
-body.tile-theme-crystal .tile{
-    width:auto;
-    min-width:0;
-    height:auto;
-    margin:0;
-    padding:0;
-    transform:none;
-}
-
-/* Preserve the base grid/tile geometry from the core UI */
-.grid .tile{
-    width:100%;
-    aspect-ratio:1 / 1;
-}
-
-/* Operators keep their original sizing regardless of theme */
-.operator-btn{
-    width:100%;
-    min-width:0;
-}
-
-/* Decorative pseudo-elements are visual-only */
-body.tile-theme-mint .tile::before,
-body.tile-theme-ember .tile::before,
-body.tile-theme-deepsea .tile::before,
-body.tile-theme-deepsea .tile::after,
-body.tile-theme-crystal .tile::before,
-body.tile-theme-crystal .tile::after{
-    box-sizing:border-box;
-    pointer-events:none;
-}
-
-/* Do not let themed shadows/borders influence surrounding flow */
+/* v0.21.5 — theme isolation */
 body.tile-theme-mint .tile,
 body.tile-theme-ember .tile,
 body.tile-theme-deepsea .tile,
@@ -1645,16 +1573,6 @@ body.tile-theme-mint .operator-btn,
 body.tile-theme-ember .operator-btn,
 body.tile-theme-deepsea .operator-btn,
 body.tile-theme-crystal .operator-btn{
-    position:relative;
-    contain:paint;
-}
-
-/* Keep menus/cards from being affected by theme classes */
-.mode-choice,
-.mode-detail-card,
-.card,
-.home-card,
-.level-card{
     box-sizing:border-box;
 }
 
@@ -1861,7 +1779,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21.4</strong><br>
+<strong>Numble v0.21.5</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -6420,6 +6338,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21.4</div>
+<div class="build-marker">NUMBLE BUILD v0.21.5</div>
 </body>
 </html>
