@@ -455,33 +455,12 @@ button{font:inherit}
 .ad-countdown{font-size:12px;color:var(--muted);margin-bottom:10px}
 
 
-.tile.frozen{
-    outline:3px solid #8fd3ff;
-    outline-offset:-3px;
-    filter:saturate(.85);
-}
-
-.freeze-icon{
-    position:absolute;
-    top:5px;
-    left:6px;
-    font-size:16px;
-}
-
-.tile.frozen::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    border-radius:inherit;
-    background:rgba(180,225,255,.16);
-    pointer-events:none;
-}
-
-.freeze-note{
-    color:#4e8fb8;
-    font-weight:900;
-}
-
+.tile.wildcard{outline:3px solid #e5b94c;outline-offset:-3px;background:linear-gradient(145deg,#fffaf0,#fff2c9)}
+.wildcard-symbol{display:block;font-size:15px;line-height:1;margin-bottom:2px}
+.wildcard-picker{display:none;position:fixed;inset:0;z-index:260;background:rgba(42,44,50,.72);align-items:center;justify-content:center;padding:22px}
+.wildcard-card{width:100%;max-width:360px;background:white;border-radius:22px;padding:22px;text-align:center}
+.wildcard-options{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:16px 0}
+.wildcard-option{border:1px solid var(--border);background:#faf8f4;border-radius:13px;padding:13px 8px;font-weight:900;cursor:pointer}
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -682,17 +661,15 @@ Locked tiles must be used in the successful equation. Hit the target without the
 </div>
 </div>
 
-<div class="mechanic-overlay" id="frozenMechanicOverlay">
-<div class="mechanic-card">
-<div class="mechanic-icon">🧊</div>
-<h2>New Mechanic!</h2>
-<p>
-Frozen tiles can’t be selected at first. Use a tile directly next to them in a successful equation to thaw them.
-</p>
-<button class="main-btn" onclick="closeFrozenIntro()">GOT IT</button>
-</div>
-</div>
-
+<div class="mechanic-overlay" id="wildcardMechanicOverlay">
+<div class="mechanic-card"><div class="mechanic-icon">⭐</div><h2>New Mechanic!</h2>
+<p>Wildcard tiles are required to solve the puzzle. Tap ⭐? and choose the number it should become.</p>
+<button class="main-btn" onclick="closeWildcardIntro()">GOT IT</button></div></div>
+<div class="wildcard-picker" id="wildcardPicker"><div class="wildcard-card">
+<div style="font-size:30px">⭐</div><h2>Choose a Number</h2>
+<div class="wildcard-options" id="wildcardOptions"></div>
+<button class="secondary-btn" onclick="closeWildcardPicker()">CANCEL</button>
+</div></div>
 <div class="ad-overlay" id="interstitialOverlay">
 <div class="ad-card">
 <div style="font-size:11px;font-weight:900;color:var(--muted);letter-spacing:1px">TEST INTERSTITIAL</div>
@@ -745,11 +722,11 @@ const LEVELS=[
 {target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
 {target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
 {target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:2,bombSpawnEvery:1},
-{target:18,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,frozenCount:1},
-{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,frozenCount:2},
-{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,frozenCount:3},
-{target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,freeForm:true,frozenCount:3},
-{target:42,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Frozen",expressionMode:true,freeForm:true,frozenCount:4}
+{target:18,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Wild Card",expressionMode:true,wildcardCount:1,wildcardOptions:[1,2,3,4,5,6,7,8,9]},
+{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Wild Card",expressionMode:true,wildcardCount:1,wildcardOptions:[1,2,3,4,5,6,7,8,9]},
+{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Wild Card",expressionMode:true,wildcardCount:1,wildcardOptions:[2,5,8]},
+{target:36,goal:7,moves:10,maxNumber:18,selectionCount:3,operators:["+","-","*"],chapter:"Wild Card",expressionMode:true,wildcardCount:2,wildcardOptions:[1,2,3,4,5,6,7,8,9]},
+{target:48,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Wild Card",expressionMode:true,freeForm:true,wildcardCount:2,wildcardOptions:[2,4,6,8]}
 ];
 
 const GRID_SIZE=16;
@@ -768,7 +745,7 @@ let newTileIndexes=[];
 let selectedOperator="+";
 const SUBTRACTION_INTRO_KEY="makeTenSubtractionIntroSeen";
 const MULTIPLICATION_INTRO_KEY="makeTenMultiplicationIntroSeen";
-const FROZEN_INTRO_KEY="makeTenFrozenIntroSeen";
+const WILDCARD_INTRO_KEY="makeTenWildcardIntroSeen";
 const LOCK_INTRO_KEY="makeTenLockIntroSeen";
 
 const MAX_LIVES=5;
@@ -792,7 +769,9 @@ let bombStates={};
 let bombExplosionMessage="";
 let successfulSolutionsSinceBombSpawn=0;
 let pendingInterstitialNextIndex=null;
-let frozenIndexes=[];
+let wildcardIndexes=[];
+let wildcardValues={};
+let pendingWildcardIndex=null;
 let lockedIndexes=[];
 let pendingChapterNextIndex=null;
 
@@ -1467,7 +1446,7 @@ selectedOperator=currentLevel.operators.includes("+")
 tiles=generateBoard();
 successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
-initializeFrozenTiles();
+initializeWildcards();
 
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
@@ -1509,10 +1488,9 @@ if(currentLevel.bombCount){
     document.getElementById("objectiveText").textContent+=
     ` 💣 Bombs return during the level. Fuse 1 means the next successful equation must use that bomb.`;
 }
-
-if(currentLevel.frozenCount){
+if(currentLevel.wildcardCount){
     document.getElementById("objectiveText").textContent+=
-    ` 🧊 Thaw frozen tiles by using an adjacent tile in a successful equation.`;
+    ` ⭐ ${currentLevel.wildcardCount===1?"The Wildcard is":"Both Wildcards are"} required in every successful solution.`;
 }
 
 updateOperatorControls();
@@ -1537,9 +1515,8 @@ if(index===20&&!localStorage.getItem(MULTIPLICATION_INTRO_KEY)){
 if(index===25&&!localStorage.getItem(LOCK_INTRO_KEY)){
     document.getElementById("lockMechanicOverlay").style.display="flex";
 }
-
-if(index===35&&!localStorage.getItem(FROZEN_INTRO_KEY)){
-    document.getElementById("frozenMechanicOverlay").style.display="flex";
+if(index===35&&!localStorage.getItem(WILDCARD_INTRO_KEY)){
+document.getElementById("wildcardMechanicOverlay").style.display="flex";
 }
 }
 
@@ -1797,21 +1774,16 @@ if(bombStates&&Object.prototype.hasOwnProperty.call(bombStates,index)){
     button.innerHTML+=`<span class="bomb-symbol">💣</span><span class="bomb-badge">${bombStates[index]}</span>`;
 }
 
-if(frozenIndexes.includes(index)){
-    button.classList.add("frozen");
-    button.innerHTML+=`<span class="freeze-icon">🧊</span>`;
+if(wildcardIndexes.includes(index)){
+    button.classList.add("wildcard");
+    const shown=Object.prototype.hasOwnProperty.call(wildcardValues,index)?wildcardValues[index]:"?";
+    button.innerHTML=`<span class="wildcard-symbol">⭐</span>${shown}`;
 }
-
 button.onclick=()=>{
-    if(frozenIndexes.includes(index)){
-        document.getElementById("feedback").textContent="🧊 Frozen — thaw it first!";
-        document.getElementById("feedback").className="feedback wrong";
-        return;
+    if(wildcardIndexes.includes(index)&&!Object.prototype.hasOwnProperty.call(wildcardValues,index)){
+        openWildcardPicker(index); return;
     }
-
-    currentLevel.expressionMode
-        ? selectExpressionTile(index)
-        : selectTile(index);
+    currentLevel.expressionMode?selectExpressionTile(index):selectTile(index);
 };
 
 grid.appendChild(button);
@@ -2271,141 +2243,77 @@ for(
 }
 
 
-function orthogonalNeighbors(index){
-
-const row=Math.floor(index/4);
-const col=index%4;
-const neighbors=[];
-
-if(row>0)neighbors.push(index-4);
-if(row<3)neighbors.push(index+4);
-if(col>0)neighbors.push(index-1);
-if(col<3)neighbors.push(index+1);
-
-return neighbors;
+function wildcardCounts(){
+if(currentLevel.maxTiles)return Array.from({length:currentLevel.maxTiles-1},(_,i)=>i+2);
+if(currentLevel.freeForm)return [2,3,4];
+return [currentLevel.selectionCount];
 }
-
-function initializeFrozenTiles(){
-
-frozenIndexes=[];
-
-if(!currentLevel.frozenCount){
-    return;
+function possibleWithIndexes(board,indexes){
+const vals=indexes.map(i=>board[i]);
+function walk(p,total){
+ if(p>=vals.length)return total===currentLevel.target;
+ for(const op of currentLevel.operators){
+  let n=op==="+"?total+vals[p]:op==="-"?total-vals[p]:total*vals[p];
+  if(walk(p+1,n))return true;
+ }
+ return false;
 }
-
-const candidates=shuffle(
-    Array.from({length:tiles.length},(_,i)=>i)
-);
-
-for(const index of candidates){
-
-    if(frozenIndexes.length>=currentLevel.frozenCount){
-        break;
-    }
-
-    /*
-    Don't freeze every tile around the same area.
-    Also require at least one non-frozen neighbour so the tile can be thawed.
-    */
-
-    const neighbours=orthogonalNeighbors(index);
-
-    if(!neighbours.length){
-        continue;
-    }
-
-    frozenIndexes.push(index);
+return walk(1,vals[0]);
 }
+function findSolution(board,required=[],excluded=[]){
+const req=new Set(required), ex=new Set(excluded);
+for(const count of wildcardCounts()){
+ if(!count||req.size>count)continue;
+ const search=(chosen)=>{
+  if(chosen.length===count){
+   if([...req].some(i=>!chosen.includes(i)))return null;
+   return possibleWithIndexes(board,chosen)?[...chosen]:null;
+  }
+  for(let i=0;i<board.length;i++){
+   if(ex.has(i)||chosen.includes(i))continue;
+   const next=[...chosen,i];
+   if([...req].filter(x=>!next.includes(x)).length>count-next.length)continue;
+   const r=search(next); if(r)return r;
+  }
+  return null;
+ };
+ const r=search([]); if(r)return r;
 }
-
-function thawAdjacentFrozenTiles(usedIndexes){
-
-if(!currentLevel.frozenCount||!frozenIndexes.length){
-    return 0;
+return null;
 }
-
-const usedSet=new Set(usedIndexes||[]);
-const thawed=[];
-
-for(const frozenIndex of frozenIndexes){
-
-    const neighbours=orthogonalNeighbors(frozenIndex);
-
-    if(
-        neighbours.some(index=>usedSet.has(index))
-    ){
-        thawed.push(frozenIndex);
-    }
+function initializeWildcards(){
+wildcardIndexes=[]; wildcardValues={}; pendingWildcardIndex=null;
+if(!currentLevel.wildcardCount)return;
+const count=currentLevel.wildcardCount, options=currentLevel.wildcardOptions||[1,2,3,4,5,6,7,8,9];
+for(let a=0;a<400;a++){
+ const board=Array.from({length:16},()=>randomNumber());
+ const indexes=shuffle(Array.from({length:16},(_,i)=>i)).slice(0,count);
+ const test=[...board];
+ indexes.forEach(i=>test[i]=options[Math.floor(Math.random()*options.length)]);
+ if(!findSolution(test,indexes,[]))continue;
+ if(findSolution(test,[],indexes))continue;
+ tiles.splice(0,tiles.length,...board);
+ wildcardIndexes=[...indexes];
+ return;
 }
-
-if(!thawed.length){
-    return 0;
+wildcardIndexes=shuffle(Array.from({length:tiles.length},(_,i)=>i)).slice(0,count);
 }
-
-frozenIndexes=frozenIndexes.filter(
-    index=>!thawed.includes(index)
-);
-
-return thawed.length;
+function openWildcardPicker(index){
+pendingWildcardIndex=index;
+const wrap=document.getElementById("wildcardOptions"); wrap.innerHTML="";
+(currentLevel.wildcardOptions||[1,2,3,4,5,6,7,8,9]).forEach(v=>{
+ const b=document.createElement("button"); b.className="wildcard-option"; b.textContent=v;
+ b.onclick=()=>chooseWildcardValue(v); wrap.appendChild(b);
+});
+document.getElementById("wildcardPicker").style.display="flex";
 }
-
-function replenishFrozenTiles(){
-
-if(!currentLevel.frozenCount){
-    return;
+function chooseWildcardValue(value){
+if(pendingWildcardIndex===null)return;
+const i=pendingWildcardIndex; wildcardValues[i]=Number(value); pendingWildcardIndex=null;
+document.getElementById("wildcardPicker").style.display="none"; renderGrid(); selectExpressionTile(i);
 }
-
-/*
-Frozen tiles are a chapter-wide board constraint.
-As tiles are thawed, new frozen tiles can appear later so the mechanic
-continues to matter across the level.
-*/
-
-const desired=Math.min(
-    currentLevel.frozenCount,
-    4
-);
-
-if(frozenIndexes.length>=desired){
-    return;
-}
-
-const occupied=new Set(frozenIndexes);
-
-const candidates=shuffle(
-    Array.from({length:tiles.length},(_,i)=>i)
-    .filter(index=>!occupied.has(index))
-);
-
-while(
-    frozenIndexes.length<desired &&
-    candidates.length
-){
-    const index=candidates.pop();
-
-    if(
-        orthogonalNeighbors(index).some(
-            neighbour=>!frozenIndexes.includes(neighbour)
-        )
-    ){
-        frozenIndexes.push(index);
-    }
-}
-}
-
-function closeFrozenIntro(){
-
-localStorage.setItem(
-    FROZEN_INTRO_KEY,
-    "1"
-);
-
-document.getElementById(
-    "frozenMechanicOverlay"
-).style.display="none";
-}
-
-
+function closeWildcardPicker(){pendingWildcardIndex=null;document.getElementById("wildcardPicker").style.display="none";}
+function closeWildcardIntro(){localStorage.setItem(WILDCARD_INTRO_KEY,"1");document.getElementById("wildcardMechanicOverlay").style.display="none";}
 function updateEquationBuilder(){
 
 const builder=document.getElementById("equationBuilder");
@@ -2550,11 +2458,13 @@ const equation=expressionText();
 
 const locksSatisfied=
     !currentLevel.lockedCount ||
-    lockedIndexes.every(
-        index=>used.includes(index)
-    );
+    lockedIndexes.every(index=>used.includes(index));
 
-if(total===currentLevel.target&&locksSatisfied){
+const wildcardsSatisfied=
+    !currentLevel.wildcardCount ||
+    wildcardIndexes.every(index=>used.includes(index));
+
+if(total===currentLevel.target&&locksSatisfied&&wildcardsSatisfied){
     solutionsDone++;
     updateHUD();
     document.getElementById("feedback").textContent="Perfect!";
@@ -2564,20 +2474,12 @@ if(total===currentLevel.target&&locksSatisfied){
 
     tickBombs(used);
 
-    const thawedCount=thawAdjacentFrozenTiles(used);
-
     const buttons=document.querySelectorAll(".tile");
     used.forEach(i=>buttons[i]&&buttons[i].classList.add("correct-pop"));
 
     if(bombExplosionMessage){
         document.getElementById("feedback").textContent=bombExplosionMessage;
         document.getElementById("feedback").className="feedback wrong";
-    }else if(thawedCount>0){
-        document.getElementById("feedback").textContent=
-            thawedCount===1
-            ? "🧊 Tile thawed!"
-            : `🧊 ${thawedCount} tiles thawed!`;
-        document.getElementById("feedback").className="feedback correct";
     }
 
     if(solutionsDone>=currentLevel.goal){
@@ -2590,10 +2492,10 @@ if(total===currentLevel.target&&locksSatisfied){
     mistakesThisLevel++;
     updateHUD();
     document.getElementById("feedback").textContent=
-        total===currentLevel.target&&!locksSatisfied
-        ? (currentLevel.lockedCount===1
-            ? "Use the locked tile!"
-            : "Use both locked tiles!")
+        total===currentLevel.target&&!wildcardsSatisfied
+        ? (currentLevel.wildcardCount===1?"Use the Wildcard!":"Use both Wildcards!")
+        : total===currentLevel.target&&!locksSatisfied
+        ? (currentLevel.lockedCount===1?"Use the locked tile!":"Use both locked tiles!")
         : `${equation} = ${total} — not ${currentLevel.target}`;
     document.getElementById("feedback").className="feedback wrong";
 
@@ -2614,8 +2516,11 @@ if(currentLevel.lockedCount){
     tiles=generateBoard();
     newTileIndexes=Array.from({length:GRID_SIZE},(_,i)=>i);
 }else{
-    indexes.forEach(i=>tiles[i]=randomNumber());
-    guaranteeSolutionOnBoard(tiles);
+    indexes.forEach(i=>{
+        tiles[i]=randomNumber();
+        if(wildcardIndexes.includes(i))delete wildcardValues[i];
+    });
+    if(!currentLevel.wildcardCount)guaranteeSolutionOnBoard(tiles);
     newTileIndexes=[...indexes];
 }
 
