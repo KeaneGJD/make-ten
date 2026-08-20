@@ -1048,6 +1048,18 @@ body.theme-dark .main-settings-btn{
     border-color:transparent;
 }
 
+
+/* v0.19 — Achievements */
+.achievement-grid{display:grid;gap:10px;margin-top:14px}
+.achievement-card{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:16px;background:var(--panel)}
+.achievement-card.locked{opacity:.58}
+.achievement-icon{width:46px;height:46px;flex:0 0 46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--soft);font-size:23px}
+.achievement-copy{flex:1}.achievement-copy strong{display:block;font-size:13px}.achievement-copy span{display:block;color:var(--muted);font-size:10px;line-height:1.35;margin-top:3px}
+.achievement-progress{font-size:10px;font-weight:900;margin-top:5px}.achievement-bar{height:5px;border-radius:999px;background:var(--soft);overflow:hidden;margin-top:5px}.achievement-bar-fill{height:100%;background:var(--blue);border-radius:999px}
+.achievement-summary{text-align:center;font-size:12px;font-weight:900;margin-top:8px}
+.achievement-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:11000;width:min(360px,calc(100% - 28px));padding:12px 14px;border-radius:16px;background:var(--panel);color:var(--text);border:1px solid var(--border);box-shadow:0 14px 36px rgba(0,0,0,.22);display:flex;align-items:center;gap:11px;animation:achievementToast .35s ease}
+@keyframes achievementToast{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1104,6 +1116,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <button class="main-btn" onclick="openPlayMenu()">PLAY</button>
 <button class="secondary-btn" onclick="openHowToPlay()" style="margin-top:8px">HOW TO PLAY</button>
 <button class="secondary-btn" onclick="openStats()" style="margin-top:8px">STATS</button>
+<button class="secondary-btn" onclick="openAchievements()" style="margin-top:8px">ACHIEVEMENTS</button>
 <div class="dev-tools">
 <button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
 <div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS & LIVES IGNORED</div>
@@ -1114,6 +1127,13 @@ Prototype only — this simulates the future rewarded-ad restore.
 
 
 
+<section class="screen" id="achievementsScreen">
+<div class="card home-card">
+<div class="level-header"><button class="back-btn" onclick="showScreen('homeScreen')">←</button><h2>Achievements</h2><div style="width:42px"></div></div>
+<div class="achievement-summary" id="achievementSummary">0 / 12 unlocked</div>
+<div class="achievement-grid" id="achievementGrid"></div>
+</div>
+</section>
 <section class="screen" id="settingsScreen">
 <div class="card home-card">
 <div class="level-header">
@@ -1175,7 +1195,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.18.1</strong><br>
+<strong>Numble v0.19</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1930,6 +1950,10 @@ function confirmResetProgress(){
         TEST_MODE_KEY
     );
 
+    localStorage.removeItem(
+        ACHIEVEMENT_KEY
+    );
+
     location.reload();
 }
 
@@ -1979,6 +2003,7 @@ function numbleSuccessFeedback(){
 
 function numbleWrongFeedback(){
 
+    achievementCleanFail();
     numbleSfx("wrong");
     numbleHaptic([20,30,20]);
 }
@@ -2811,8 +2836,9 @@ showScreen("modeCompleteScreen");
 function modeCorrect(){
 modeStats.equations++;saveModeStats();
 if(gameMode==="arcade"){
- modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
- const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);
+ modeSolved++;
+if(gameMode==="endless")achievementSetMax("bestEndlessRun",modeSolved);modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
+ const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);achievementSetMax("bestArcadeScore",modeScore);
  if(modeCombo>=2)numbleSfx("combo");
  const comboCard=document.getElementById("arcadeComboCard");
  comboCard.classList.remove("combo-hot");
@@ -3393,6 +3419,34 @@ localStorage.setItem(SAVE_KEY,JSON.stringify(progress));
 updateHomeStats();
 }
 
+
+const ACHIEVEMENT_KEY="numbleAchievementsV1";
+const ACHIEVEMENTS=[
+{id:"perfect_start",icon:"⭐",name:"Perfect Start",desc:"Earn 3 stars on a Campaign level.",goal:1,type:"threeStarLevels"},
+{id:"on_a_roll",icon:"🔥",name:"On a Roll",desc:"Solve 5 puzzles in a row without a mistake.",goal:5,type:"bestCleanStreak"},
+{id:"quick_thinker",icon:"⚡",name:"Quick Thinker",desc:"Solve a puzzle within 10 seconds.",goal:1,type:"quickSolves"},
+{id:"division_master",icon:"➗",name:"Division Master",desc:"Complete 10 successful puzzles using division.",goal:10,type:"divisionSolves"},
+{id:"bomb_disposal",icon:"💣",name:"Bomb Disposal",desc:"Successfully clear 10 bombs.",goal:10,type:"bombsCleared"},
+{id:"daily_routine",icon:"📅",name:"Daily Routine",desc:"Complete 7 Daily Challenges.",goal:7,type:"dailyCompleted"},
+{id:"arcade_rookie",icon:"🕹️",name:"Arcade Rookie",desc:"Score 1,000 points in Arcade.",goal:1000,type:"bestArcadeScore"},
+{id:"arcade_pro",icon:"🏆",name:"Arcade Pro",desc:"Score 5,000 points in Arcade.",goal:5000,type:"bestArcadeScore"},
+{id:"still_going",icon:"♾️",name:"Still Going",desc:"Solve 20 puzzles in a single Endless run.",goal:20,type:"bestEndlessRun"},
+{id:"perfectionist",icon:"🌟",name:"Perfectionist",desc:"Earn 3 stars on every level in a chapter.",goal:1,type:"perfectChapters"},
+{id:"chapter_clear",icon:"👑",name:"Chapter Clear",desc:"Finish a Campaign chapter.",goal:1,type:"chaptersCompleted"},
+{id:"campaign_complete",icon:"🏅",name:"Campaign Complete",desc:"Finish the full Campaign.",goal:1,type:"campaignCompleted"}];
+
+let achievementState=loadAchievementState();
+function loadAchievementState(){try{const s=JSON.parse(localStorage.getItem(ACHIEVEMENT_KEY)||"{}");return{unlocked:s.unlocked||{},counters:s.counters||{},cleanStreak:s.cleanStreak||0};}catch(e){return{unlocked:{},counters:{},cleanStreak:0};}}
+function saveAchievementState(){localStorage.setItem(ACHIEVEMENT_KEY,JSON.stringify(achievementState));}
+function achievementValue(t){return Number(achievementState.counters[t]||0);}
+function achievementSetMax(t,v){achievementState.counters[t]=Math.max(achievementValue(t),Number(v)||0);saveAchievementState();checkAchievements();}
+function achievementAdd(t,n=1){achievementState.counters[t]=achievementValue(t)+n;saveAchievementState();checkAchievements();}
+function achievementCleanSuccess(){achievementState.cleanStreak++;achievementSetMax("bestCleanStreak",achievementState.cleanStreak);}
+function achievementCleanFail(){achievementState.cleanStreak=0;saveAchievementState();}
+function checkAchievements(){ACHIEVEMENTS.forEach(a=>{if(!achievementState.unlocked[a.id]&&achievementValue(a.type)>=a.goal){achievementState.unlocked[a.id]=Date.now();saveAchievementState();showAchievementToast(a);}});}
+function showAchievementToast(a){const old=document.querySelector(".achievement-toast");if(old)old.remove();const toast=document.createElement("div");toast.className="achievement-toast";toast.innerHTML=`<div class="achievement-icon">${a.icon}</div><div><strong>Achievement Unlocked!</strong><br><span>${a.name}</span></div>`;document.body.appendChild(toast);numbleSfx("correct");numbleHaptic([25,35,25]);setTimeout(()=>toast.remove(),2600);}
+function renderAchievements(){const grid=document.getElementById("achievementGrid");if(!grid)return;grid.innerHTML="";let unlocked=0;ACHIEVEMENTS.forEach(a=>{const ok=!!achievementState.unlocked[a.id];if(ok)unlocked++;const value=Math.min(achievementValue(a.type),a.goal),pct=Math.min(100,value/a.goal*100);const card=document.createElement("div");card.className="achievement-card"+(ok?"":" locked");card.innerHTML=`<div class="achievement-icon">${ok?a.icon:"🔒"}</div><div class="achievement-copy"><strong>${a.name}</strong><span>${a.desc}</span><div class="achievement-progress">${ok?"UNLOCKED":`${value} / ${a.goal}`}</div><div class="achievement-bar"><div class="achievement-bar-fill" style="width:${ok?100:pct}%"></div></div></div>`;grid.appendChild(card);});document.getElementById("achievementSummary").textContent=`${unlocked} / ${ACHIEVEMENTS.length} unlocked`;}
+function openAchievements(){checkAchievements();renderAchievements();showScreen("achievementsScreen");}
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -4576,6 +4630,8 @@ if(
         document.getElementById("feedback").textContent="Perfect!";
         document.getElementById("feedback").className="feedback correct";
         numbleSuccessFeedback();
+        achievementCleanSuccess();
+        if(typeof selectedOperators!=="undefined"&&selectedOperators.includes("/"))achievementAdd("divisionSolves");
         document.getElementById("selectionText").innerHTML=
             `${equation} = <strong>${currentLevel.target}</strong>`;
         modeCorrect();
@@ -4583,6 +4639,8 @@ if(
     }
 
     numbleSuccessFeedback();
+    achievementCleanSuccess();
+    if(typeof selectedOperators!=="undefined"&&selectedOperators.includes("/"))achievementAdd("divisionSolves");
     solutionsDone++;
     modeStats.equations++;
     saveModeStats();
@@ -5263,6 +5321,6 @@ applyAppearanceMode();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.18.1</div>
+<div class="build-marker">NUMBLE BUILD v0.19</div>
 </body>
 </html>
