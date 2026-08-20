@@ -1587,7 +1587,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.22</strong><br>
+<strong>Numble v0.22.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4282,14 +4282,23 @@ LEVELS.forEach((level,index)=>{
 if(level.chapter!==lastChapter){
     const heading=document.createElement("div");
     heading.className="chapter-title";
-    const chapterNumber=
-    level.chapter==="Add It Up"?1:
-    level.chapter==="Take It Away"?2:
-    level.chapter==="Multiply"?3:
-    level.chapter==="Divide & Conquer"?4:
-    level.chapter==="Bigger Numbers"?5:
-    level.chapter==="Locked In"?6:
-    level.chapter==="Bomb Squad"?7:8;
+    const chapterOrder=[
+    "Add It Up",
+    "Take It Away",
+    "Multiply",
+    "Divide & Conquer",
+    "Bigger Numbers",
+    "Locked In",
+    "Bomb Squad",
+    "Triple Figures",
+    "Precision",
+    "Chain Reaction",
+    "Heavy Numbers",
+    "Mastery"
+];
+
+const chapterNumber=
+    chapterOrder.indexOf(level.chapter)+1;
 
 heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
     container.appendChild(heading);
@@ -6174,6 +6183,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.22</div>
+<div class="build-marker">NUMBLE BUILD v0.22.1</div>
 </body>
 </html>
