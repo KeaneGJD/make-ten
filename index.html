@@ -1373,6 +1373,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
 <div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS & LIVES IGNORED</div>
 <button class="dev-latest" id="latestTestButton" onclick="startLatestTest()">LATEST TEST → LEVEL 30</button>
+<button class="dev-latest" id="testCosmeticsButton" onclick="toggleTestCosmetics()" style="display:none">🎨 PREVIEW ALL COSMETICS: OFF</button>
 </div>
 </div>
 </section>
@@ -1505,7 +1506,7 @@ Soft Tiles · Lv 5
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21</strong><br>
+<strong>Numble v0.21.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2282,6 +2283,10 @@ function confirmResetProgress(){
         CUSTOMISE_KEY
     );
 
+    localStorage.removeItem(
+        TEST_COSMETICS_KEY
+    );
+
     location.reload();
 }
 
@@ -2416,6 +2421,8 @@ const MAX_AD_RESTORES_PER_WINDOW=3;
 let lifeState=loadLifeState();
 let lifeTimerInterval=null;
 const TEST_MODE_KEY="makeTenTestModeV071";
+const TEST_COSMETICS_KEY="numbleTestCosmeticsPreview";
+let testCosmeticsPreview=localStorage.getItem(TEST_COSMETICS_KEY)==="1";
 let testMode=localStorage.getItem(TEST_MODE_KEY)==="1";
 
 let lifeLostThisFailure=false;
@@ -3785,6 +3792,9 @@ localStorage.setItem(CUSTOMISE_KEY,JSON.stringify(customiseState));
 }
 
 function cosmeticUnlocked(level){
+if(testMode&&testCosmeticsPreview){
+    return true;
+}
 return Number(playerProgress&&playerProgress.level||1)>=level;
 }
 
@@ -5893,10 +5903,25 @@ if(next!==null&&next<LEVELS.length){
 }
 }
 
+function toggleTestCosmetics(){
+
+testCosmeticsPreview=!testCosmeticsPreview;
+
+localStorage.setItem(
+    TEST_COSMETICS_KEY,
+    testCosmeticsPreview?"1":"0"
+);
+
+updateTestModeUI();
+updateCustomiseUI();
+applyCustomisation();
+}
+
 function updateTestModeUI(){
 const toggle=document.getElementById("devToggleButton");
 const latest=document.getElementById("latestTestButton");
 const banner=document.getElementById("testModeBanner");
+const cosmetics=document.getElementById("testCosmeticsButton");
 if(toggle){
     toggle.textContent=testMode?"🛠 TEST MODE: ON":"🛠 TEST MODE: OFF";
     toggle.classList.toggle("active",testMode);
@@ -5906,12 +5931,23 @@ if(latest){
     latest.textContent=`LATEST TEST → LEVEL ${LEVELS.length}`;
 }
 if(banner)banner.style.display=testMode?"block":"none";
+
+if(cosmetics){
+    cosmetics.style.display=testMode?"block":"none";
+    cosmetics.textContent=
+        testCosmeticsPreview
+        ? "🎨 PREVIEW ALL COSMETICS: ON"
+        : "🎨 PREVIEW ALL COSMETICS: OFF";
+    cosmetics.classList.toggle("active",testCosmeticsPreview);
+}
 }
 
 function toggleTestMode(){
 testMode=!testMode;
 localStorage.setItem(TEST_MODE_KEY,testMode?"1":"0");
 updateTestModeUI();
+updateCustomiseUI();
+applyCustomisation();
 if(document.getElementById("levelScreen").classList.contains("active")){
     renderLevelSelect();
 }
@@ -6015,6 +6051,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21</div>
+<div class="build-marker">NUMBLE BUILD v0.21.1</div>
 </body>
 </html>
