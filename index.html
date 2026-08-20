@@ -2493,13 +2493,12 @@ if(!currentLevel.freeForm&&tileCount===currentLevel.selectionCount){
 }
 
 if(currentLevel.maxTiles&&tileCount>=2){
-    const total=evaluateTokens(expressionTokens);
-
-    if(total===currentLevel.target){
-        evaluateExpressionAttempt();
-        return;
-    }
-
+    /*
+    For "up to X tiles" levels, do not auto-submit merely because an
+    intermediate running total hits the target. The player may still need
+    to include another tile (for example a required negative tile).
+    Auto-submit only when the maximum tile count is reached.
+    */
     if(tileCount>=currentLevel.maxTiles){
         evaluateExpressionAttempt();
         return;
