@@ -1336,7 +1336,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.20.1</strong><br>
+<strong>Numble v0.20.3</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2256,6 +2256,7 @@ let successfulSolutionsSinceBombSpawn=0;
 let pendingInterstitialNextIndex=null;
 let lockedIndexes=[];
 let pendingChapterNextIndex=null;
+let campaignLevelXpAwarded=false;
 
 let gameMode="campaign";
 let selectedMenuMode="campaign";
@@ -3950,6 +3951,7 @@ container.appendChild(button);
 
 function startLevel(index){
 achievementPuzzleStartedAt=Date.now();
+campaignLevelXpAwarded=false;
 
 gameMode="campaign";
 clearModeTimer();
@@ -5083,6 +5085,8 @@ if(
 
     if(solutionsDone>=currentLevel.goal){
 
+        awardCampaignLevelXpOnce();
+
         setTimeout(()=>{
             completeLevel();
         },420);
@@ -5263,6 +5267,9 @@ if(total===currentLevel.target){
 
 function handleCorrect(values){
 solutionsDone++;
+modeStats.equations++;
+saveModeStats();
+addPlayerXp(2,"Equation");
 updateHUD();
 document.getElementById("feedback").textContent="Perfect!";
 document.getElementById("feedback").className="feedback correct";
@@ -5276,6 +5283,7 @@ const buttons=document.querySelectorAll(".tile");
 selectedIndexes.forEach(i=>buttons[i]&&buttons[i].classList.add("correct-pop"));
 
 if(solutionsDone>=currentLevel.goal){
+awardCampaignLevelXpOnce();
 setTimeout(completeLevel,420);
 return;
 }
@@ -5323,6 +5331,20 @@ function calculateStars(){
 if(mistakesThisLevel===0)return 3;
 if(mistakesThisLevel===1)return 2;
 return 1;
+}
+
+
+function awardCampaignLevelXpOnce(){
+
+if(
+    gameMode!=="campaign" ||
+    campaignLevelXpAwarded
+){
+    return;
+}
+
+campaignLevelXpAwarded=true;
+addPlayerXp(25,"Level Complete");
 }
 
 function completeLevel(){
@@ -5373,10 +5395,6 @@ if(unlockingNextChapterNow){
 
 saveProgress();
 syncCampaignAchievements();
-
-if(gameMode==="campaign"&&!testMode){
-    addPlayerXp(25,"Level Complete");
-}
 
 const newlyUnlocked=Number(progress.unlocked||1);
 if(newlyUnlocked>lastKnownUnlock){
@@ -5731,6 +5749,6 @@ updatePlayerProgressUI();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.20.1</div>
+<div class="build-marker">NUMBLE BUILD v0.20.3</div>
 </body>
 </html>
