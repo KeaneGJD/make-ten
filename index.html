@@ -1700,25 +1700,41 @@ return false;
 
 
 function renderGrid(){
-const container=document.getElementById("gameGrid");
-container.innerHTML="";
+
+const grid=document.getElementById("gameGrid");
+grid.innerHTML="";
+
 tiles.forEach((value,index)=>{
+
 const button=document.createElement("button");
 button.className="tile";
-button.dataset.index=index;
+button.textContent=value;
 
-if(lockedIndexes.includes(index)){
-    button.classList.add("locked-tile");
-    button.innerHTML=`<span class="lock-badge">🔒</span><span>${value}</span>`;
-}else{
-    button.textContent=value;
+if(selectedIndexes.includes(index)){
+    button.classList.add("selected");
 }
 
-if(selectedIndexes.includes(index))button.classList.add("selected");
-if(newTileIndexes.includes(index))button.classList.add("drop-in");
-button.onclick=()=>currentLevel.expressionMode?selectExpressionTile(index):selectTile(index);
-container.appendChild(button);
+if(newTileIndexes.includes(index)){
+    button.classList.add("new-tile");
+}
+
+if(typeof lockedTileIndexes!=="undefined"&&lockedTileIndexes.includes(index)){
+    button.classList.add("locked-tile");
+    button.innerHTML=`<span class="lock-icon">🔒</span>${value}`;
+}
+
+if(bombStates&&Object.prototype.hasOwnProperty.call(bombStates,index)){
+    button.classList.add("bomb");
+    button.innerHTML+=`<span class="bomb-symbol">💣</span><span class="bomb-badge">${bombStates[index]}</span>`;
+}
+
+button.onclick=()=>currentLevel.expressionMode
+    ? selectExpressionTile(index)
+    : selectTile(index);
+
+grid.appendChild(button);
 });
+
 newTileIndexes=[];
 }
 
