@@ -1360,38 +1360,54 @@ return Math.floor(Math.random()*(max-min+1))+min;
 function makeModeLevel(kind,step=0,seed=null){
 const ops=unlockedOperators();
 const f=unlockedFeatureSet();
-let maxTarget=ops.includes("*")?96:40;
-if(ops.includes("/"))maxTarget=120;
-if(kind==="endless")maxTarget=Math.min(240,maxTarget+Math.floor(step/5)*20);
-const target=randomModeTarget(10,maxTarget,seed);
-const level={
- target,
- goal:1,
- moves:99,
- maxNumber:Math.min(40,Math.max(10,Math.ceil(target/3))),
- selectionCount:step<3?2:3,
- operators:ops,
- chapter:"Free Play",
- expressionMode:true,
- wholeDivision:ops.includes("/")
-};
-if(step>=4){level.selectionCount=null;level.maxTiles=4;level.freeForm=true;}
-if(f.locks&&step>=5&&(kind!=="daily"||step>=3))level.lockedCount=1;
-if(f.bombs&&step>=8&&kind!=="daily"){level.bombCount=1;level.bombFuse=3;level.bombSpawnEvery=2;}
-return level;
-}
-function updateStandardHudVisibility(){
-const movesBox=document.getElementById("movesStatBox");
-const solutionsBox=document.getElementById("solutionsStatBox");
+const tileCount=step<3?2:step<8?3:4;
+const maxNumber=ops.includes("/")?24:ops.includes("*")?20:18;
+let state=seed!==null?(Number(seed)+step*7919)>>>0:((Date.now()+Math.floor(Math.random()*1000000))>>>0);
+function rng(){state=(state*1664525+1013904223)>>>0;return state/4294967296;}
+function pick(min,max){return Math.floor(rng()*(max-min+1))+min;}
 
-if(movesBox){
-    // Moves are a Campaign mechanic only.
-    movesBox.style.visibility=gameMode==="campaign"?"visible":"hidden";
+for(let attempt=0;attempt<1500;attempt++){
+ const values=[pick(2,maxNumber)], chosenOps=[];
+ let total=values[0];
+ for(let i=1;i<tileCount;i++){
+  let next=pick(2,maxNumber);
+  let valid=ops.filter(op=>{
+   if(op==="/")return next!==0&&next!==1&&total%next===0;
+   if(op==="*")return next!==1&&Math.abs(total*next)<=240;
+   return true;
+  });
+  if(!valid.length)valid=["+"];
+  let op=valid[Math.floor(rng()*valid.length)];
+  if(op==="/"){
+   const divisors=[];
+   for(let d=2;d<=maxNumber;d++)if(total%d===0)divisors.push(d);
+   if(divisors.length)next=divisors[Math.floor(rng()*divisors.length)];
+   else op="+";
+  }
+  values.push(next);chosenOps.push(op);
+  if(op==="+")total+=next;
+  else if(op==="-")total-=next;
+  else if(op==="*")total*=next;
+  else if(op==="/")total/=next;
+ }
+ if(!Number.isInteger(total)||total<5||total>240||values.includes(total))continue;
+ const level={target:total,goal:1,moves:99,maxNumber,selectionCount:tileCount,operators:[...ops],chapter:"Free Play",expressionMode:true,wholeDivision:ops.includes("/"),modeSolutionValues:[...values],modeSolutionOperators:[...chosenOps],guaranteedModeBoard:true};
+ if(kind==="endless"&&f.locks&&step>=5)level.lockedCount=1;
+ if(kind==="endless"&&f.bombs&&step>=8){level.bombCount=1;level.bombFuse=3;level.bombSpawnEvery=2;}
+ return level;
+}
+const useMultiply=ops.includes("*");
+return{target:useMultiply?24:15,goal:1,moves:99,maxNumber:18,selectionCount:2,operators:[...ops],chapter:"Free Play",expressionMode:true,wholeDivision:ops.includes("/"),modeSolutionValues:useMultiply?[6,4]:[8,7],modeSolutionOperators:[useMultiply?"*":"+"],guaranteedModeBoard:true};
 }
 
-if(solutionsBox){
-    solutionsBox.style.visibility="visible";
+function buildGuaranteedModeBoard(level){
+const board=[...(level.modeSolutionValues||[])];
+while(board.length<GRID_SIZE){
+ let value=randomNumber();
+ if(value===level.target||value===1)continue;
+ board.push(value);
 }
+return shuffle(board);
 }
 
 function startModePuzzle(level,title){
@@ -1409,7 +1425,9 @@ newTileIndexes=[];
 selectedOperator=level.operators.includes("+")?"+":level.operators[0];
 tiles=gameMode==="daily"&&level.dailySolutionValues
     ? buildDailyBoard(level)
-    : generateBoard();
+    : level.guaranteedModeBoard&&level.modeSolutionValues
+      ? buildGuaranteedModeBoard(level)
+      : generateBoard();
 successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
 document.getElementById("levelTitle").textContent=title;
