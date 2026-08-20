@@ -1451,7 +1451,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div class="dev-tools">
 <button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
 <div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS & LIVES IGNORED</div>
-<button class="dev-latest" id="latestTestButton" onclick="startLatestTest()">LATEST TEST → LEVEL 30</button>
+<button class="dev-latest" id="latestTestButton" onclick="startLatestTest()">LATEST TEST → LEVEL 60</button>
 <button class="dev-latest" id="testCosmeticsButton" onclick="toggleTestCosmetics()" style="display:none">🎨 PREVIEW ALL COSMETICS: OFF</button>
 </div>
 </div>
@@ -1587,7 +1587,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21.7</strong><br>
+<strong>Numble v0.22</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2470,7 +2470,35 @@ const LEVELS=[
 {target:120,goal:6,moves:9,maxNumber:32,selectionCount:3,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,wholeDivision:true},
 {target:144,goal:7,moves:10,maxNumber:36,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1},
 {target:180,goal:7,moves:10,maxNumber:40,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
-{target:240,goal:8,moves:12,maxNumber:48,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:1,bombFuse:2,bombSpawnEvery:1}
+{target:240,goal:8,moves:12,maxNumber:48,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:1,bombFuse:2,bombSpawnEvery:1},
+
+// 41–45 — Precision: exact tile counts and tighter move budgets
+{target:126,goal:6,moves:8,maxNumber:36,selectionCount:3,operators:["+","-","*","/"],chapter:"Precision",expressionMode:true,wholeDivision:true},
+{target:168,goal:6,moves:8,maxNumber:42,selectionCount:3,operators:["+","-","*","/"],chapter:"Precision",expressionMode:true,wholeDivision:true,lockedCount:1},
+{target:216,goal:7,moves:9,maxNumber:48,selectionCount:4,operators:["+","-","*","/"],chapter:"Precision",expressionMode:true,wholeDivision:true},
+{target:288,goal:7,moves:9,maxNumber:54,selectionCount:4,operators:["+","-","*","/"],chapter:"Precision",expressionMode:true,wholeDivision:true,lockedCount:1},
+{target:360,goal:8,moves:10,maxNumber:60,selectionCount:5,operators:["+","-","*","/"],chapter:"Precision",expressionMode:true,wholeDivision:true},
+
+// 46–50 — Chain Reaction: locks and bombs combined
+{target:180,goal:6,moves:9,maxNumber:42,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Chain Reaction",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:1,bombFuse:3,bombSpawnEvery:2},
+{target:240,goal:6,moves:9,maxNumber:48,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Chain Reaction",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:1,bombFuse:2,bombSpawnEvery:2},
+{target:300,goal:7,moves:10,maxNumber:54,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Chain Reaction",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:2,bombCount:1,bombFuse:3,bombSpawnEvery:1},
+{target:384,goal:7,moves:10,maxNumber:60,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Chain Reaction",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:2,bombFuse:2,bombSpawnEvery:2},
+{target:480,goal:8,moves:11,maxNumber:64,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Chain Reaction",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:2,bombCount:2,bombFuse:2,bombSpawnEvery:1},
+
+// 51–55 — Heavy Numbers: multiplication/division-focused large targets
+{target:324,goal:6,moves:9,maxNumber:54,selectionCount:3,operators:["+","-","*","/"],chapter:"Heavy Numbers",expressionMode:true,wholeDivision:true},
+{target:432,goal:6,moves:9,maxNumber:60,selectionCount:3,operators:["+","-","*","/"],chapter:"Heavy Numbers",expressionMode:true,wholeDivision:true},
+{target:540,goal:7,moves:10,maxNumber:72,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Heavy Numbers",expressionMode:true,freeForm:true,wholeDivision:true},
+{target:648,goal:7,moves:10,maxNumber:81,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Heavy Numbers",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1},
+{target:720,goal:8,moves:11,maxNumber:90,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Heavy Numbers",expressionMode:true,freeForm:true,wholeDivision:true,bombCount:1,bombFuse:3,bombSpawnEvery:2},
+
+// 56–60 — Mastery: full-toolkit endgame
+{target:420,goal:6,moves:9,maxNumber:64,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Mastery",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:1,bombFuse:3,bombSpawnEvery:2},
+{target:576,goal:7,moves:10,maxNumber:72,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Mastery",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:2,bombCount:1,bombFuse:2,bombSpawnEvery:2},
+{target:720,goal:7,moves:10,maxNumber:84,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Mastery",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:2,bombFuse:2,bombSpawnEvery:1},
+{target:864,goal:8,moves:11,maxNumber:96,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Mastery",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:2,bombCount:2,bombFuse:2,bombSpawnEvery:1},
+{target:960,goal:8,moves:12,maxNumber:100,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Mastery",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:2,bombCount:2,bombFuse:2,bombSpawnEvery:1}
 ];
 
 const GRID_SIZE=16;
@@ -6146,6 +6174,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21.7</div>
+<div class="build-marker">NUMBLE BUILD v0.22</div>
 </body>
 </html>
