@@ -759,9 +759,9 @@ Prototype only — this simulates the future rewarded-ad restore.
 
 <section class="screen" id="gameScreen">
 <div class="game-top">
-<div class="stat-box"><div class="stat-label">SOLUTIONS</div><div class="stat-value"><span id="solutionsDone">0</span>/<span id="solutionsGoal">0</span></div></div>
+<div class="stat-box" id="solutionsStatBox"><div class="stat-label">SOLUTIONS</div><div class="stat-value"><span id="solutionsDone">0</span>/<span id="solutionsGoal">0</span></div></div>
 <button class="game-menu-btn" onclick="exitModeOrLevel()">✕</button>
-<div class="stat-box right"><div class="stat-label">MOVES</div><div class="stat-value" id="movesDisplay">0</div></div>
+<div class="stat-box right" id="movesStatBox"><div class="stat-label">MOVES</div><div class="stat-value" id="movesDisplay">0</div></div>
 </div>
 <div class="level-title" id="levelTitle">LEVEL 1</div>
 <div class="unlock-strip" id="modeStatus" style="display:none"></div>
@@ -1286,6 +1286,20 @@ if(f.locks&&step>=5&&(kind!=="daily"||step>=3))level.lockedCount=1;
 if(f.bombs&&step>=8&&kind!=="daily"){level.bombCount=1;level.bombFuse=3;level.bombSpawnEvery=2;}
 return level;
 }
+function updateStandardHudVisibility(){
+const movesBox=document.getElementById("movesStatBox");
+const solutionsBox=document.getElementById("solutionsStatBox");
+
+if(movesBox){
+    // Moves are a Campaign mechanic only.
+    movesBox.style.visibility=gameMode==="campaign"?"visible":"hidden";
+}
+
+if(solutionsBox){
+    solutionsBox.style.visibility="visible";
+}
+}
+
 function startModePuzzle(level,title){
 currentLevel=level;
 currentLevelIndex=-1;
@@ -1316,6 +1330,7 @@ document.getElementById("objectiveText").textContent=
 document.getElementById("solutionsDone").textContent=0;
 document.getElementById("movesDisplay").textContent=gameMode==="arcade"?"∞":gameMode==="endless"?"❤":gameMode==="daily"?"5":"";
 document.getElementById("modeStatus").style.display="block";
+updateStandardHudVisibility();
 renderGrid();resetSelectionText();updateEquationBuilder();updateOperatorControls();showScreen("gameScreen");updateModeStatus();
 }
 function updateModeStatus(){
@@ -2350,6 +2365,7 @@ successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
 
 document.getElementById("modeStatus").style.display="none";
+updateStandardHudVisibility();
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
 document.getElementById("solutionsGoal").textContent=currentLevel.goal;
