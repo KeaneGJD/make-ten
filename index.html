@@ -1060,6 +1060,115 @@ body.theme-dark .main-settings-btn{
 .achievement-toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:11000;width:min(360px,calc(100% - 28px));padding:12px 14px;border-radius:16px;background:var(--panel);color:var(--text);border:1px solid var(--border);box-shadow:0 14px 36px rgba(0,0,0,.22);display:flex;align-items:center;gap:11px;animation:achievementToast .35s ease}
 @keyframes achievementToast{from{opacity:0;transform:translate(-50%,-12px)}to{opacity:1;transform:translate(-50%,0)}}
 
+
+/* v0.20 — Player Progression */
+.player-strip{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:12px 0 4px;
+    padding:12px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:var(--panel);
+}
+
+.player-level-badge{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    background:var(--soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    font-weight:1000;
+    flex:0 0 auto;
+}
+
+.player-level-copy{
+    flex:1;
+    min-width:0;
+}
+
+.player-level-copy strong{
+    display:block;
+    font-size:14px;
+}
+
+.player-xp-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    color:var(--muted);
+    font-weight:900;
+    margin-top:4px;
+}
+
+.player-xp-bar{
+    height:7px;
+    background:var(--soft);
+    border-radius:999px;
+    overflow:hidden;
+    margin-top:5px;
+}
+
+.player-xp-fill{
+    height:100%;
+    background:var(--blue);
+    border-radius:999px;
+    transition:width .25s ease;
+}
+
+.mode-meta-callout{
+    margin-top:8px;
+    font-size:10px;
+    font-weight:900;
+    color:var(--muted);
+}
+
+.levelup-toast{
+    position:fixed;
+    left:50%;
+    top:18%;
+    transform:translateX(-50%);
+    z-index:12000;
+    width:min(360px,calc(100% - 28px));
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:18px;
+    text-align:center;
+    box-shadow:0 18px 42px rgba(0,0,0,.24);
+    animation:levelUpIn .35s ease;
+}
+
+@keyframes levelUpIn{
+    from{opacity:0;transform:translate(-50%,-10px) scale(.96)}
+    to{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+
+.milestone-list{
+    display:grid;
+    gap:8px;
+    margin-top:12px;
+}
+
+.milestone-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--panel);
+    font-size:11px;
+}
+
+.milestone-row.locked{
+    opacity:.55;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1093,6 +1202,14 @@ body.theme-dark .main-settings-btn{
 <div class="hero-target"><span>10</span></div>
 <h1 class="home-title">Hit the target.</h1>
 <p class="home-copy">Combine number tiles to reach the target. Clear enough solutions before you run out of moves and unlock the next puzzle.</p>
+<div class="player-strip">
+<div class="player-level-badge" id="homePlayerLevel">1</div>
+<div class="player-level-copy">
+<strong id="homePlayerTitle">Player Level 1</strong>
+<div class="player-xp-row"><span id="homeXpText">0 / 100 XP</span><span id="homeNextReward">Next reward: Lv 5</span></div>
+<div class="player-xp-bar"><div class="player-xp-fill" id="homeXpFill" style="width:0%"></div></div>
+</div>
+</div>
 <div class="home-stats">
 <div class="home-stat"><strong id="homeLevels">0</strong><span>Levels Cleared</span></div>
 <div class="home-stat"><strong id="homeStars">0</strong><span>Stars Earned</span></div>
@@ -1195,7 +1312,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.19.1</strong><br>
+<strong>Numble v0.20</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1252,6 +1369,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
 <p id="modeDetailCopy">Work through the campaign, earn stars and unlock new mechanics for every other mode.</p>
+<div class="mode-meta-callout" id="modeMetaCallout"></div>
 <button class="main-btn" id="modeDetailPlayButton" onclick="numbleSafeAction('launch selected mode',function(){launchSelectedMode()})">PLAY CAMPAIGN</button>
 </div>
 </div>
@@ -1260,6 +1378,15 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <section class="screen" id="statsScreen">
 <div class="card home-card">
 <div class="level-header"><button class="back-btn" onclick="showScreen('homeScreen')">←</button><h2>Stats</h2><div style="width:42px"></div></div>
+<div class="player-strip">
+<div class="player-level-badge" id="statsPlayerLevel">1</div>
+<div class="player-level-copy">
+<strong id="statsPlayerTitle">Player Level 1</strong>
+<div class="player-xp-row"><span id="statsXpText">0 / 100 XP</span><span id="statsNextReward">Next reward: Lv 5</span></div>
+<div class="player-xp-bar"><div class="player-xp-fill" id="statsXpFill" style="width:0%"></div></div>
+</div>
+</div>
+<div class="milestone-list" id="milestoneList"></div>
 <div class="stats-grid">
 <div class="stats-section-title">CAMPAIGN</div>
 <div class="stats-tile"><strong id="statLevels">0/40</strong><span>LEVELS CLEARED</span></div>
@@ -1954,6 +2081,10 @@ function confirmResetProgress(){
         ACHIEVEMENT_KEY
     );
 
+    localStorage.removeItem(
+        PLAYER_PROGRESS_KEY
+    );
+
     location.reload();
 }
 
@@ -2239,6 +2370,7 @@ art.style.animation="";
 document.getElementById("modeDetailTitle").textContent=data.title;
 document.getElementById("modeDetailCopy").textContent=data.copy;
 document.getElementById("modeDetailPlayButton").textContent=data.button;
+document.getElementById("modeMetaCallout").textContent=modeMetaText(mode);
 
 const card=document.getElementById("modeDetailCard");
 card.style.animation="none";
@@ -2329,6 +2461,7 @@ document.getElementById("howUnlockedMechanics").innerHTML=mechanicsLabel().split
 showScreen("howToScreen");
 }
 function openStats(){
+updatePlayerProgressUI();
 const completed=Object.keys(progress.stars).length;
 const stars=Object.values(progress.stars).reduce((s,v)=>s+Number(v),0);
 const perfect=Object.values(progress.stars).filter(v=>Number(v)===3).length;
@@ -2547,6 +2680,7 @@ modeStats.arcadeBest=Math.max(modeStats.arcadeBest,modeScore);
 modeStats.bestCombo=Math.max(modeStats.bestCombo,modeBestCombo);
 saveModeStats();
 achievementSetMax("bestArcadeScore",modeStats.arcadeBest);
+addPlayerXp(Math.max(15,Math.floor(modeScore/250)),"Arcade run");
 showModeComplete("⏱️","Arcade Complete",`Score: ${modeScore} · Solved: ${modeSolved} · Best combo: ×${modeBestCombo}`,startArcadeMode);
 }
 function startEndlessMode(){
@@ -2558,6 +2692,7 @@ inputLocked=true;
 modeStats.endlessBest=Math.max(modeStats.endlessBest,modeSolved);
 saveModeStats();
 achievementSetMax("bestEndlessRun",modeStats.endlessBest);
+addPlayerXp(Math.max(15,modeSolved*3),"Endless run");
 showModeComplete("♾️","Endless Complete",`You solved ${modeSolved} puzzle${modeSolved===1?"":"s"}. Best: ${modeStats.endlessBest}`,startEndlessMode);
 }
 
@@ -2813,6 +2948,7 @@ if(dailyOfficialAttempt){
     modeStats.lastDailyDate=dailyDateKey;
     saveModeStats();
     achievementSetMax("dailyCompleted",modeStats.dailyCompleted);
+    addPlayerXp(100,"Daily Challenge");
 }
 
 showModeComplete(
@@ -2840,6 +2976,7 @@ showScreen("modeCompleteScreen");
 }
 function modeCorrect(){
 modeStats.equations++;saveModeStats();
+addPlayerXp(2,"Equation");
 if(gameMode==="arcade"){
  modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
  const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);achievementSetMax("bestArcadeScore",modeScore);
@@ -3425,6 +3562,155 @@ updateHomeStats();
 }
 
 
+
+const PLAYER_PROGRESS_KEY="numblePlayerProgressV1";
+
+const PLAYER_MILESTONES=[
+    {level:5,label:"Tile Theme I"},
+    {level:10,label:"Background Accent"},
+    {level:15,label:"Profile Badge"},
+    {level:20,label:"Special Tile Skin"}
+];
+
+let playerProgress=loadPlayerProgress();
+
+function loadPlayerProgress(){
+try{
+ const saved=JSON.parse(localStorage.getItem(PLAYER_PROGRESS_KEY)||"{}");
+ return{
+  xp:Number(saved.xp||0),
+  level:Number(saved.level||1),
+  claimed:saved.claimed||{}
+ };
+}catch(e){
+ return{xp:0,level:1,claimed:{}};
+}
+}
+
+function savePlayerProgress(){
+localStorage.setItem(PLAYER_PROGRESS_KEY,JSON.stringify(playerProgress));
+}
+
+function xpNeededForLevel(level){
+return 100 + (level-1)*25;
+}
+
+function totalXpIntoCurrentLevel(){
+let remaining=playerProgress.xp;
+for(let lvl=1;lvl<playerProgress.level;lvl++){
+ remaining-=xpNeededForLevel(lvl);
+}
+return Math.max(0,remaining);
+}
+
+function nextMilestoneLevel(){
+const next=PLAYER_MILESTONES.find(m=>m.level>playerProgress.level);
+return next?next.level:null;
+}
+
+function addPlayerXp(amount,reason=""){
+amount=Math.max(0,Math.floor(Number(amount)||0));
+if(!amount)return;
+
+playerProgress.xp+=amount;
+let leveled=false;
+
+while(true){
+ const neededTotal=
+   Array.from({length:playerProgress.level},(_,i)=>xpNeededForLevel(i+1))
+   .reduce((sum,v)=>sum+v,0);
+
+ if(playerProgress.xp<neededTotal)break;
+
+ playerProgress.level++;
+ leveled=true;
+}
+
+savePlayerProgress();
+updatePlayerProgressUI();
+
+if(leveled){
+ showLevelUpToast();
+}
+}
+
+function showLevelUpToast(){
+const old=document.querySelector(".levelup-toast");
+if(old)old.remove();
+
+const reward=PLAYER_MILESTONES.find(m=>m.level===playerProgress.level);
+
+const toast=document.createElement("div");
+toast.className="levelup-toast";
+toast.innerHTML=
+ `<div style="font-size:34px">⬆️</div>
+  <h2 style="margin:6px 0">Level Up!</h2>
+  <strong>You reached Level ${playerProgress.level}</strong>
+  <p style="color:var(--muted);font-size:12px">${reward?`Milestone unlocked: ${reward.label}`:"Keep solving to reach your next milestone."}</p>`;
+
+document.body.appendChild(toast);
+numbleSfx("correct");
+numbleHaptic([30,35,30]);
+
+setTimeout(()=>toast.remove(),2600);
+}
+
+function updatePlayerProgressUI(){
+const level=playerProgress.level;
+const current=totalXpIntoCurrentLevel();
+const needed=xpNeededForLevel(level);
+const pct=Math.min(100,current/needed*100);
+const next=nextMilestoneLevel();
+
+[
+ ["homePlayerLevel",level],
+ ["statsPlayerLevel",level],
+ ["homePlayerTitle",`Player Level ${level}`],
+ ["statsPlayerTitle",`Player Level ${level}`],
+ ["homeXpText",`${current} / ${needed} XP`],
+ ["statsXpText",`${current} / ${needed} XP`],
+ ["homeNextReward",next?`Next reward: Lv ${next}`:"All milestones reached"],
+ ["statsNextReward",next?`Next reward: Lv ${next}`:"All milestones reached"]
+].forEach(([id,value])=>{
+ const el=document.getElementById(id);
+ if(el)el.textContent=value;
+});
+
+["homeXpFill","statsXpFill"].forEach(id=>{
+ const el=document.getElementById(id);
+ if(el)el.style.width=`${pct}%`;
+});
+
+renderMilestones();
+}
+
+function renderMilestones(){
+const wrap=document.getElementById("milestoneList");
+if(!wrap)return;
+wrap.innerHTML=PLAYER_MILESTONES.map(m=>{
+ const unlocked=playerProgress.level>=m.level;
+ return `<div class="milestone-row ${unlocked?"":"locked"}">
+ <span>Level ${m.level}</span><strong>${unlocked?"✓ ":"🔒 "}${m.label}</strong></div>`;
+}).join("");
+}
+
+function modeMetaText(mode){
+if(mode==="campaign"){
+ const completed=Object.keys(progress.stars||{}).length;
+ const stars=Object.values(progress.stars||{}).reduce((s,v)=>s+Number(v),0);
+ return `${completed}/${LEVELS.length} levels · ${stars} ⭐`;
+}
+if(mode==="daily"){
+ return `🔥 ${Number(modeStats.dailyStreak||0)} day streak`;
+}
+if(mode==="arcade"){
+ return `Best: ${Number(modeStats.arcadeBest||0).toLocaleString()}`;
+}
+if(mode==="endless"){
+ return `Best: ${Number(modeStats.endlessBest||0)} solved`;
+}
+return "";
+}
 const ACHIEVEMENT_KEY="numbleAchievementsV1";
 const ACHIEVEMENTS=[
 {id:"perfect_start",icon:"⭐",name:"Perfect Start",desc:"Earn 3 stars on a Campaign level.",goal:1,type:"threeStarLevels"},
@@ -3510,6 +3796,7 @@ achievementSetMax(
 
 function openAchievements(){
 syncCampaignAchievements();
+addPlayerXp(25,"Campaign level");
 if(typeof modeStats!=="undefined"){
  achievementSetMax("dailyCompleted",Number(modeStats.dailyCompleted||0));
  achievementSetMax("bestArcadeScore",Number(modeStats.arcadeBest||0));
@@ -3539,6 +3826,7 @@ updateLifeUI();
 }
 
 function updateHomeStats(){
+updatePlayerProgressUI();
 const completed=Object.keys(progress.stars).length;
 const totalStars=Object.values(progress.stars).reduce((sum,v)=>sum+Number(v),0);
 document.getElementById("homeLevels").textContent=completed;
@@ -4725,6 +5013,7 @@ if(
     solutionsDone++;
     modeStats.equations++;
     saveModeStats();
+    addPlayerXp(2,"Equation");
     updateHUD();
 
     document.getElementById("feedback").textContent=
@@ -5393,6 +5682,8 @@ if(window.matchMedia){
 }
 
 applyAppearanceMode();
+
+updatePlayerProgressUI();
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -5403,6 +5694,6 @@ applyAppearanceMode();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.19.1</div>
+<div class="build-marker">NUMBLE BUILD v0.20</div>
 </body>
 </html>
