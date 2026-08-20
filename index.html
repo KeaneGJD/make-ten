@@ -1267,25 +1267,35 @@ body.tile-theme-soft .preview-tile{
     background:linear-gradient(145deg,#fff7e8,#f7e8c8);
 }
 
-body.tile-theme-mint{
+body.accent-mint{
     --blue:#51b8a5;
 }
 
-body.tile-theme-mint .preview-accent{
+body.accent-mint .preview-accent{
     background:#51b8a5;
 }
 
+.profile-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+    padding:5px 8px;
+    border-radius:999px;
+    background:var(--soft);
+    font-size:10px;
+    font-weight:1000;
+}
 
-
-body.tile-theme-crystal .tile{
+body.special-tile-skin .tile{
     box-shadow:
         inset 0 0 0 2px rgba(255,255,255,.35),
         0 8px 18px rgba(0,0,0,.08);
 }
 
-body.tile-theme-crystal .tile::after{
+body.special-tile-skin .tile::after{
     content:"";
-    
+    position:absolute;
     inset:5px;
     border-radius:10px;
     border:1px solid rgba(255,255,255,.22);
@@ -1293,287 +1303,82 @@ body.tile-theme-crystal .tile::after{
 }
 
 
-/* v0.21.2 — Cosmetic Upgrade Pass */
+/* v0.21.6 — isolated tile-only cosmetic themes */
 
-/* Level 10: Mint is now a fuller UI theme */
-body.tile-theme-mint{
-    --blue:#51b8a5;
+.numble-tile-mint .tile{
+    background:linear-gradient(145deg,#e8f8e9,#bfe7c2);
+    border-color:#86bf8a;
+    color:#214d27;
+    box-shadow:0 7px 16px rgba(55,120,65,.16);
 }
 
-body.tile-theme-mint .primary-btn,
-body.tile-theme-mint .setting-toggle.on,
-body.tile-theme-mint .appearance-btn.active,
-body.tile-theme-mint .achievement-bar-fill,
-body.tile-theme-mint .player-xp-fill{
-    background:#51b8a5;
+.numble-tile-ember .tile{
+    background:linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d);
+    border-color:#c74a35;
+    color:#4f170d;
+    box-shadow:0 7px 17px rgba(178,61,34,.22);
 }
 
-body.tile-theme-mint .mode-choice.selected,
-body.tile-theme-mint .cosmetic-option.selected{
-    outline-color:#51b8a5;
+.numble-tile-deepsea .tile{
+    background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd);
+    border-color:#3c8caf;
+    color:#0e3851;
+    box-shadow:0 8px 18px rgba(33,101,139,.22);
 }
 
-body.tile-theme-mint .operator-btn.selected,
-body.tile-theme-mint .tile.selected{
-    box-shadow:0 0 0 3px rgba(81,184,165,.28),var(--shadow);
-}
-
-body.tile-theme-mint .home-stat,
-body.tile-theme-mint .unlock-strip,
-body.tile-theme-mint .mode-meta-callout{
-    border-color:rgba(81,184,165,.35);
-}
-
-body.tile-theme-mint:not(.theme-dark) .card{
-    background:linear-gradient(180deg,#ffffff,#f4fffc);
-}
-
-body.tile-theme-mint.theme-dark .card{
-    background:linear-gradient(180deg,var(--panel),#20302e);
-}
-
-/* Level 15: visible equipped badge */
-
-
-
-
-/* Level 20: Crystal Tile Set */
-body.tile-theme-crystal .tile{
-    
-    
-    background:
-        linear-gradient(145deg,rgba(255,255,255,.94),rgba(211,235,255,.72));
-    border:1px solid rgba(104,159,205,.65);
+.numble-tile-crystal .tile{
+    background:linear-gradient(145deg,#ffffff,#cfeaff);
+    border-color:#78afd4;
+    color:#18384d;
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,.95),
-        inset 0 -8px 18px rgba(91,160,210,.10),
         0 7px 16px rgba(48,103,150,.18);
-    backdrop-filter:blur(5px);
 }
 
-body.tile-theme-crystal .tile::before{
-    content:"";
-    
-    left:8%;
-    top:7%;
-    
-    
-    border-radius:999px;
-    background:linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,0));
-    
-    pointer-events:none;
-}
-
-body.tile-theme-crystal .tile::after{
-    content:"";
-    
-    inset:4px;
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,.62);
-    pointer-events:none;
-}
-
-body.tile-theme-crystal .operator-btn{
-    background:linear-gradient(145deg,#edf8ff,#cdeaff);
-    border-color:rgba(104,159,205,.65);
-    box-shadow:0 5px 12px rgba(48,103,150,.14);
-}
-
-body.tile-theme-crystal.theme-dark .tile{
-    background:
-        linear-gradient(145deg,rgba(69,89,112,.94),rgba(35,61,84,.86));
-    color:#f6fbff;
-    border-color:rgba(133,198,245,.7);
+/* lightweight effects: box-shadow only, so geometry cannot change */
+.numble-tile-mint .tile.selected{
     box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.22),
-        inset 0 -8px 18px rgba(58,155,220,.12),
-        0 7px 16px rgba(0,0,0,.30);
+        0 0 0 3px rgba(75,160,83,.22),
+        0 7px 16px rgba(55,120,65,.16);
 }
 
-body.tile-theme-crystal.theme-dark .operator-btn{
-    background:linear-gradient(145deg,#354c60,#223747);
-    color:#f6fbff;
-    border-color:rgba(133,198,245,.55);
+.numble-tile-ember .tile.selected{
+    box-shadow:
+        0 0 0 3px rgba(230,92,48,.24),
+        0 7px 17px rgba(178,61,34,.22);
+}
+
+.numble-tile-deepsea .tile.selected{
+    box-shadow:
+        0 0 0 3px rgba(52,146,190,.24),
+        0 8px 18px rgba(33,101,139,.22);
+}
+
+.numble-tile-crystal .tile.selected{
+    box-shadow:
+        0 0 0 3px rgba(104,159,205,.24),
+        inset 0 1px 0 rgba(255,255,255,.95),
+        0 7px 16px rgba(48,103,150,.18);
+}
+
+.mint-preview{
+    background:linear-gradient(145deg,#e8f8e9,#bfe7c2)!important;
+    border-color:#86bf8a!important;
+}
+
+.ember-preview{
+    background:linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d)!important;
+    border-color:#c74a35!important;
+}
+
+.deepsea-preview{
+    background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd)!important;
+    border-color:#3c8caf!important;
 }
 
 .crystal-preview{
     background:linear-gradient(145deg,#ffffff,#cfeaff)!important;
     border-color:#78afd4!important;
-    box-shadow:inset 0 1px 0 #fff,0 4px 9px rgba(48,103,150,.18);
-}
-
-
-/* v0.21.3 — Themed Tile Rewards */
-
-/* Mint — green tiles with leafy accents */
-body.tile-theme-mint .tile{
-    
-    
-    background:linear-gradient(145deg,#e8f8e9,#bfe7c2);
-    border:1px solid #86bf8a;
-    color:#214d27;
-    box-shadow:0 7px 16px rgba(55,120,65,.16);
-}
-
-body.tile-theme-mint .tile::before{
-    content:"❧";
-    
-    right:7px;
-    top:3px;
-    font-size:15px;
-    opacity:.28;
-    
-    pointer-events:none;
-}
-
-body.tile-theme-mint .operator-btn{
-    background:linear-gradient(145deg,#effbef,#cfeccf);
-    color:#214d27;
-    border-color:#8dc491;
-}
-
-/* Ember — red/orange tiles with a subtle flame shimmer */
-body.tile-theme-ember .tile{
-    
-    
-    background:
-        linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d);
-    border:1px solid #c74a35;
-    color:#4f170d;
-    box-shadow:0 7px 17px rgba(178,61,34,.22);
-}
-
-body.tile-theme-ember .tile::before{
-    content:"";
-    
-    left:10%;
-    right:10%;
-    bottom:-14px;
-    
-    border-radius:50% 50% 20% 20%;
-    background:
-        radial-gradient(circle at 25% 80%,rgba(255,230,120,.9),transparent 36%),
-        radial-gradient(circle at 55% 70%,rgba(255,130,55,.85),transparent 38%),
-        radial-gradient(circle at 78% 85%,rgba(255,215,95,.72),transparent 32%);
-    opacity:.8;
-    animation:emberFlicker 1.2s ease-in-out infinite alternate;
-    pointer-events:none;
-}
-
-@keyframes emberFlicker{
-    from{transform:translateY(1px) scaleX(.96);opacity:.58}
-    to{transform:translateY(-4px) scaleX(1.04);opacity:.9}
-}
-
-body.tile-theme-ember .operator-btn{
-    background:linear-gradient(145deg,#ffe2c4,#ee8d5c);
-    color:#4f170d;
-    border-color:#d86c43;
-}
-
-/* Deep Sea — cool blue tiles with rising bubble accents */
-body.tile-theme-deepsea .tile{
-    
-    
-    background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd);
-    border:1px solid #3c8caf;
-    color:#0e3851;
-    box-shadow:0 8px 18px rgba(33,101,139,.22);
-}
-
-body.tile-theme-deepsea .tile::before,
-body.tile-theme-deepsea .tile::after{
-    content:"";
-    
-    border:1px solid rgba(255,255,255,.65);
-    border-radius:50%;
-    pointer-events:none;
-}
-
-body.tile-theme-deepsea .tile::before{
-    
-    
-    right:10px;
-    bottom:8px;
-    animation:bubbleRise 1.8s ease-in-out infinite;
-}
-
-body.tile-theme-deepsea .tile::after{
-    
-    
-    right:22px;
-    bottom:15px;
-    animation:bubbleRise 1.45s ease-in-out infinite .3s;
-}
-
-@keyframes bubbleRise{
-    from{transform:translateY(7px);opacity:.18}
-    to{transform:translateY(-12px);opacity:.72}
-}
-
-body.tile-theme-deepsea .operator-btn{
-    background:linear-gradient(145deg,#e4f8ff,#8cd0e8);
-    color:#0e3851;
-    border-color:#4c9bbb;
-}
-
-/* Crystal remains the premium late unlock */
-body.tile-theme-crystal .tile{
-    
-    
-    background:
-        linear-gradient(145deg,rgba(255,255,255,.94),rgba(211,235,255,.72));
-    border:1px solid rgba(104,159,205,.65);
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.95),
-        inset 0 -8px 18px rgba(91,160,210,.10),
-        0 7px 16px rgba(48,103,150,.18);
-    backdrop-filter:blur(5px);
-}
-
-body.tile-theme-crystal .tile::before{
-    content:"";
-    
-    left:8%;
-    top:7%;
-    
-    
-    border-radius:999px;
-    background:linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,0));
-    
-    pointer-events:none;
-}
-
-body.tile-theme-crystal .tile::after{
-    content:"";
-    
-    inset:4px;
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,.62);
-    pointer-events:none;
-}
-
-body.tile-theme-crystal .operator-btn{
-    background:linear-gradient(145deg,#edf8ff,#cdeaff);
-    border-color:rgba(104,159,205,.65);
-    box-shadow:0 5px 12px rgba(48,103,150,.14);
-}
-
-.mint-preview{background:linear-gradient(145deg,#e8f8e9,#bfe7c2)!important;border-color:#86bf8a!important}
-.ember-preview{background:linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d)!important;border-color:#c74a35!important}
-.deepsea-preview{background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd)!important;border-color:#3c8caf!important}
-
-
-/* v0.21.5 — theme isolation */
-body.tile-theme-mint .tile,
-body.tile-theme-ember .tile,
-body.tile-theme-deepsea .tile,
-body.tile-theme-crystal .tile,
-body.tile-theme-mint .operator-btn,
-body.tile-theme-ember .operator-btn,
-body.tile-theme-deepsea .operator-btn,
-body.tile-theme-crystal .operator-btn{
-    box-sizing:border-box;
 }
 
 @media(max-width:400px){
@@ -1664,49 +1469,52 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="customise-grid">
-
 <div class="customise-section">
 <h3>Tile Sets</h3>
 <div class="cosmetic-options">
 
 <button class="cosmetic-option" id="tileDefaultOption" onclick="setTileTheme('default')">
 <div class="cosmetic-preview">
-<div class="preview-tile">4</div><div class="preview-tile">8</div>
+<div class="preview-tile">4</div>
+<div class="preview-tile">8</div>
 </div>
 Default
 </button>
 
 <button class="cosmetic-option" id="tileMintOption" onclick="setTileTheme('mint')">
 <div class="cosmetic-preview">
-<div class="preview-tile mint-preview">4</div><div class="preview-tile mint-preview">8</div>
+<div class="preview-tile mint-preview">4</div>
+<div class="preview-tile mint-preview">8</div>
 </div>
 🌿 Mint · Lv 5
 </button>
 
 <button class="cosmetic-option" id="tileEmberOption" onclick="setTileTheme('ember')">
 <div class="cosmetic-preview">
-<div class="preview-tile ember-preview">4</div><div class="preview-tile ember-preview">8</div>
+<div class="preview-tile ember-preview">4</div>
+<div class="preview-tile ember-preview">8</div>
 </div>
 🔥 Ember · Lv 10
 </button>
 
 <button class="cosmetic-option" id="tileDeepSeaOption" onclick="setTileTheme('deepsea')">
 <div class="cosmetic-preview">
-<div class="preview-tile deepsea-preview">4</div><div class="preview-tile deepsea-preview">8</div>
+<div class="preview-tile deepsea-preview">4</div>
+<div class="preview-tile deepsea-preview">8</div>
 </div>
 🌊 Deep Sea · Lv 15
 </button>
 
 <button class="cosmetic-option" id="tileCrystalOption" onclick="setTileTheme('crystal')">
 <div class="cosmetic-preview">
-<div class="preview-tile crystal-preview">7</div><div class="preview-tile crystal-preview">12</div>
+<div class="preview-tile crystal-preview">7</div>
+<div class="preview-tile crystal-preview">12</div>
 </div>
 💎 Crystal · Lv 20
 </button>
 
 </div>
 </div>
-
 </div></div>
 </div>
 </section>
@@ -1779,7 +1587,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21.5</strong><br>
+<strong>Numble v0.21.6</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4070,11 +3878,13 @@ return Number(playerProgress&&playerProgress.level||1)>=level;
 
 function applyCustomisation(){
 
-["mint","ember","deepsea","crystal"].forEach(theme=>{
- document.body.classList.toggle(
-  `tile-theme-${theme}`,
-  customiseState.tileTheme===theme
- );
+const themes=["mint","ember","deepsea","crystal"];
+
+themes.forEach(theme=>{
+    document.body.classList.toggle(
+        `numble-tile-${theme}`,
+        customiseState.tileTheme===theme
+    );
 });
 
 updateCustomiseUI();
@@ -4083,24 +3893,22 @@ updateCustomiseUI();
 function setTileTheme(theme){
 
 const requirements={
- default:1,
- mint:5,
- ember:10,
- deepsea:15,
- crystal:20
+    default:1,
+    mint:5,
+    ember:10,
+    deepsea:15,
+    crystal:20
 };
 
-const required=requirements[theme];
-
-if(!required){
- return;
+if(!(theme in requirements)){
+    return;
 }
 
 if(
- theme!=="default" &&
- !cosmeticUnlocked(required)
+    theme!=="default" &&
+    !cosmeticUnlocked(requirements[theme])
 ){
- return;
+    return;
 }
 
 customiseState.tileTheme=theme;
@@ -4110,35 +3918,35 @@ applyCustomisation();
 
 function updateCustomiseUI(){
 
-const config=[
- ["tileDefaultOption","default",1],
- ["tileMintOption","mint",5],
- ["tileEmberOption","ember",10],
- ["tileDeepSeaOption","deepsea",15],
- ["tileCrystalOption","crystal",20]
+const options=[
+    ["tileDefaultOption","default",1],
+    ["tileMintOption","mint",5],
+    ["tileEmberOption","ember",10],
+    ["tileDeepSeaOption","deepsea",15],
+    ["tileCrystalOption","crystal",20]
 ];
 
-config.forEach(([id,theme,level])=>{
+options.forEach(([id,theme,level])=>{
 
- const el=document.getElementById(id);
+    const el=document.getElementById(id);
 
- if(!el){
-  return;
- }
+    if(!el){
+        return;
+    }
 
- const unlocked=
-  theme==="default" ||
-  cosmeticUnlocked(level);
+    const unlocked=
+        theme==="default" ||
+        cosmeticUnlocked(level);
 
- el.classList.toggle(
-  "selected",
-  customiseState.tileTheme===theme
- );
+    el.classList.toggle(
+        "selected",
+        customiseState.tileTheme===theme
+    );
 
- el.classList.toggle(
-  "locked",
-  !unlocked
- );
+    el.classList.toggle(
+        "locked",
+        !unlocked
+    );
 });
 }
 
@@ -6338,6 +6146,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21.5</div>
+<div class="build-marker">NUMBLE BUILD v0.21.6</div>
 </body>
 </html>
