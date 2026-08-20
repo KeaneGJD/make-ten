@@ -1323,37 +1323,37 @@ function numbleSfx(kind){
 
     if(kind==="tap"){
         numbleTone(
-            330,.045,"sine",.014
+            330,.045,"sine",.017
         );
     }
 
     if(kind==="correct"){
         numbleTone(
-            520,.08,"sine",.025
+            520,.08,"sine",.030
         );
 
         numbleTone(
-            700,.10,"sine",.022,.065
+            700,.10,"sine",.027,.065
         );
     }
 
     if(kind==="wrong"){
         numbleTone(
-            180,.10,"square",.012
+            180,.10,"square",.015
         );
 
         numbleTone(
-            145,.11,"square",.010,.055
+            145,.11,"square",.012,.055
         );
     }
 
     if(kind==="combo"){
         numbleTone(
-            650,.05,"triangle",.018
+            650,.05,"triangle",.022
         );
 
         numbleTone(
-            830,.06,"triangle",.018,.045
+            830,.06,"triangle",.022,.045
         );
     }
 }
@@ -4692,6 +4692,6 @@ if(document.readyState==="loading"){
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
 <button class="sound-toggle" id="soundToggle" onclick="numbleToggleSound()">🔊 SOUND</button>
-<div class="build-marker">NUMBLE BUILD v0.17</div>
+<div class="build-marker">NUMBLE BUILD v0.17.1</div>
 </body>
 </html>
