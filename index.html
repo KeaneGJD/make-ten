@@ -1302,6 +1302,134 @@ body.special-tile-skin .tile::after{
     pointer-events:none;
 }
 
+
+/* v0.21.2 — Cosmetic Upgrade Pass */
+
+/* Level 10: Mint is now a fuller UI theme */
+body.accent-mint{
+    --blue:#51b8a5;
+}
+
+body.accent-mint .primary-btn,
+body.accent-mint .setting-toggle.on,
+body.accent-mint .appearance-btn.active,
+body.accent-mint .achievement-bar-fill,
+body.accent-mint .player-xp-fill{
+    background:#51b8a5;
+}
+
+body.accent-mint .mode-choice.selected,
+body.accent-mint .cosmetic-option.selected{
+    outline-color:#51b8a5;
+}
+
+body.accent-mint .operator-btn.selected,
+body.accent-mint .tile.selected{
+    box-shadow:0 0 0 3px rgba(81,184,165,.28),var(--shadow);
+}
+
+body.accent-mint .home-stat,
+body.accent-mint .unlock-strip,
+body.accent-mint .mode-meta-callout{
+    border-color:rgba(81,184,165,.35);
+}
+
+body.accent-mint:not(.theme-dark) .card{
+    background:linear-gradient(180deg,#ffffff,#f4fffc);
+}
+
+body.accent-mint.theme-dark .card{
+    background:linear-gradient(180deg,var(--panel),#20302e);
+}
+
+/* Level 15: visible equipped badge */
+.player-badge-emblem{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:26px;
+    height:26px;
+    margin-left:6px;
+    border-radius:9px;
+    background:linear-gradient(145deg,#f5d878,#c9972f);
+    color:#2d2410;
+    border:1px solid rgba(70,50,10,.22);
+    box-shadow:0 3px 8px rgba(0,0,0,.12);
+    font-size:14px;
+    vertical-align:middle;
+}
+
+.profile-badge{
+    border:1px solid rgba(201,151,47,.35);
+    background:linear-gradient(145deg,#fff8df,#f2df9d);
+    color:#4b3a12;
+}
+
+/* Level 20: Crystal Tile Set */
+body.special-tile-skin .tile{
+    position:relative;
+    overflow:hidden;
+    background:
+        linear-gradient(145deg,rgba(255,255,255,.94),rgba(211,235,255,.72));
+    border:1px solid rgba(104,159,205,.65);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.95),
+        inset 0 -8px 18px rgba(91,160,210,.10),
+        0 7px 16px rgba(48,103,150,.18);
+    backdrop-filter:blur(5px);
+}
+
+body.special-tile-skin .tile::before{
+    content:"";
+    position:absolute;
+    left:8%;
+    top:7%;
+    width:62%;
+    height:25%;
+    border-radius:999px;
+    background:linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,0));
+    transform:rotate(-7deg);
+    pointer-events:none;
+}
+
+body.special-tile-skin .tile::after{
+    content:"";
+    position:absolute;
+    inset:4px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.62);
+    pointer-events:none;
+}
+
+body.special-tile-skin .operator-btn{
+    background:linear-gradient(145deg,#edf8ff,#cdeaff);
+    border-color:rgba(104,159,205,.65);
+    box-shadow:0 5px 12px rgba(48,103,150,.14);
+}
+
+body.special-tile-skin.theme-dark .tile{
+    background:
+        linear-gradient(145deg,rgba(69,89,112,.94),rgba(35,61,84,.86));
+    color:#f6fbff;
+    border-color:rgba(133,198,245,.7);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        inset 0 -8px 18px rgba(58,155,220,.12),
+        0 7px 16px rgba(0,0,0,.30);
+}
+
+body.special-tile-skin.theme-dark .operator-btn{
+    background:linear-gradient(145deg,#354c60,#223747);
+    color:#f6fbff;
+    border-color:rgba(133,198,245,.55);
+}
+
+.crystal-preview{
+    background:linear-gradient(145deg,#ffffff,#cfeaff)!important;
+    border-color:#78afd4!important;
+    box-shadow:inset 0 1px 0 #fff,0 4px 9px rgba(48,103,150,.18);
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1338,8 +1466,8 @@ body.special-tile-skin .tile::after{
 <div class="player-strip">
 <div class="player-level-badge" id="homePlayerLevel">1</div>
 <div class="player-level-copy">
-<strong id="homePlayerTitle">Player Level 1</strong>
-<div class="profile-badge" id="homeProfileBadge" style="display:none">🏅 Number Crafter</div>
+<strong id="homePlayerTitle">Player Level 1</strong><span class="player-badge-emblem" id="homeBadgeEmblem" style="display:none" title="Number Crafter">🏅</span>
+<div class="profile-badge" id="homeProfileBadge" style="display:none">🏅 Equipped: Number Crafter</div>
 <div class="player-xp-row"><span id="homeXpText">0 / 100 XP</span><span id="homeNextReward">Next reward: Lv 5</span></div>
 <div class="player-xp-bar"><div class="player-xp-fill" id="homeXpFill" style="width:0%"></div></div>
 </div>
@@ -1392,7 +1520,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div class="customise-grid">
 
 <div class="customise-section">
-<h3>Tile Style</h3>
+<h3>Tiles</h3>
 <div class="cosmetic-options">
 <button class="cosmetic-option" id="tileDefaultOption" onclick="setTileTheme('default')">
 <div class="cosmetic-preview">
@@ -1411,15 +1539,15 @@ Soft Tiles · Lv 5
 </div>
 
 <div class="customise-section">
-<h3>Accent</h3>
+<h3>Themes</h3>
 <div class="cosmetic-options">
 <button class="cosmetic-option" id="accentDefaultOption" onclick="setAccentTheme('default')">Default</button>
-<button class="cosmetic-option preview-accent" id="accentMintOption" onclick="setAccentTheme('mint')">Mint · Lv 10</button>
+<button class="cosmetic-option preview-accent" id="accentMintOption" onclick="setAccentTheme('mint')">Mint Theme · Lv 10</button>
 </div>
 </div>
 
 <div class="customise-section">
-<h3>Profile Badge</h3>
+<h3>Badges</h3>
 <div class="cosmetic-options">
 <button class="cosmetic-option" id="badgeNoneOption" onclick="setProfileBadge('none')">None</button>
 <button class="cosmetic-option" id="badgeCrafterOption" onclick="setProfileBadge('crafter')">🏅 Number Crafter · Lv 15</button>
@@ -1427,10 +1555,16 @@ Soft Tiles · Lv 5
 </div>
 
 <div class="customise-section">
-<h3>Special Tile Skin</h3>
+<h3>Premium Tiles</h3>
 <div class="cosmetic-options">
 <button class="cosmetic-option" id="skinDefaultOption" onclick="setSpecialSkin('default')">Default</button>
-<button class="cosmetic-option" id="skinSpecialOption" onclick="setSpecialSkin('special')">✨ Framed Tiles · Lv 20</button>
+<button class="cosmetic-option" id="skinSpecialOption" onclick="setSpecialSkin('special')">
+<div class="cosmetic-preview">
+<div class="preview-tile crystal-preview">7</div>
+<div class="preview-tile crystal-preview">12</div>
+</div>
+💎 Crystal Tiles · Lv 20
+</button>
 </div>
 </div>
 
@@ -1506,7 +1640,7 @@ Soft Tiles · Lv 5
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21.1</strong><br>
+<strong>Numble v0.21.2</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1575,7 +1709,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <div class="player-strip">
 <div class="player-level-badge" id="statsPlayerLevel">1</div>
 <div class="player-level-copy">
-<strong id="statsPlayerTitle">Player Level 1</strong>
+<strong id="statsPlayerTitle">Player Level 1</strong><span class="player-badge-emblem" id="statsBadgeEmblem" style="display:none" title="Number Crafter">🏅</span>
 <div class="player-xp-row"><span id="statsXpText">0 / 100 XP</span><span id="statsNextReward">Next reward: Lv 5</span></div>
 <div class="player-xp-bar"><div class="player-xp-fill" id="statsXpFill" style="width:0%"></div></div>
 </div>
@@ -3804,10 +3938,17 @@ document.body.classList.toggle("accent-mint",customiseState.accent==="mint");
 document.body.classList.toggle("special-tile-skin",customiseState.skin==="special");
 
 const badge=document.getElementById("homeProfileBadge");
+const badgeActive=customiseState.badge==="crafter"&&cosmeticUnlocked(15);
+
 if(badge){
- const show=customiseState.badge==="crafter"&&cosmeticUnlocked(15);
- badge.style.display=show?"inline-flex":"none";
+ badge.style.display=badgeActive?"inline-flex":"none";
 }
+
+["homeBadgeEmblem","statsBadgeEmblem"].forEach(id=>{
+ const emblem=document.getElementById(id);
+ if(emblem)emblem.style.display=badgeActive?"inline-flex":"none";
+});
+
 updateCustomiseUI();
 }
 
@@ -3865,9 +4006,9 @@ const PLAYER_PROGRESS_KEY="numblePlayerProgressV1";
 
 const PLAYER_MILESTONES=[
     {level:5,label:"Tile Theme I"},
-    {level:10,label:"Background Accent"},
-    {level:15,label:"Profile Badge"},
-    {level:20,label:"Special Tile Skin"}
+    {level:10,label:"Mint UI Theme"},
+    {level:15,label:"Number Crafter Badge"},
+    {level:20,label:"Crystal Tile Set"}
 ];
 
 let playerProgress=loadPlayerProgress();
@@ -6051,6 +6192,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21.1</div>
+<div class="build-marker">NUMBLE BUILD v0.21.2</div>
 </body>
 </html>
