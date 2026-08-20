@@ -454,20 +454,6 @@ button{font:inherit}
 }
 .ad-countdown{font-size:12px;color:var(--muted);margin-bottom:10px}
 
-
-.tile.negative-tile{
-    background:linear-gradient(145deg,#f4f7fb,#e8eef7);
-}
-.negative-badge{
-    position:absolute;
-    top:5px;
-    right:6px;
-    font-size:10px;
-    font-weight:900;
-    color:#65758b;
-    letter-spacing:.4px;
-}
-
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -668,15 +654,13 @@ Locked tiles must be used in the successful equation. Hit the target without the
 </div>
 </div>
 
-<div class="mechanic-overlay" id="negativeMechanicOverlay">
+<div class="mechanic-overlay" id="divisionMechanicOverlay">
 <div class="mechanic-card">
-<div class="mechanic-icon">➖</div>
-<h2>Below Zero!</h2>
-<p>
-Negative numbers are now on the board. Remember: subtracting a negative increases your running total.
-</p>
-<p style="font-weight:900">Example: 8 − (−4) = 12</p>
-<button class="main-btn" onclick="closeNegativeIntro()">GOT IT</button>
+<div class="mechanic-icon">➗</div>
+<h2>Division Unlocked!</h2>
+<p>Division is now available. Calculations still happen left-to-right.</p>
+<p style="font-weight:900">Only whole-number division is allowed — no decimals.</p>
+<button class="main-btn" onclick="closeDivisionIntro()">GOT IT</button>
 </div>
 </div>
 
@@ -694,49 +678,53 @@ Negative numbers are now on the board. Remember: subtracting a negative increase
 
 <script>
 const LEVELS=[
-{target:10,goal:4,moves:7,maxNumber:9,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:10,goal:6,moves:9,maxNumber:9,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:12,goal:6,moves:9,maxNumber:11,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:15,goal:7,moves:10,maxNumber:14,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:18,goal:8,moves:11,maxNumber:17,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:20,goal:8,moves:11,maxNumber:19,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:13,goal:8,moves:11,maxNumber:12,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:17,goal:9,moves:12,maxNumber:16,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:21,goal:9,moves:12,maxNumber:20,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:25,goal:10,moves:13,maxNumber:24,selectionCount:2,operators:["+"],chapter:"Add It Up"},
-{target:10,goal:6,moves:9,maxNumber:8,selectionCount:3,operators:["+"],chapter:"Add It Up"},
-{target:15,goal:7,moves:10,maxNumber:11,selectionCount:3,operators:["+"],chapter:"Add It Up"},
-{target:20,goal:8,moves:11,maxNumber:14,selectionCount:3,operators:["+"],chapter:"Add It Up"},
-{target:24,goal:9,moves:12,maxNumber:16,selectionCount:3,operators:["+"],chapter:"Add It Up"},
-{target:30,goal:10,moves:13,maxNumber:20,selectionCount:3,operators:["+"],chapter:"Add It Up"},
+{target:10,goal:4,moves:7,maxNumber:9,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
+{target:12,goal:5,moves:8,maxNumber:11,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
+{target:15,goal:6,moves:9,maxNumber:14,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
+{target:18,goal:7,moves:10,maxNumber:17,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
+{target:24,goal:8,moves:11,maxNumber:18,selectionCount:3,operators:["+"] ,chapter:"Add It Up"},
 
 {target:10,goal:5,moves:8,maxNumber:18,selectionCount:2,operators:["-"],chapter:"Take It Away"},
 {target:12,goal:6,moves:9,maxNumber:22,selectionCount:2,operators:["-"],chapter:"Take It Away"},
-{target:15,goal:7,moves:10,maxNumber:28,selectionCount:2,operators:["+","-"],chapter:"Take It Away"},
-{target:18,goal:8,moves:11,maxNumber:32,selectionCount:2,operators:["+","-"],chapter:"Take It Away"},
-{target:20,goal:9,moves:12,maxNumber:38,selectionCount:2,operators:["+","-"],chapter:"Take It Away"},
+{target:15,goal:6,moves:9,maxNumber:26,selectionCount:2,operators:["+","-"],chapter:"Take It Away"},
+{target:18,goal:7,moves:10,maxNumber:30,selectionCount:2,operators:["+","-"],chapter:"Take It Away"},
+{target:25,goal:8,moves:11,maxNumber:34,selectionCount:3,operators:["+","-"],chapter:"Take It Away",expressionMode:true},
 
 {target:12,goal:5,moves:8,maxNumber:8,selectionCount:2,operators:["*"],chapter:"Multiply",expressionMode:true},
 {target:18,goal:6,moves:9,maxNumber:10,selectionCount:3,operators:["+","*"],chapter:"Multiply",expressionMode:true},
-{target:24,goal:7,moves:10,maxNumber:12,selectionCount:3,operators:["+","-","*"],chapter:"Multiply",expressionMode:true},
-{target:30,goal:7,moves:10,maxNumber:14,selectionCount:null,operators:["+","-","*"],chapter:"Multiply",expressionMode:true,freeForm:true},
-{target:36,goal:8,moves:11,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Multiply",expressionMode:true,freeForm:true},
+{target:24,goal:6,moves:9,maxNumber:12,selectionCount:3,operators:["+","-","*"],chapter:"Multiply",expressionMode:true},
+{target:30,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Multiply",expressionMode:true},
+{target:40,goal:8,moves:11,maxNumber:16,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Multiply",expressionMode:true,freeForm:true},
 
-{target:20,goal:5,moves:8,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
-{target:24,goal:6,moves:9,maxNumber:12,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
-{target:30,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
-{target:40,goal:7,moves:10,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:1},
-{target:48,goal:8,moves:11,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:2},
-{target:20,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:4,bombSpawnEvery:2},
-{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:3,bombSpawnEvery:2},
-{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
-{target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
-{target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,maxTiles:5,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:2,bombSpawnEvery:1},
-{target:12,goal:6,moves:9,maxNumber:10,selectionCount:2,operators:["+"] ,chapter:"Below Zero",expressionMode:true,negativeCount:2,negativeRequired:true},
-{target:18,goal:7,moves:10,maxNumber:12,selectionCount:3,operators:["+","-"],chapter:"Below Zero",expressionMode:true,negativeCount:3,negativeRequired:true},
-{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Below Zero",expressionMode:true,negativeCount:3,negativeRequired:true},
-{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Below Zero",expressionMode:true,negativeCount:4},
-{target:36,goal:8,moves:11,maxNumber:18,selectionCount:null,maxTiles:4,operators:["+","-","*"],chapter:"Below Zero",expressionMode:true,freeForm:true,negativeCount:5}
+{target:4,goal:5,moves:8,maxNumber:16,selectionCount:2,operators:["/"],chapter:"Divide & Conquer",expressionMode:true,wholeDivision:true},
+{target:6,goal:6,moves:9,maxNumber:18,selectionCount:2,operators:["/"],chapter:"Divide & Conquer",expressionMode:true,wholeDivision:true},
+{target:12,goal:6,moves:9,maxNumber:18,selectionCount:3,operators:["+","/"],chapter:"Divide & Conquer",expressionMode:true,wholeDivision:true},
+{target:18,goal:7,moves:10,maxNumber:20,selectionCount:3,operators:["+","-","*","/"],chapter:"Divide & Conquer",expressionMode:true,wholeDivision:true},
+{target:24,goal:8,moves:11,maxNumber:24,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Divide & Conquer",expressionMode:true,freeForm:true,wholeDivision:true},
+
+{target:48,goal:6,moves:9,maxNumber:20,selectionCount:3,operators:["+","-","*","/"],chapter:"Bigger Numbers",expressionMode:true,wholeDivision:true},
+{target:60,goal:6,moves:9,maxNumber:22,selectionCount:3,operators:["+","-","*","/"],chapter:"Bigger Numbers",expressionMode:true,wholeDivision:true},
+{target:72,goal:7,moves:10,maxNumber:24,selectionCount:3,operators:["+","-","*","/"],chapter:"Bigger Numbers",expressionMode:true,wholeDivision:true},
+{target:84,goal:7,moves:10,maxNumber:26,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Bigger Numbers",expressionMode:true,freeForm:true,wholeDivision:true},
+{target:96,goal:8,moves:11,maxNumber:28,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Bigger Numbers",expressionMode:true,freeForm:true,wholeDivision:true},
+
+{target:60,goal:6,moves:9,maxNumber:22,selectionCount:3,operators:["+","-","*","/"],chapter:"Locked In",expressionMode:true,wholeDivision:true,lockedCount:1},
+{target:72,goal:6,moves:9,maxNumber:24,selectionCount:3,operators:["+","-","*","/"],chapter:"Locked In",expressionMode:true,wholeDivision:true,lockedCount:1},
+{target:84,goal:7,moves:10,maxNumber:26,selectionCount:3,operators:["+","-","*","/"],chapter:"Locked In",expressionMode:true,wholeDivision:true,lockedCount:1},
+{target:96,goal:7,moves:10,maxNumber:28,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Locked In",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1},
+{target:108,goal:8,moves:11,maxNumber:30,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Locked In",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:2},
+
+{target:72,goal:6,moves:9,maxNumber:24,selectionCount:3,operators:["+","-","*","/"],chapter:"Bomb Squad",expressionMode:true,wholeDivision:true,bombCount:1,bombFuse:4,bombSpawnEvery:2},
+{target:84,goal:6,moves:9,maxNumber:26,selectionCount:3,operators:["+","-","*","/"],chapter:"Bomb Squad",expressionMode:true,wholeDivision:true,bombCount:1,bombFuse:3,bombSpawnEvery:2},
+{target:96,goal:7,moves:10,maxNumber:28,selectionCount:3,operators:["+","-","*","/"],chapter:"Bomb Squad",expressionMode:true,wholeDivision:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
+{target:108,goal:7,moves:10,maxNumber:30,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,wholeDivision:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
+{target:120,goal:8,moves:11,maxNumber:32,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,wholeDivision:true,bombCount:2,bombFuse:2,bombSpawnEvery:1},
+
+{target:105,goal:6,moves:9,maxNumber:30,selectionCount:3,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,wholeDivision:true},
+{target:120,goal:6,moves:9,maxNumber:32,selectionCount:3,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,wholeDivision:true},
+{target:144,goal:7,moves:10,maxNumber:36,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1},
+{target:180,goal:7,moves:10,maxNumber:40,selectionCount:null,maxTiles:4,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,bombCount:1,bombFuse:2,bombSpawnEvery:1},
+{target:240,goal:8,moves:12,maxNumber:48,selectionCount:null,maxTiles:5,operators:["+","-","*","/"],chapter:"Triple Figures",expressionMode:true,freeForm:true,wholeDivision:true,lockedCount:1,bombCount:1,bombFuse:2,bombSpawnEvery:1}
 ];
 
 const GRID_SIZE=16;
@@ -755,7 +743,7 @@ let newTileIndexes=[];
 let selectedOperator="+";
 const SUBTRACTION_INTRO_KEY="makeTenSubtractionIntroSeen";
 const MULTIPLICATION_INTRO_KEY="makeTenMultiplicationIntroSeen";
-const NEGATIVE_INTRO_KEY="makeTenNegativeIntroSeen";
+const DIVISION_INTRO_KEY="makeTenDivisionIntroSeen";
 const LOCK_INTRO_KEY="makeTenLockIntroSeen";
 
 const MAX_LIVES=5;
@@ -1367,8 +1355,10 @@ if(level.chapter!==lastChapter){
     level.chapter==="Add It Up"?1:
     level.chapter==="Take It Away"?2:
     level.chapter==="Multiply"?3:
-    level.chapter==="Locked In"?4:
-    level.chapter==="Bomb Squad"?5:6;
+    level.chapter==="Divide & Conquer"?4:
+    level.chapter==="Bigger Numbers"?5:
+    level.chapter==="Locked In"?6:
+    level.chapter==="Bomb Squad"?7:8;
 
 heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
     container.appendChild(heading);
@@ -1453,7 +1443,6 @@ selectedOperator=currentLevel.operators.includes("+")
 tiles=generateBoard();
 successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
-initializeNegativeTiles();
 
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
@@ -1496,13 +1485,6 @@ if(currentLevel.bombCount){
     ` 💣 Bombs return during the level. Fuse 1 means the next successful equation must use that bomb.`;
 }
 
-if(currentLevel.negativeCount){
-    document.getElementById("objectiveText").textContent+=
-    currentLevel.negativeRequired
-    ? ` ➖ Use at least one negative tile in each successful solution.`
-    : ` ➖ Negative numbers are now in play.`;
-}
-
 updateOperatorControls();
 updateEquationBuilder();
 
@@ -1518,16 +1500,15 @@ if(index===15&&!localStorage.getItem(SUBTRACTION_INTRO_KEY)){
     document.getElementById("mechanicOverlay").style.display="flex";
 }
 
-if(index===20&&!localStorage.getItem(MULTIPLICATION_INTRO_KEY)){
+if(index===10&&!localStorage.getItem(MULTIPLICATION_INTRO_KEY)){
     document.getElementById("multiplyMechanicOverlay").style.display="flex";
 }
 
 if(index===25&&!localStorage.getItem(LOCK_INTRO_KEY)){
     document.getElementById("lockMechanicOverlay").style.display="flex";
 }
-
-if(index===35&&!localStorage.getItem(NEGATIVE_INTRO_KEY)){
-    document.getElementById("negativeMechanicOverlay").style.display="flex";
+if(index===15&&!localStorage.getItem(DIVISION_INTRO_KEY)){
+document.getElementById("divisionMechanicOverlay").style.display="flex";
 }
 }
 
@@ -1783,11 +1764,6 @@ if(typeof lockedIndexes!=="undefined"&&lockedIndexes.includes(index)){
 if(bombStates&&Object.prototype.hasOwnProperty.call(bombStates,index)){
     button.classList.add("bomb");
     button.innerHTML+=`<span class="bomb-symbol">💣</span><span class="bomb-badge">${bombStates[index]}</span>`;
-}
-
-if(value<0){
-    button.classList.add("negative-tile");
-    button.innerHTML=`${formatNumber(value)}<span class="negative-badge">NEG</span>`;
 }
 
 button.onclick=()=>currentLevel.expressionMode
@@ -2250,177 +2226,10 @@ for(
 }
 }
 
-
-function formatNumber(value){
-
-return Number(value)<0
-    ? `−${Math.abs(Number(value))}`
-    : String(value);
+function closeDivisionIntro(){
+localStorage.setItem(DIVISION_INTRO_KEY,"1");
+document.getElementById("divisionMechanicOverlay").style.display="none";
 }
-
-
-function initializeNegativeTiles(){
-
-if(!currentLevel.negativeCount){
-    return;
-}
-
-/*
-Build a Below Zero board deliberately rather than simply flipping random
-tiles negative. For the introductory levels, at least one valid solution
-must use a negative tile.
-*/
-
-for(let attempt=0;attempt<300;attempt++){
-
-    const board=Array.from(
-        {length:16},
-        ()=>Math.max(1,Math.floor(Math.random()*currentLevel.maxNumber)+1)
-    );
-
-    const negativeIndexes=shuffle(
-        Array.from({length:board.length},(_,i)=>i)
-    ).slice(
-        0,
-        Math.min(currentLevel.negativeCount,board.length-2)
-    );
-
-    negativeIndexes.forEach(index=>{
-        board[index]=-Math.abs(board[index]);
-    });
-
-    const solution=findNegativeBoardSolution(
-        board,
-        !!currentLevel.negativeRequired
-    );
-
-    if(!solution){
-        continue;
-    }
-
-    tiles.splice(0,tiles.length,...board);
-    return;
-}
-
-/* Fallback remains playable even if random generation has a poor run. */
-const candidates=shuffle(
-    Array.from({length:tiles.length},(_,i)=>i)
-);
-
-for(let i=0;i<Math.min(currentLevel.negativeCount,candidates.length);i++){
-    const index=candidates[i];
-    tiles[index]=-Math.abs(tiles[index]||1);
-}
-}
-
-
-function negativeLevelCounts(){
-
-if(currentLevel.maxTiles){
-    return Array.from(
-        {length:currentLevel.maxTiles-1},
-        (_,i)=>i+2
-    );
-}
-
-if(currentLevel.freeForm){
-    return [2,3,4];
-}
-
-return [currentLevel.selectionCount];
-}
-
-
-function findNegativeBoardSolution(board,requireNegative){
-
-for(const count of negativeLevelCounts()){
-
-    if(!count){
-        continue;
-    }
-
-    const search=(chosen)=>{
-
-        if(chosen.length===count){
-
-            if(
-                requireNegative &&
-                !chosen.some(index=>board[index]<0)
-            ){
-                return null;
-            }
-
-            const values=chosen.map(index=>board[index]);
-
-            const walk=(position,total)=>{
-
-                if(position>=values.length){
-                    return total===currentLevel.target;
-                }
-
-                for(const operator of currentLevel.operators){
-
-                    const value=values[position];
-
-                    const next=
-                        operator==="+"
-                        ? total+value
-                        : operator==="-"
-                        ? total-value
-                        : total*value;
-
-                    if(walk(position+1,next)){
-                        return true;
-                    }
-                }
-
-                return false;
-            };
-
-            return walk(1,values[0])
-                ? [...chosen]
-                : null;
-        }
-
-        for(let index=0;index<board.length;index++){
-
-            if(chosen.includes(index)){
-                continue;
-            }
-
-            const result=search([...chosen,index]);
-
-            if(result){
-                return result;
-            }
-        }
-
-        return null;
-    };
-
-    const result=search([]);
-
-    if(result){
-        return result;
-    }
-}
-
-return null;
-}
-
-
-function closeNegativeIntro(){
-
-localStorage.setItem(
-    NEGATIVE_INTRO_KEY,
-    "1"
-);
-
-document.getElementById(
-    "negativeMechanicOverlay"
-).style.display="none";
-}
-
 
 function updateEquationBuilder(){
 
@@ -2493,40 +2302,12 @@ if(!currentLevel.freeForm&&tileCount===currentLevel.selectionCount){
 }
 
 if(currentLevel.maxTiles&&tileCount>=2){
-
     const total=evaluateTokens(expressionTokens);
 
-    const negativeSatisfied=
-        !currentLevel.negativeRequired ||
-        expressionTileIndexes.some(
-            index=>tiles[index]<0
-        );
-
-    const locksSatisfied=
-        !currentLevel.lockedCount ||
-        lockedIndexes.every(
-            index=>expressionTileIndexes.includes(index)
-        );
-
-    /*
-    "Up to X tiles" means the player may finish early.
-    Accept the equation as soon as it hits the target, but only when all
-    mandatory level conditions have already been satisfied.
-    */
-
-    if(
-        total===currentLevel.target &&
-        negativeSatisfied &&
-        locksSatisfied
-    ){
+    if(total===currentLevel.target){
         evaluateExpressionAttempt();
         return;
     }
-
-    /*
-    If the player reaches the maximum tile count, judge the attempt even
-    if it is wrong.
-    */
 
     if(tileCount>=currentLevel.maxTiles){
         evaluateExpressionAttempt();
@@ -2571,47 +2352,30 @@ for(let i=1;i<tokens.length;i+=2){
         total-=value;
     }else if(operator==="*"){
         total*=value;
+    }else if(operator==="/"){
+        if(value===0||total%value!==0){
+            return NaN;
+        }
+        total/=value;
     }
 }
 
 return total;
 }
 
-
 function operatorSymbol(operator){
-
-if(operator==="*"){
-    return "×";
-}
-
-if(operator==="-"){
-    return "−";
-}
-
+if(operator==="*")return "×";
+if(operator==="/")return "÷";
+if(operator==="-")return "−";
 return "+";
 }
 
-
 function expressionText(){
-
-if(!expressionTokens.length){
-    return "";
-}
-
-let output=formatNumber(expressionTokens[0]);
-
+if(!expressionTokens.length)return "";
+let output=String(expressionTokens[0]);
 for(let i=1;i<expressionTokens.length;i+=2){
-
-    const operator=expressionTokens[i];
-    const value=Number(expressionTokens[i+1]);
-
-    output+=` ${operatorSymbol(operator)} `;
-
-    output+=value<0
-        ? `(${formatNumber(value)})`
-        : formatNumber(value);
+    output+=` ${operatorSymbol(expressionTokens[i])} ${expressionTokens[i+1]}`;
 }
-
 return output;
 }
 
@@ -2632,11 +2396,7 @@ const locksSatisfied=
         index=>used.includes(index)
     );
 
-const negativeSatisfied=
-    !currentLevel.negativeRequired ||
-    used.some(index=>tiles[index]<0);
-
-if(total===currentLevel.target&&locksSatisfied&&negativeSatisfied){
+if(total===currentLevel.target&&locksSatisfied){
     solutionsDone++;
     updateHUD();
     document.getElementById("feedback").textContent="Perfect!";
@@ -2664,9 +2424,7 @@ if(total===currentLevel.target&&locksSatisfied&&negativeSatisfied){
     mistakesThisLevel++;
     updateHUD();
     document.getElementById("feedback").textContent=
-        total===currentLevel.target&&!negativeSatisfied
-        ? "Use at least one negative tile!"
-        : total===currentLevel.target&&!locksSatisfied
+        total===currentLevel.target&&!locksSatisfied
         ? (currentLevel.lockedCount===1
             ? "Use the locked tile!"
             : "Use both locked tiles!")
@@ -2691,32 +2449,7 @@ if(currentLevel.lockedCount){
     newTileIndexes=Array.from({length:GRID_SIZE},(_,i)=>i);
 }else{
     indexes.forEach(i=>tiles[i]=randomNumber());
-
-    if(currentLevel.negativeCount){
-
-        const currentNegatives=tiles.filter(value=>value<0).length;
-        const needed=Math.max(
-            0,
-            currentLevel.negativeCount-currentNegatives
-        );
-
-        const candidates=shuffle(
-            indexes.filter(i=>tiles[i]>0)
-        );
-
-        for(let n=0;n<Math.min(needed,candidates.length);n++){
-            const index=candidates[n];
-            tiles[index]=-Math.abs(tiles[index]);
-        }
-
-        if(!findNegativeBoardSolution(tiles,!!currentLevel.negativeRequired)){
-            initializeNegativeTiles();
-        }
-
-    }else{
-        guaranteeSolutionOnBoard(tiles);
-    }
-
+    guaranteeSolutionOnBoard(tiles);
     newTileIndexes=[...indexes];
 }
 
