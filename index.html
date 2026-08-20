@@ -948,6 +948,106 @@ body.reduced-motion *::after{
     scroll-behavior:auto !important;
 }
 
+
+/* v0.18.1 — Appearance Modes */
+:root{
+    --page:#f3f0ea;
+    --panel:#ffffff;
+    --text:#2b2b2b;
+    --muted:#77726b;
+    --border:#ddd7cf;
+    --soft:#f5f2ec;
+}
+
+body{
+    background:var(--page);
+    color:var(--text);
+}
+
+body.theme-dark{
+    --page:#17191d;
+    --panel:#23262c;
+    --text:#f5f5f5;
+    --muted:#aeb3bc;
+    --border:#3b4048;
+    --soft:#2d3138;
+}
+
+body.theme-dark .card,
+body.theme-dark .mode-choice,
+body.theme-dark .mode-detail-card,
+body.theme-dark .setting-row,
+body.theme-dark .stats-tile,
+body.theme-dark .level-card,
+body.theme-dark .back-btn{
+    background:var(--panel);
+    color:var(--text);
+    border-color:var(--border);
+}
+
+body.theme-dark .secondary-btn{
+    background:#30343b;
+    color:var(--text);
+}
+
+body.theme-dark .home-stat,
+body.theme-dark .unlock-strip,
+body.theme-dark .mode-detail-icon,
+body.theme-dark .arcade-hud-card{
+    background:var(--soft);
+    color:var(--text);
+}
+
+body.theme-dark .operator-btn{
+    background:#2e3239;
+    color:var(--text);
+    border-color:var(--border);
+}
+
+body.theme-dark .tile{
+    background:#2b2f35;
+    color:#fff;
+    border-color:#4b515a;
+}
+
+body.theme-dark #homeScreen .home-card{
+    background:rgba(25,27,31,.80);
+    border-color:rgba(255,255,255,.08);
+}
+
+body.theme-dark #homeScreen .secondary-btn{
+    background:rgba(40,43,49,.86);
+}
+
+body.theme-dark .main-settings-btn{
+    background:rgba(35,38,43,.90);
+    color:white;
+}
+
+.appearance-options{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+}
+
+.appearance-btn{
+    border:1px solid var(--border);
+    background:var(--soft);
+    color:var(--text);
+    border-radius:999px;
+    padding:8px 10px;
+    font-size:10px;
+    font-weight:1000;
+    cursor:pointer;
+}
+
+.appearance-btn.active{
+    background:var(--blue);
+    color:white;
+    border-color:transparent;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1056,6 +1156,18 @@ Prototype only — this simulates the future rewarded-ad restore.
 <button class="setting-toggle" id="settingsContrastToggle" onclick="settingsToggleContrast()">OFF</button>
 </div>
 
+<div class="setting-row">
+<div class="setting-copy">
+<strong>Appearance</strong>
+<span>Choose Light, Dark, or follow your device setting.</span>
+</div>
+<div class="appearance-options">
+<button class="appearance-btn" id="appearanceSystem" onclick="setAppearanceMode('system')">SYSTEM</button>
+<button class="appearance-btn" id="appearanceLight" onclick="setAppearanceMode('light')">LIGHT</button>
+<button class="appearance-btn" id="appearanceDark" onclick="setAppearanceMode('dark')">DARK</button>
+</div>
+</div>
+
 </div>
 
 <div class="settings-danger">
@@ -1063,7 +1175,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.18</strong><br>
+<strong>Numble v0.18.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1413,6 +1525,9 @@ let numbleReducedMotion =
 
 let numbleHighContrast =
     localStorage.getItem("numbleHighContrast") === "true";
+let numbleAppearanceMode =
+    localStorage.getItem("numbleAppearanceMode") || "system";
+
 
 
 let numbleAudioContext = null;
@@ -1544,6 +1659,84 @@ function numbleHaptic(pattern){
     navigator.vibrate(pattern);
 }
 
+
+function resolvedAppearanceMode(){
+
+    if(numbleAppearanceMode==="light"){
+        return "light";
+    }
+
+    if(numbleAppearanceMode==="dark"){
+        return "dark";
+    }
+
+    if(
+        window.matchMedia &&
+        window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        ).matches
+    ){
+        return "dark";
+    }
+
+    return "light";
+}
+
+function applyAppearanceMode(){
+
+    const resolved =
+        resolvedAppearanceMode();
+
+    document.body.classList.toggle(
+        "theme-dark",
+        resolved==="dark"
+    );
+
+    updateAppearanceUI();
+}
+
+function updateAppearanceUI(){
+
+    const map={
+        system:"appearanceSystem",
+        light:"appearanceLight",
+        dark:"appearanceDark"
+    };
+
+    Object.entries(map)
+    .forEach(([mode,id])=>{
+
+        const button=
+            document.getElementById(id);
+
+        if(button){
+            button.classList.toggle(
+                "active",
+                numbleAppearanceMode===mode
+            );
+        }
+    });
+}
+
+function setAppearanceMode(mode){
+
+    if(
+        !["system","light","dark"]
+        .includes(mode)
+    ){
+        return;
+    }
+
+    numbleAppearanceMode=mode;
+
+    localStorage.setItem(
+        "numbleAppearanceMode",
+        mode
+    );
+
+    applyAppearanceMode();
+}
+
 function applyAccessibilitySettings(){
 
     document.body.classList.toggle(
@@ -1556,6 +1749,7 @@ function applyAccessibilitySettings(){
         numbleHighContrast
     );
 
+    applyAppearanceMode();
     updateSettingsUI();
 }
 
@@ -1633,6 +1827,7 @@ function updateSettingsUI(){
 function openSettings(){
     applyAccessibilitySettings();
     showScreen("settingsScreen");
+    updateAppearanceUI();
 }
 
 function settingsToggleSound(){
@@ -5029,6 +5224,35 @@ if(document.readyState==="loading"){
 }else{
     applyAccessibilitySettings();
 }
+
+if(window.matchMedia){
+
+    const numbleSchemeQuery=
+        window.matchMedia(
+            "(prefers-color-scheme: dark)"
+        );
+
+    const numbleSchemeHandler=()=>{
+        if(
+            numbleAppearanceMode==="system"
+        ){
+            applyAppearanceMode();
+        }
+    };
+
+    if(numbleSchemeQuery.addEventListener){
+        numbleSchemeQuery.addEventListener(
+            "change",
+            numbleSchemeHandler
+        );
+    }else if(numbleSchemeQuery.addListener){
+        numbleSchemeQuery.addListener(
+            numbleSchemeHandler
+        );
+    }
+}
+
+applyAppearanceMode();
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -5039,6 +5263,6 @@ if(document.readyState==="loading"){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.18</div>
+<div class="build-marker">NUMBLE BUILD v0.18.1</div>
 </body>
 </html>
