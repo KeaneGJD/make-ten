@@ -1195,7 +1195,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.19</strong><br>
+<strong>Numble v0.19.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2446,6 +2446,7 @@ if(solutionsBox){
 
 
 function startModePuzzle(level,title){
+achievementPuzzleStartedAt=Date.now();
 currentLevel=level;
 currentLevelIndex=-1;
 solutionsDone=0;
@@ -2545,6 +2546,7 @@ clearModeTimer();inputLocked=true;
 modeStats.arcadeBest=Math.max(modeStats.arcadeBest,modeScore);
 modeStats.bestCombo=Math.max(modeStats.bestCombo,modeBestCombo);
 saveModeStats();
+achievementSetMax("bestArcadeScore",modeStats.arcadeBest);
 showModeComplete("⏱️","Arcade Complete",`Score: ${modeScore} · Solved: ${modeSolved} · Best combo: ×${modeBestCombo}`,startArcadeMode);
 }
 function startEndlessMode(){
@@ -2553,7 +2555,9 @@ startModePuzzle(makeModeLevel("endless",0),"ENDLESS");
 }
 function finishEndless(){
 inputLocked=true;
-modeStats.endlessBest=Math.max(modeStats.endlessBest,modeSolved);saveModeStats();
+modeStats.endlessBest=Math.max(modeStats.endlessBest,modeSolved);
+saveModeStats();
+achievementSetMax("bestEndlessRun",modeStats.endlessBest);
 showModeComplete("♾️","Endless Complete",`You solved ${modeSolved} puzzle${modeSolved===1?"":"s"}. Best: ${modeStats.endlessBest}`,startEndlessMode);
 }
 
@@ -2808,6 +2812,7 @@ if(dailyOfficialAttempt){
     modeStats.dailyCompleted++;
     modeStats.lastDailyDate=dailyDateKey;
     saveModeStats();
+    achievementSetMax("dailyCompleted",modeStats.dailyCompleted);
 }
 
 showModeComplete(
@@ -2836,8 +2841,7 @@ showScreen("modeCompleteScreen");
 function modeCorrect(){
 modeStats.equations++;saveModeStats();
 if(gameMode==="arcade"){
- modeSolved++;
-if(gameMode==="endless")achievementSetMax("bestEndlessRun",modeSolved);modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
+ modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
  const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);achievementSetMax("bestArcadeScore",modeScore);
  if(modeCombo>=2)numbleSfx("combo");
  const comboCard=document.getElementById("arcadeComboCard");
@@ -2850,6 +2854,7 @@ if(gameMode==="endless")achievementSetMax("bestEndlessRun",modeSolved);modeCombo
 }
 if(gameMode==="endless"){
  modeSolved++;
+ achievementSetMax("bestEndlessRun",modeSolved);
  setTimeout(()=>startModePuzzle(makeModeLevel("endless",modeSolved),"ENDLESS"),260);
  return true;
 }
@@ -3436,17 +3441,84 @@ const ACHIEVEMENTS=[
 {id:"campaign_complete",icon:"🏅",name:"Campaign Complete",desc:"Finish the full Campaign.",goal:1,type:"campaignCompleted"}];
 
 let achievementState=loadAchievementState();
+let achievementPuzzleStartedAt=Date.now();
 function loadAchievementState(){try{const s=JSON.parse(localStorage.getItem(ACHIEVEMENT_KEY)||"{}");return{unlocked:s.unlocked||{},counters:s.counters||{},cleanStreak:s.cleanStreak||0};}catch(e){return{unlocked:{},counters:{},cleanStreak:0};}}
 function saveAchievementState(){localStorage.setItem(ACHIEVEMENT_KEY,JSON.stringify(achievementState));}
 function achievementValue(t){return Number(achievementState.counters[t]||0);}
-function achievementSetMax(t,v){achievementState.counters[t]=Math.max(achievementValue(t),Number(v)||0);saveAchievementState();checkAchievements();}
-function achievementAdd(t,n=1){achievementState.counters[t]=achievementValue(t)+n;saveAchievementState();checkAchievements();}
+function achievementSetMax(t,v){
+const old=achievementValue(t);
+const next=Math.max(old,Number(v)||0);
+if(next===old)return;
+achievementState.counters[t]=next;
+saveAchievementState();
+checkAchievements();
+}
+function achievementAdd(t,n=1){
+achievementState.counters[t]=achievementValue(t)+n;
+saveAchievementState();
+checkAchievements();
+}
 function achievementCleanSuccess(){achievementState.cleanStreak++;achievementSetMax("bestCleanStreak",achievementState.cleanStreak);}
 function achievementCleanFail(){achievementState.cleanStreak=0;saveAchievementState();}
 function checkAchievements(){ACHIEVEMENTS.forEach(a=>{if(!achievementState.unlocked[a.id]&&achievementValue(a.type)>=a.goal){achievementState.unlocked[a.id]=Date.now();saveAchievementState();showAchievementToast(a);}});}
 function showAchievementToast(a){const old=document.querySelector(".achievement-toast");if(old)old.remove();const toast=document.createElement("div");toast.className="achievement-toast";toast.innerHTML=`<div class="achievement-icon">${a.icon}</div><div><strong>Achievement Unlocked!</strong><br><span>${a.name}</span></div>`;document.body.appendChild(toast);numbleSfx("correct");numbleHaptic([25,35,25]);setTimeout(()=>toast.remove(),2600);}
 function renderAchievements(){const grid=document.getElementById("achievementGrid");if(!grid)return;grid.innerHTML="";let unlocked=0;ACHIEVEMENTS.forEach(a=>{const ok=!!achievementState.unlocked[a.id];if(ok)unlocked++;const value=Math.min(achievementValue(a.type),a.goal),pct=Math.min(100,value/a.goal*100);const card=document.createElement("div");card.className="achievement-card"+(ok?"":" locked");card.innerHTML=`<div class="achievement-icon">${ok?a.icon:"🔒"}</div><div class="achievement-copy"><strong>${a.name}</strong><span>${a.desc}</span><div class="achievement-progress">${ok?"UNLOCKED":`${value} / ${a.goal}`}</div><div class="achievement-bar"><div class="achievement-bar-fill" style="width:${ok?100:pct}%"></div></div></div>`;grid.appendChild(card);});document.getElementById("achievementSummary").textContent=`${unlocked} / ${ACHIEVEMENTS.length} unlocked`;}
-function openAchievements(){checkAchievements();renderAchievements();showScreen("achievementsScreen");}
+
+function syncCampaignAchievements(){
+
+const starValues=Object.values(progress.stars||{}).map(Number);
+const threeStarLevels=starValues.filter(v=>v===3).length;
+achievementSetMax("threeStarLevels",threeStarLevels);
+
+let perfectChapters=0;
+let chaptersCompleted=0;
+
+const chapters=[...new Set(LEVELS.map(level=>level.chapter))];
+
+chapters.forEach(chapter=>{
+
+    const indexes=LEVELS
+        .map((level,index)=>({level,index}))
+        .filter(item=>item.level.chapter===chapter)
+        .map(item=>item.index+1);
+
+    const completed=indexes.every(
+        levelNumber=>Number(progress.stars[levelNumber]||0)>0
+    );
+
+    const perfect=indexes.every(
+        levelNumber=>Number(progress.stars[levelNumber]||0)===3
+    );
+
+    if(completed)chaptersCompleted++;
+    if(perfect)perfectChapters++;
+});
+
+achievementSetMax("chaptersCompleted",chaptersCompleted);
+achievementSetMax("perfectChapters",perfectChapters);
+
+const campaignComplete=
+    LEVELS.every(
+        (_,index)=>Number(progress.stars[index+1]||0)>0
+    );
+
+achievementSetMax(
+    "campaignCompleted",
+    campaignComplete?1:0
+);
+}
+
+function openAchievements(){
+syncCampaignAchievements();
+if(typeof modeStats!=="undefined"){
+ achievementSetMax("dailyCompleted",Number(modeStats.dailyCompleted||0));
+ achievementSetMax("bestArcadeScore",Number(modeStats.arcadeBest||0));
+ achievementSetMax("bestEndlessRun",Number(modeStats.endlessBest||0));
+}
+checkAchievements();
+renderAchievements();
+showScreen("achievementsScreen");
+}
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -3556,6 +3628,7 @@ container.appendChild(button);
 }
 
 function startLevel(index){
+achievementPuzzleStartedAt=Date.now();
 
 gameMode="campaign";
 clearModeTimer();
@@ -4283,6 +4356,7 @@ if(!currentLevel.bombCount){
 const used=new Set(usedIndexes||[]);
 const next={};
 let exploded=0;
+let bombsClearedThisTurn=0;
 
 Object.entries(bombStates).forEach(([key,fuse])=>{
 
@@ -4293,6 +4367,7 @@ Object.entries(bombStates).forEach(([key,fuse])=>{
     */
 
     if(used.has(index)){
+        bombsClearedThisTurn++;
         return;
     }
 
@@ -4306,6 +4381,10 @@ Object.entries(bombStates).forEach(([key,fuse])=>{
 });
 
 bombStates=next;
+
+if(bombsClearedThisTurn>0){
+    achievementAdd("bombsCleared",bombsClearedThisTurn);
+}
 
 if(exploded>0){
 
@@ -4631,7 +4710,8 @@ if(
         document.getElementById("feedback").className="feedback correct";
         numbleSuccessFeedback();
         achievementCleanSuccess();
-        if(typeof selectedOperators!=="undefined"&&selectedOperators.includes("/"))achievementAdd("divisionSolves");
+        if(Date.now()-achievementPuzzleStartedAt<=10000)achievementAdd("quickSolves");
+        if(expressionTokens.includes("/"))achievementAdd("divisionSolves");
         document.getElementById("selectionText").innerHTML=
             `${equation} = <strong>${currentLevel.target}</strong>`;
         modeCorrect();
@@ -4640,7 +4720,8 @@ if(
 
     numbleSuccessFeedback();
     achievementCleanSuccess();
-    if(typeof selectedOperators!=="undefined"&&selectedOperators.includes("/"))achievementAdd("divisionSolves");
+    if(Date.now()-achievementPuzzleStartedAt<=10000)achievementAdd("quickSolves");
+    if(expressionTokens.includes("/"))achievementAdd("divisionSolves");
     solutionsDone++;
     modeStats.equations++;
     saveModeStats();
@@ -4969,6 +5050,7 @@ if(unlockingNextChapterNow){
 }
 
 saveProgress();
+syncCampaignAchievements();
 
 const newlyUnlocked=Number(progress.unlocked||1);
 if(newlyUnlocked>lastKnownUnlock){
@@ -5321,6 +5403,6 @@ applyAppearanceMode();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.19</div>
+<div class="build-marker">NUMBLE BUILD v0.19.1</div>
 </body>
 </html>
