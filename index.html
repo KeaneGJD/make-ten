@@ -529,6 +529,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <button class="operator-btn active" id="plusButton" onclick="setOperator('+')">+</button>
 <button class="operator-btn" id="minusButton" onclick="setOperator('-')">−</button>
 <button class="operator-btn" id="multiplyButton" onclick="setOperator('*')">×</button>
+<button class="operator-btn" id="divideButton" onclick="setOperator('/')">÷</button>
 </div>
 
 <div class="equation-builder" id="equationBuilder">
@@ -1859,10 +1860,11 @@ const wrap=document.getElementById("operatorWrap");
 const plusButton=document.getElementById("plusButton");
 const minusButton=document.getElementById("minusButton");
 const multiplyButton=document.getElementById("multiplyButton");
+const divideButton=document.getElementById("divideButton");
 
 const shouldShow=currentLevel.expressionMode
-? currentLevel.operators.length>0
-: (currentLevel.selectionCount!==3&&currentLevel.operators.length>1);
+    ? currentLevel.operators.length>0
+    : (currentLevel.selectionCount!==3&&currentLevel.operators.length>1);
 
 wrap.style.display=shouldShow?"grid":"none";
 wrap.style.gridTemplateColumns=`repeat(${Math.max(1,currentLevel.operators.length)},1fr)`;
@@ -1870,10 +1872,27 @@ wrap.style.gridTemplateColumns=`repeat(${Math.max(1,currentLevel.operators.lengt
 plusButton.style.display=currentLevel.operators.includes("+")?"block":"none";
 minusButton.style.display=currentLevel.operators.includes("-")?"block":"none";
 multiplyButton.style.display=currentLevel.operators.includes("*")?"block":"none";
+divideButton.style.display=currentLevel.operators.includes("/")?"block":"none";
 
-plusButton.classList.toggle("active",pendingOperator==="+"||(!currentLevel.expressionMode&&selectedOperator==="+"));
-minusButton.classList.toggle("active",pendingOperator==="-"||(!currentLevel.expressionMode&&selectedOperator==="-"));
-multiplyButton.classList.toggle("active",pendingOperator==="*"||(!currentLevel.expressionMode&&selectedOperator==="*"));
+plusButton.classList.toggle(
+    "active",
+    pendingOperator==="+"||(!currentLevel.expressionMode&&selectedOperator==="+")
+);
+
+minusButton.classList.toggle(
+    "active",
+    pendingOperator==="-"||(!currentLevel.expressionMode&&selectedOperator==="-")
+);
+
+multiplyButton.classList.toggle(
+    "active",
+    pendingOperator==="*"||(!currentLevel.expressionMode&&selectedOperator==="*")
+);
+
+divideButton.classList.toggle(
+    "active",
+    pendingOperator==="/"||(!currentLevel.expressionMode&&selectedOperator==="/")
+);
 }
 
 function setOperator(operator){
@@ -2281,6 +2300,8 @@ if(expressionTokens.length===0){
 }
 
 if(!pendingOperator){
+    document.getElementById("feedback").textContent="Choose an operator first.";
+    document.getElementById("feedback").className="feedback wrong";
     return;
 }
 
