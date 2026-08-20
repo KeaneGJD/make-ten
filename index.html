@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Make Ten</title>
+<title>Numble</title>
 <style>
 :root{
 --bg:#fffaf4;--panel:#fff;--text:#303238;--muted:#8b8b92;
@@ -648,6 +648,27 @@ to{transform:scale(1.09)}
 50%{transform:scale(1.08)}
 }
 
+
+.numble-brand{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:6px 0 12px;
+}
+
+.numble-logo{
+    width:min(100%,360px);
+    height:auto;
+    display:block;
+    object-fit:contain;
+}
+
+@media(max-width:400px){
+    .numble-logo{
+        width:min(100%,320px);
+    }
+}
+
 @media(max-width:400px){
 .arcade-hud-value{font-size:20px}
 .arcade-hud-card.timer .arcade-hud-value{font-size:26px}
@@ -658,9 +679,8 @@ to{transform:scale(1.09)}
 </head>
 <body>
 <div class="app">
-<div class="brand">
-<div class="brand-small">NUMBER PUZZLE</div>
-<div class="brand-main"><span class="make">MAKE</span> <span class="ten">TEN</span></div>
+<div class="brand numble-brand">
+<img src="assets/numble-logo.png" alt="Numble" class="numble-logo">
 </div>
 
 <section class="screen active" id="homeScreen">
