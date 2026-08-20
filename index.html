@@ -384,6 +384,14 @@ button{font:inherit}
     font-weight:900;
 }
 
+
+.dev-tools{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+.dev-toggle,.dev-latest{width:100%;border:0;border-radius:13px;padding:11px 12px;font-weight:900;cursor:pointer}
+.dev-toggle{background:#f1eee8;color:var(--muted);font-size:11px}
+.dev-toggle.active{background:#fff0c9;color:#8a6412}
+.dev-latest{display:none;margin-top:8px;background:#2f3137;color:white}
+.test-banner{display:none;margin:8px 0 0;padding:9px;border-radius:12px;background:#fff0c9;color:#8a6412;font-size:10px;font-weight:900;text-align:center}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -420,6 +428,11 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <button class="main-btn" onclick="openLevels()">PLAY</button>
+<div class="dev-tools">
+<button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
+<div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS & LIVES IGNORED</div>
+<button class="dev-latest" id="latestTestButton" onclick="startLatestTest()">LATEST TEST → LEVEL 30</button>
+</div>
 </div>
 </section>
 
@@ -643,6 +656,9 @@ const MAX_AD_RESTORES_PER_WINDOW=3;
 
 let lifeState=loadLifeState();
 let lifeTimerInterval=null;
+const TEST_MODE_KEY="makeTenTestModeV071";
+let testMode=localStorage.getItem(TEST_MODE_KEY)==="1";
+
 let lifeLostThisFailure=false;
 let mistakesThisLevel=0;
 let expressionTokens=[];
@@ -1113,6 +1129,8 @@ if(retry){
 
 function canStartLevel(index){
 
+if(testMode)return true;
+
 reconcileLives();
 
 const levelNumber=
@@ -1197,6 +1215,7 @@ document.getElementById(id).classList.add("active");
 if(id==="homeScreen"){
 updateHomeStats();
 updateLifeUI();
+updateTestModeUI();
 }
 
 if(id==="levelScreen"){
@@ -1244,7 +1263,7 @@ heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
 }
 
 const levelNumber=index+1;
-const unlocked=levelNumber<=progress.unlocked;
+const unlocked=testMode||levelNumber<=progress.unlocked;
 const stars=Number(progress.stars[levelNumber]||0);
 const button=document.createElement("button");
 button.className="level-card";
@@ -1270,6 +1289,7 @@ if(unlocked){
         );
 
     if(
+        !testMode &&
         !completed &&
         lifeState.lives<=0
     ){
@@ -2091,6 +2111,7 @@ return 1;
 function completeLevel(){
 
 inputLocked=true;
+const testProgressSnapshot=testMode?JSON.stringify(progress):null;
 
 const levelNumber=currentLevelIndex+1;
 const stars=calculateStars();
@@ -2134,6 +2155,10 @@ if(unlockingNextChapterNow){
 }
 
 saveProgress();
+
+if(testMode&&testProgressSnapshot){
+    progress=JSON.parse(testProgressSnapshot);
+}
 
 document.getElementById("starDisplay").textContent=
     "★".repeat(stars)+
@@ -2294,7 +2319,7 @@ function failLevel(){
 inputLocked=true;
 
 if(!lifeLostThisFailure){
-    loseLife();
+    if(!testMode)loseLife();
     lifeLostThisFailure=true;
 }
 
@@ -2328,9 +2353,44 @@ inputLocked=true;
 openLevels();
 }
 
+
+function updateTestModeUI(){
+const toggle=document.getElementById("devToggleButton");
+const latest=document.getElementById("latestTestButton");
+const banner=document.getElementById("testModeBanner");
+if(toggle){
+    toggle.textContent=testMode?"🛠 TEST MODE: ON":"🛠 TEST MODE: OFF";
+    toggle.classList.toggle("active",testMode);
+}
+if(latest){
+    latest.style.display=testMode?"block":"none";
+    latest.textContent=`LATEST TEST → LEVEL ${LEVELS.length}`;
+}
+if(banner)banner.style.display=testMode?"block":"none";
+}
+
+function toggleTestMode(){
+testMode=!testMode;
+localStorage.setItem(TEST_MODE_KEY,testMode?"1":"0");
+updateTestModeUI();
+if(document.getElementById("levelScreen").classList.contains("active")){
+    renderLevelSelect();
+}
+}
+
+function startLatestTest(){
+if(!testMode){
+    testMode=true;
+    localStorage.setItem(TEST_MODE_KEY,"1");
+    updateTestModeUI();
+}
+startLevel(LEVELS.length-1);
+}
+
 reconcileLives();
 updateHomeStats();
 updateLifeUI();
+updateTestModeUI();
 startLifeTicker();
 
 document.addEventListener(
