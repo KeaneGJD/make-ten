@@ -1267,11 +1267,11 @@ body.tile-theme-soft .preview-tile{
     background:linear-gradient(145deg,#fff7e8,#f7e8c8);
 }
 
-body.accent-mint{
+body.tile-theme-mint{
     --blue:#51b8a5;
 }
 
-body.accent-mint .preview-accent{
+body.tile-theme-mint .preview-accent{
     background:#51b8a5;
 }
 
@@ -1287,13 +1287,13 @@ body.accent-mint .preview-accent{
     font-weight:1000;
 }
 
-body.special-tile-skin .tile{
+body.tile-theme-crystal .tile{
     box-shadow:
         inset 0 0 0 2px rgba(255,255,255,.35),
         0 8px 18px rgba(0,0,0,.08);
 }
 
-body.special-tile-skin .tile::after{
+body.tile-theme-crystal .tile::after{
     content:"";
     position:absolute;
     inset:5px;
@@ -1306,39 +1306,39 @@ body.special-tile-skin .tile::after{
 /* v0.21.2 — Cosmetic Upgrade Pass */
 
 /* Level 10: Mint is now a fuller UI theme */
-body.accent-mint{
+body.tile-theme-mint{
     --blue:#51b8a5;
 }
 
-body.accent-mint .primary-btn,
-body.accent-mint .setting-toggle.on,
-body.accent-mint .appearance-btn.active,
-body.accent-mint .achievement-bar-fill,
-body.accent-mint .player-xp-fill{
+body.tile-theme-mint .primary-btn,
+body.tile-theme-mint .setting-toggle.on,
+body.tile-theme-mint .appearance-btn.active,
+body.tile-theme-mint .achievement-bar-fill,
+body.tile-theme-mint .player-xp-fill{
     background:#51b8a5;
 }
 
-body.accent-mint .mode-choice.selected,
-body.accent-mint .cosmetic-option.selected{
+body.tile-theme-mint .mode-choice.selected,
+body.tile-theme-mint .cosmetic-option.selected{
     outline-color:#51b8a5;
 }
 
-body.accent-mint .operator-btn.selected,
-body.accent-mint .tile.selected{
+body.tile-theme-mint .operator-btn.selected,
+body.tile-theme-mint .tile.selected{
     box-shadow:0 0 0 3px rgba(81,184,165,.28),var(--shadow);
 }
 
-body.accent-mint .home-stat,
-body.accent-mint .unlock-strip,
-body.accent-mint .mode-meta-callout{
+body.tile-theme-mint .home-stat,
+body.tile-theme-mint .unlock-strip,
+body.tile-theme-mint .mode-meta-callout{
     border-color:rgba(81,184,165,.35);
 }
 
-body.accent-mint:not(.theme-dark) .card{
+body.tile-theme-mint:not(.theme-dark) .card{
     background:linear-gradient(180deg,#ffffff,#f4fffc);
 }
 
-body.accent-mint.theme-dark .card{
+body.tile-theme-mint.theme-dark .card{
     background:linear-gradient(180deg,var(--panel),#20302e);
 }
 
@@ -1366,7 +1366,7 @@ body.accent-mint.theme-dark .card{
 }
 
 /* Level 20: Crystal Tile Set */
-body.special-tile-skin .tile{
+body.tile-theme-crystal .tile{
     position:relative;
     overflow:hidden;
     background:
@@ -1379,7 +1379,7 @@ body.special-tile-skin .tile{
     backdrop-filter:blur(5px);
 }
 
-body.special-tile-skin .tile::before{
+body.tile-theme-crystal .tile::before{
     content:"";
     position:absolute;
     left:8%;
@@ -1392,7 +1392,7 @@ body.special-tile-skin .tile::before{
     pointer-events:none;
 }
 
-body.special-tile-skin .tile::after{
+body.tile-theme-crystal .tile::after{
     content:"";
     position:absolute;
     inset:4px;
@@ -1401,13 +1401,13 @@ body.special-tile-skin .tile::after{
     pointer-events:none;
 }
 
-body.special-tile-skin .operator-btn{
+body.tile-theme-crystal .operator-btn{
     background:linear-gradient(145deg,#edf8ff,#cdeaff);
     border-color:rgba(104,159,205,.65);
     box-shadow:0 5px 12px rgba(48,103,150,.14);
 }
 
-body.special-tile-skin.theme-dark .tile{
+body.tile-theme-crystal.theme-dark .tile{
     background:
         linear-gradient(145deg,rgba(69,89,112,.94),rgba(35,61,84,.86));
     color:#f6fbff;
@@ -1418,7 +1418,7 @@ body.special-tile-skin.theme-dark .tile{
         0 7px 16px rgba(0,0,0,.30);
 }
 
-body.special-tile-skin.theme-dark .operator-btn{
+body.tile-theme-crystal.theme-dark .operator-btn{
     background:linear-gradient(145deg,#354c60,#223747);
     color:#f6fbff;
     border-color:rgba(133,198,245,.55);
@@ -1429,6 +1429,167 @@ body.special-tile-skin.theme-dark .operator-btn{
     border-color:#78afd4!important;
     box-shadow:inset 0 1px 0 #fff,0 4px 9px rgba(48,103,150,.18);
 }
+
+
+/* v0.21.3 — Themed Tile Rewards */
+
+/* Mint — green tiles with leafy accents */
+body.tile-theme-mint .tile{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(145deg,#e8f8e9,#bfe7c2);
+    border:1px solid #86bf8a;
+    color:#214d27;
+    box-shadow:0 7px 16px rgba(55,120,65,.16);
+}
+
+body.tile-theme-mint .tile::before{
+    content:"❧";
+    position:absolute;
+    right:7px;
+    top:3px;
+    font-size:15px;
+    opacity:.28;
+    transform:rotate(18deg);
+    pointer-events:none;
+}
+
+body.tile-theme-mint .operator-btn{
+    background:linear-gradient(145deg,#effbef,#cfeccf);
+    color:#214d27;
+    border-color:#8dc491;
+}
+
+/* Ember — red/orange tiles with a subtle flame shimmer */
+body.tile-theme-ember .tile{
+    position:relative;
+    overflow:hidden;
+    background:
+        linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d);
+    border:1px solid #c74a35;
+    color:#4f170d;
+    box-shadow:0 7px 17px rgba(178,61,34,.22);
+}
+
+body.tile-theme-ember .tile::before{
+    content:"";
+    position:absolute;
+    left:10%;
+    right:10%;
+    bottom:-14px;
+    height:28px;
+    border-radius:50% 50% 20% 20%;
+    background:
+        radial-gradient(circle at 25% 80%,rgba(255,230,120,.9),transparent 36%),
+        radial-gradient(circle at 55% 70%,rgba(255,130,55,.85),transparent 38%),
+        radial-gradient(circle at 78% 85%,rgba(255,215,95,.72),transparent 32%);
+    opacity:.8;
+    animation:emberFlicker 1.2s ease-in-out infinite alternate;
+    pointer-events:none;
+}
+
+@keyframes emberFlicker{
+    from{transform:translateY(1px) scaleX(.96);opacity:.58}
+    to{transform:translateY(-4px) scaleX(1.04);opacity:.9}
+}
+
+body.tile-theme-ember .operator-btn{
+    background:linear-gradient(145deg,#ffe2c4,#ee8d5c);
+    color:#4f170d;
+    border-color:#d86c43;
+}
+
+/* Deep Sea — cool blue tiles with rising bubble accents */
+body.tile-theme-deepsea .tile{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd);
+    border:1px solid #3c8caf;
+    color:#0e3851;
+    box-shadow:0 8px 18px rgba(33,101,139,.22);
+}
+
+body.tile-theme-deepsea .tile::before,
+body.tile-theme-deepsea .tile::after{
+    content:"";
+    position:absolute;
+    border:1px solid rgba(255,255,255,.65);
+    border-radius:50%;
+    pointer-events:none;
+}
+
+body.tile-theme-deepsea .tile::before{
+    width:9px;
+    height:9px;
+    right:10px;
+    bottom:8px;
+    animation:bubbleRise 1.8s ease-in-out infinite;
+}
+
+body.tile-theme-deepsea .tile::after{
+    width:5px;
+    height:5px;
+    right:22px;
+    bottom:15px;
+    animation:bubbleRise 1.45s ease-in-out infinite .3s;
+}
+
+@keyframes bubbleRise{
+    from{transform:translateY(7px);opacity:.18}
+    to{transform:translateY(-12px);opacity:.72}
+}
+
+body.tile-theme-deepsea .operator-btn{
+    background:linear-gradient(145deg,#e4f8ff,#8cd0e8);
+    color:#0e3851;
+    border-color:#4c9bbb;
+}
+
+/* Crystal remains the premium late unlock */
+body.tile-theme-crystal .tile{
+    position:relative;
+    overflow:hidden;
+    background:
+        linear-gradient(145deg,rgba(255,255,255,.94),rgba(211,235,255,.72));
+    border:1px solid rgba(104,159,205,.65);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.95),
+        inset 0 -8px 18px rgba(91,160,210,.10),
+        0 7px 16px rgba(48,103,150,.18);
+    backdrop-filter:blur(5px);
+}
+
+body.tile-theme-crystal .tile::before{
+    content:"";
+    position:absolute;
+    left:8%;
+    top:7%;
+    width:62%;
+    height:25%;
+    border-radius:999px;
+    background:linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,0));
+    transform:rotate(-7deg);
+    pointer-events:none;
+}
+
+body.tile-theme-crystal .tile::after{
+    content:"";
+    position:absolute;
+    inset:4px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.62);
+    pointer-events:none;
+}
+
+body.tile-theme-crystal .operator-btn{
+    background:linear-gradient(145deg,#edf8ff,#cdeaff);
+    border-color:rgba(104,159,205,.65);
+    box-shadow:0 5px 12px rgba(48,103,150,.14);
+}
+
+.mint-preview{background:linear-gradient(145deg,#e8f8e9,#bfe7c2)!important;border-color:#86bf8a!important}
+.ember-preview{background:linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d)!important;border-color:#c74a35!important}
+.deepsea-preview{background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd)!important;border-color:#3c8caf!important}
 
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
@@ -1466,8 +1627,8 @@ body.special-tile-skin.theme-dark .operator-btn{
 <div class="player-strip">
 <div class="player-level-badge" id="homePlayerLevel">1</div>
 <div class="player-level-copy">
-<strong id="homePlayerTitle">Player Level 1</strong><span class="player-badge-emblem" id="homeBadgeEmblem" style="display:none" title="Number Crafter">🏅</span>
-<div class="profile-badge" id="homeProfileBadge" style="display:none">🏅 Equipped: Number Crafter</div>
+<strong id="homePlayerTitle">Player Level 1</strong>
+
 <div class="player-xp-row"><span id="homeXpText">0 / 100 XP</span><span id="homeNextReward">Next reward: Lv 5</span></div>
 <div class="player-xp-bar"><div class="player-xp-fill" id="homeXpFill" style="width:0%"></div></div>
 </div>
@@ -1520,55 +1681,48 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div class="customise-grid">
 
 <div class="customise-section">
-<h3>Tiles</h3>
+<h3>Tile Sets</h3>
 <div class="cosmetic-options">
+
 <button class="cosmetic-option" id="tileDefaultOption" onclick="setTileTheme('default')">
 <div class="cosmetic-preview">
 <div class="preview-tile">4</div><div class="preview-tile">8</div>
 </div>
 Default
 </button>
-<button class="cosmetic-option" id="tileSoftOption" onclick="setTileTheme('soft')">
+
+<button class="cosmetic-option" id="tileMintOption" onclick="setTileTheme('mint')">
 <div class="cosmetic-preview">
-<div class="preview-tile" style="background:linear-gradient(145deg,#fff7e8,#f7e8c8)">4</div>
-<div class="preview-tile" style="background:linear-gradient(145deg,#fff7e8,#f7e8c8)">8</div>
+<div class="preview-tile mint-preview">4</div><div class="preview-tile mint-preview">8</div>
 </div>
-Soft Tiles · Lv 5
+🌿 Mint · Lv 5
 </button>
-</div>
-</div>
 
-<div class="customise-section">
-<h3>Themes</h3>
-<div class="cosmetic-options">
-<button class="cosmetic-option" id="accentDefaultOption" onclick="setAccentTheme('default')">Default</button>
-<button class="cosmetic-option preview-accent" id="accentMintOption" onclick="setAccentTheme('mint')">Mint Theme · Lv 10</button>
-</div>
-</div>
-
-<div class="customise-section">
-<h3>Badges</h3>
-<div class="cosmetic-options">
-<button class="cosmetic-option" id="badgeNoneOption" onclick="setProfileBadge('none')">None</button>
-<button class="cosmetic-option" id="badgeCrafterOption" onclick="setProfileBadge('crafter')">🏅 Number Crafter · Lv 15</button>
-</div>
-</div>
-
-<div class="customise-section">
-<h3>Premium Tiles</h3>
-<div class="cosmetic-options">
-<button class="cosmetic-option" id="skinDefaultOption" onclick="setSpecialSkin('default')">Default</button>
-<button class="cosmetic-option" id="skinSpecialOption" onclick="setSpecialSkin('special')">
+<button class="cosmetic-option" id="tileEmberOption" onclick="setTileTheme('ember')">
 <div class="cosmetic-preview">
-<div class="preview-tile crystal-preview">7</div>
-<div class="preview-tile crystal-preview">12</div>
+<div class="preview-tile ember-preview">4</div><div class="preview-tile ember-preview">8</div>
 </div>
-💎 Crystal Tiles · Lv 20
+🔥 Ember · Lv 10
 </button>
+
+<button class="cosmetic-option" id="tileDeepSeaOption" onclick="setTileTheme('deepsea')">
+<div class="cosmetic-preview">
+<div class="preview-tile deepsea-preview">4</div><div class="preview-tile deepsea-preview">8</div>
+</div>
+🌊 Deep Sea · Lv 15
+</button>
+
+<button class="cosmetic-option" id="tileCrystalOption" onclick="setTileTheme('crystal')">
+<div class="cosmetic-preview">
+<div class="preview-tile crystal-preview">7</div><div class="preview-tile crystal-preview">12</div>
+</div>
+💎 Crystal · Lv 20
+</button>
+
 </div>
 </div>
 
-</div>
+</div></div>
 </div>
 </section>
 
@@ -1640,7 +1794,7 @@ Soft Tiles · Lv 5
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21.2</strong><br>
+<strong>Numble v0.21.3</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1709,7 +1863,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <div class="player-strip">
 <div class="player-level-badge" id="statsPlayerLevel">1</div>
 <div class="player-level-copy">
-<strong id="statsPlayerTitle">Player Level 1</strong><span class="player-badge-emblem" id="statsBadgeEmblem" style="display:none" title="Number Crafter">🏅</span>
+<strong id="statsPlayerTitle">Player Level 1</strong>
 <div class="player-xp-row"><span id="statsXpText">0 / 100 XP</span><span id="statsNextReward">Next reward: Lv 5</span></div>
 <div class="player-xp-bar"><div class="player-xp-fill" id="statsXpFill" style="width:0%"></div></div>
 </div>
@@ -3911,13 +4065,10 @@ function loadCustomiseState(){
 try{
  const s=JSON.parse(localStorage.getItem(CUSTOMISE_KEY)||"{}");
  return{
-  tileTheme:s.tileTheme||"default",
-  accent:s.accent||"default",
-  badge:s.badge||"none",
-  skin:s.skin||"default"
+  tileTheme:s.tileTheme||"default"
  };
 }catch(e){
- return{tileTheme:"default",accent:"default",badge:"none",skin:"default"};
+ return{tileTheme:"default"};
 }
 }
 
@@ -3933,66 +4084,76 @@ return Number(playerProgress&&playerProgress.level||1)>=level;
 }
 
 function applyCustomisation(){
-document.body.classList.toggle("tile-theme-soft",customiseState.tileTheme==="soft");
-document.body.classList.toggle("accent-mint",customiseState.accent==="mint");
-document.body.classList.toggle("special-tile-skin",customiseState.skin==="special");
 
-const badge=document.getElementById("homeProfileBadge");
-const badgeActive=customiseState.badge==="crafter"&&cosmeticUnlocked(15);
-
-if(badge){
- badge.style.display=badgeActive?"inline-flex":"none";
-}
-
-["homeBadgeEmblem","statsBadgeEmblem"].forEach(id=>{
- const emblem=document.getElementById(id);
- if(emblem)emblem.style.display=badgeActive?"inline-flex":"none";
+["mint","ember","deepsea","crystal"].forEach(theme=>{
+ document.body.classList.toggle(
+  `tile-theme-${theme}`,
+  customiseState.tileTheme===theme
+ );
 });
 
 updateCustomiseUI();
 }
 
 function setTileTheme(theme){
-if(theme==="soft"&&!cosmeticUnlocked(5))return;
+
+const requirements={
+ default:1,
+ mint:5,
+ ember:10,
+ deepsea:15,
+ crystal:20
+};
+
+const required=requirements[theme];
+
+if(!required){
+ return;
+}
+
+if(
+ theme!=="default" &&
+ !cosmeticUnlocked(required)
+){
+ return;
+}
+
 customiseState.tileTheme=theme;
-saveCustomiseState();applyCustomisation();
-}
-
-function setAccentTheme(theme){
-if(theme==="mint"&&!cosmeticUnlocked(10))return;
-customiseState.accent=theme;
-saveCustomiseState();applyCustomisation();
-}
-
-function setProfileBadge(badge){
-if(badge==="crafter"&&!cosmeticUnlocked(15))return;
-customiseState.badge=badge;
-saveCustomiseState();applyCustomisation();
-}
-
-function setSpecialSkin(skin){
-if(skin==="special"&&!cosmeticUnlocked(20))return;
-customiseState.skin=skin;
-saveCustomiseState();applyCustomisation();
+saveCustomiseState();
+applyCustomisation();
 }
 
 function updateCustomiseUI(){
+
 const config=[
- ["tileDefaultOption",customiseState.tileTheme==="default",true],
- ["tileSoftOption",customiseState.tileTheme==="soft",cosmeticUnlocked(5)],
- ["accentDefaultOption",customiseState.accent==="default",true],
- ["accentMintOption",customiseState.accent==="mint",cosmeticUnlocked(10)],
- ["badgeNoneOption",customiseState.badge==="none",true],
- ["badgeCrafterOption",customiseState.badge==="crafter",cosmeticUnlocked(15)],
- ["skinDefaultOption",customiseState.skin==="default",true],
- ["skinSpecialOption",customiseState.skin==="special",cosmeticUnlocked(20)]
+ ["tileDefaultOption","default",1],
+ ["tileMintOption","mint",5],
+ ["tileEmberOption","ember",10],
+ ["tileDeepSeaOption","deepsea",15],
+ ["tileCrystalOption","crystal",20]
 ];
 
-config.forEach(([id,selected,unlocked])=>{
+config.forEach(([id,theme,level])=>{
+
  const el=document.getElementById(id);
- if(!el)return;
- el.classList.toggle("selected",!!selected);
- el.classList.toggle("locked",!unlocked);
+
+ if(!el){
+  return;
+ }
+
+ const unlocked=
+  theme==="default" ||
+  cosmeticUnlocked(level);
+
+ el.classList.toggle(
+  "selected",
+  customiseState.tileTheme===theme
+ );
+
+ el.classList.toggle(
+  "locked",
+  !unlocked
+ );
 });
 }
 
@@ -4005,9 +4166,9 @@ updateCustomiseUI();
 const PLAYER_PROGRESS_KEY="numblePlayerProgressV1";
 
 const PLAYER_MILESTONES=[
-    {level:5,label:"Tile Theme I"},
-    {level:10,label:"Mint UI Theme"},
-    {level:15,label:"Number Crafter Badge"},
+    {level:5,label:"Mint Tile Set"},
+    {level:10,label:"Ember Tile Set"},
+    {level:15,label:"Deep Sea Tile Set"},
     {level:20,label:"Crystal Tile Set"}
 ];
 
@@ -6192,6 +6353,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21.2</div>
+<div class="build-marker">NUMBLE BUILD v0.21.3</div>
 </body>
 </html>
