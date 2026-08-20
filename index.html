@@ -593,6 +593,66 @@ button{font:inherit}
 .daily-result-dot{width:38px;height:38px;border-radius:12px;background:#f1eee8;display:flex;align-items:center;justify-content:center;font-weight:1000}
 .stats-section-title{grid-column:1/-1;text-align:left;font-size:12px;font-weight:1000;letter-spacing:.7px;color:var(--muted);margin-top:8px}
 
+
+.arcade-hud{
+display:none;
+grid-template-columns:1.15fr 1fr 1fr;
+gap:8px;
+margin:10px 0 14px;
+}
+
+.arcade-hud-card{
+background:#fff;
+border:1px solid var(--border);
+border-radius:16px;
+padding:10px 8px;
+text-align:center;
+box-shadow:0 5px 14px rgba(0,0,0,.05);
+}
+
+.arcade-hud-label{
+font-size:9px;
+font-weight:1000;
+letter-spacing:1px;
+color:var(--muted);
+margin-bottom:3px;
+}
+
+.arcade-hud-value{
+font-size:22px;
+line-height:1;
+font-weight:1000;
+}
+
+.arcade-hud-card.timer{
+transform:scale(1.04);
+}
+
+.arcade-hud-card.timer .arcade-hud-value{
+font-size:28px;
+}
+
+.arcade-hud-card.urgent{
+animation:arcadeTimerPulse .65s infinite alternate;
+}
+
+.arcade-hud-card.combo-hot{
+animation:comboBump .25s ease;
+}
+
+@keyframes arcadeTimerPulse{
+to{transform:scale(1.09)}
+}
+
+@keyframes comboBump{
+50%{transform:scale(1.08)}
+}
+
+@media(max-width:400px){
+.arcade-hud-value{font-size:20px}
+.arcade-hud-card.timer .arcade-hud-value{font-size:26px}
+}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -765,6 +825,20 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 <div class="level-title" id="levelTitle">LEVEL 1</div>
 <div class="unlock-strip" id="modeStatus" style="display:none"></div>
+<div class="arcade-hud" id="arcadeHud">
+<div class="arcade-hud-card timer" id="arcadeTimerCard">
+<div class="arcade-hud-label">TIME</div>
+<div class="arcade-hud-value" id="arcadeTimeValue">60</div>
+</div>
+<div class="arcade-hud-card">
+<div class="arcade-hud-label">SCORE</div>
+<div class="arcade-hud-value" id="arcadeScoreValue">0</div>
+</div>
+<div class="arcade-hud-card" id="arcadeComboCard">
+<div class="arcade-hud-label">COMBO</div>
+<div class="arcade-hud-value" id="arcadeComboValue">×1</div>
+</div>
+</div>
 <div class="target-wrap"><div class="target-label">Make</div><div class="target-number" id="targetDisplay">10</div></div>
 <div class="objective" id="objectiveText"></div>
 
@@ -1334,23 +1408,58 @@ updateStandardHudVisibility();
 renderGrid();resetSelectionText();updateEquationBuilder();updateOperatorControls();showScreen("gameScreen");updateModeStatus();
 }
 function updateModeStatus(){
+
 const el=document.getElementById("modeStatus");
+const arcadeHud=document.getElementById("arcadeHud");
+
 if(gameMode==="arcade"){
- el.textContent=`⏱ ${modeTimeLeft}s · Score ${modeScore} · Combo ×${Math.max(1,modeCombo)}`;
- el.classList.toggle("mode-status-urgent",modeTimeLeft<=10);
+
+    el.style.display="none";
+    arcadeHud.style.display="grid";
+
+    document.getElementById("arcadeTimeValue").textContent=modeTimeLeft;
+    document.getElementById("arcadeScoreValue").textContent=modeScore.toLocaleString();
+    document.getElementById("arcadeComboValue").textContent=`×${Math.max(1,modeCombo)}`;
+
+    document.getElementById("arcadeTimerCard").classList.toggle(
+        "urgent",
+        modeTimeLeft<=10
+    );
+
+}else{
+
+    arcadeHud.style.display="none";
+    el.style.display="block";
+
+    if(gameMode==="endless"){
+        const hearts=
+            "❤️".repeat(Math.max(0,3-modeMistakes))+
+            "🖤".repeat(Math.min(3,modeMistakes));
+
+        el.textContent=
+            `♾️ Solved ${modeSolved} · ${hearts}`;
+
+        el.classList.remove("mode-status-urgent");
+
+    }else if(gameMode==="daily"){
+
+        const hearts=
+            "❤️".repeat(Math.max(0,dailyHearts))+
+            "🖤".repeat(Math.max(0,3-dailyHearts));
+
+        el.textContent=
+            `📅 Puzzle ${dailyPuzzleNumber+1}/5 · ${hearts}`+
+            `${dailyOfficialAttempt?"":" · PRACTICE"}`;
+
+        el.classList.remove("mode-status-urgent");
+
+    }else{
+
+        el.style.display="none";
+    }
 }
-else if(gameMode==="endless"){
- const hearts="❤️".repeat(Math.max(0,3-modeMistakes))+"🖤".repeat(Math.min(3,modeMistakes));
- el.textContent=`♾️ Solved ${modeSolved} · ${hearts}`;
- el.classList.remove("mode-status-urgent");
 }
-else if(gameMode==="daily"){
- const hearts="❤️".repeat(Math.max(0,dailyHearts))+"🖤".repeat(Math.max(0,3-dailyHearts));
- el.textContent=`📅 Puzzle ${dailyPuzzleNumber+1}/5 · ${hearts}${dailyOfficialAttempt?"":" · PRACTICE"}`;
- el.classList.remove("mode-status-urgent");
-}
-else el.style.display="none";
-}
+
 function startArcadeMode(){
 gameMode="arcade";modeScore=0;modeCombo=0;modeBestCombo=0;modeSolved=0;modeMistakes=0;modeTimeLeft=60;
 startModePuzzle(makeModeLevel("arcade",0),"ARCADE");
@@ -1656,6 +1765,11 @@ modeStats.equations++;saveModeStats();
 if(gameMode==="arcade"){
  modeSolved++;modeCombo++;modeBestCombo=Math.max(modeBestCombo,modeCombo);
  const earned=100*Math.max(1,modeCombo);modeScore+=earned;arcadeScoreBurst(earned);
+ const comboCard=document.getElementById("arcadeComboCard");
+ comboCard.classList.remove("combo-hot");
+ void comboCard.offsetWidth;
+ comboCard.classList.add("combo-hot");
+ updateModeStatus();
  setTimeout(()=>startModePuzzle(makeModeLevel("arcade",modeSolved),"ARCADE"),260);
  return true;
 }
@@ -2365,6 +2479,7 @@ successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
 
 document.getElementById("modeStatus").style.display="none";
+document.getElementById("arcadeHud").style.display="none";
 updateStandardHudVisibility();
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
