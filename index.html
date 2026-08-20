@@ -149,6 +149,102 @@ button{font:inherit}
     line-height:1.5;
 }
 
+
+.life-strip{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin:14px 0 18px;
+    padding:13px 15px;
+    background:white;
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+}
+
+.life-hearts{
+    font-size:20px;
+    letter-spacing:2px;
+    white-space:nowrap;
+}
+
+.life-meta{
+    text-align:right;
+    min-width:0;
+}
+
+.life-count{
+    font-size:12px;
+    font-weight:900;
+}
+
+.life-timer{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+    margin-top:2px;
+}
+
+.life-ad-btn{
+    width:100%;
+    border:0;
+    border-radius:14px;
+    padding:13px 14px;
+    background:#ffe7d8;
+    color:var(--text);
+    font-weight:900;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.life-ad-btn:disabled{
+    opacity:.45;
+    cursor:default;
+}
+
+.life-note{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.4;
+}
+
+.level-card.no-lives{
+    opacity:.55;
+}
+
+.level-card .life-lock-note{
+    margin-top:5px;
+    color:var(--danger);
+    font-size:9px;
+    font-weight:900;
+    text-transform:uppercase;
+}
+
+.failed-hearts{
+    margin:16px 0 6px;
+    font-size:25px;
+    letter-spacing:3px;
+}
+
+.failed-life-copy{
+    color:var(--muted);
+    font-size:12px;
+    margin-bottom:16px;
+}
+
+.chapter-refill{
+    margin:10px 0 18px;
+    padding:12px;
+    background:#eefaf4;
+    color:#3d8d69;
+    border-radius:14px;
+    font-size:13px;
+    font-weight:900;
+    display:none;
+}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -168,6 +264,22 @@ button{font:inherit}
 <div class="home-stat"><strong id="homeLevels">0</strong><span>Levels Cleared</span></div>
 <div class="home-stat"><strong id="homeStars">0</strong><span>Stars Earned</span></div>
 </div>
+<div class="life-strip">
+<div class="life-hearts" id="homeHearts">❤️❤️❤️❤️❤️</div>
+<div class="life-meta">
+<div class="life-count" id="homeLifeCount">5 / 5 Lives</div>
+<div class="life-timer" id="homeLifeTimer">Full</div>
+</div>
+</div>
+
+<button class="life-ad-btn" id="homeAdButton" onclick="simulateRewardedAd()">
+📺 TEST REWARDED AD · +1 LIFE
+</button>
+
+<div class="life-note" id="homeAdNote">
+Prototype only — this simulates the future rewarded-ad restore.
+</div>
+
 <button class="main-btn" onclick="openLevels()">PLAY</button>
 </div>
 </section>
@@ -178,6 +290,14 @@ button{font:inherit}
 <h2>Choose Level</h2>
 <div style="width:42px"></div>
 </div>
+<div class="life-strip">
+<div class="life-hearts" id="levelHearts">❤️❤️❤️❤️❤️</div>
+<div class="life-meta">
+<div class="life-count" id="levelLifeCount">5 / 5 Lives</div>
+<div class="life-timer" id="levelLifeTimer">Full</div>
+</div>
+</div>
+
 <div class="level-grid" id="levelGrid"></div>
 </section>
 
@@ -206,6 +326,9 @@ button{font:inherit}
 <div class="complete-badge">✓</div>
 <h2>Level Complete!</h2>
 <div class="star-row" id="starDisplay">★★★</div>
+<div class="chapter-refill" id="chapterRefillMessage">
+❤️ Chapter complete — lives fully restored!
+</div>
 <div class="complete-stats">
 <div class="complete-stat"><strong id="completeSolutions">0</strong><span>Solutions</span></div>
 <div class="complete-stat"><strong id="completeMoves">0</strong><span>Moves Left</span></div>
@@ -220,8 +343,16 @@ button{font:inherit}
 <section class="screen" id="failedScreen">
 <div class="card failed-card">
 <h2>Out of Moves</h2>
-<p class="failed-copy">You were close. Try the level again and look for better combinations.</p>
-<div class="complete-actions">
+<p class="failed-copy">You were close. Running out of moves costs one life.</p>
+
+<div class="failed-hearts" id="failedHearts">❤️❤️❤️❤️🖤</div>
+<div class="failed-life-copy" id="failedLifeCopy"></div>
+
+<button class="life-ad-btn" id="failedAdButton" onclick="simulateRewardedAd()">
+📺 TEST REWARDED AD · +1 LIFE
+</button>
+
+<div class="complete-actions" style="margin-top:10px">
 <button class="main-btn" onclick="restartLevel()">TRY AGAIN</button>
 <button class="secondary-btn" onclick="openLevels()">LEVEL SELECT</button>
 </div>
@@ -281,6 +412,17 @@ let newTileIndexes=[];
 let selectedOperator="+";
 const SUBTRACTION_INTRO_KEY="makeTenSubtractionIntroSeen";
 
+const MAX_LIVES=5;
+const LIFE_REGEN_MS=30*60*1000;
+const LIFE_SAVE_KEY="makeTenLivesV04";
+const AD_HISTORY_KEY="makeTenRewardedLifeAdsV04";
+const AD_WINDOW_MS=6*60*60*1000;
+const MAX_AD_RESTORES_PER_WINDOW=3;
+
+let lifeState=loadLifeState();
+let lifeTimerInterval=null;
+let lifeLostThisFailure=false;
+
 function shuffle(array){
 const copy=[...array];
 for(let i=copy.length-1;i>0;i--){
@@ -289,6 +431,510 @@ const j=Math.floor(Math.random()*(i+1));
 }
 return copy;
 }
+
+
+function defaultLifeState(){
+return{
+    lives:MAX_LIVES,
+    nextLifeAt:null
+};
+}
+
+function loadLifeState(){
+try{
+    const raw=localStorage.getItem(LIFE_SAVE_KEY);
+    const data=raw?JSON.parse(raw):null;
+
+    if(!data||typeof data!=="object"){
+        return defaultLifeState();
+    }
+
+    return{
+        lives:Math.max(0,Math.min(MAX_LIVES,Number(data.lives)||0)),
+        nextLifeAt:data.nextLifeAt?Number(data.nextLifeAt):null
+    };
+}catch(e){
+    return defaultLifeState();
+}
+}
+
+function saveLifeState(){
+localStorage.setItem(
+    LIFE_SAVE_KEY,
+    JSON.stringify(lifeState)
+);
+}
+
+function reconcileLives(){
+
+if(lifeState.lives>=MAX_LIVES){
+    lifeState.lives=MAX_LIVES;
+    lifeState.nextLifeAt=null;
+    saveLifeState();
+    return;
+}
+
+if(!lifeState.nextLifeAt){
+    lifeState.nextLifeAt=Date.now()+LIFE_REGEN_MS;
+    saveLifeState();
+    return;
+}
+
+const now=Date.now();
+
+while(
+    lifeState.lives<MAX_LIVES &&
+    lifeState.nextLifeAt &&
+    now>=lifeState.nextLifeAt
+){
+    lifeState.lives++;
+
+    if(lifeState.lives>=MAX_LIVES){
+        lifeState.nextLifeAt=null;
+    }else{
+        lifeState.nextLifeAt+=LIFE_REGEN_MS;
+    }
+}
+
+saveLifeState();
+}
+
+function loseLife(){
+
+reconcileLives();
+
+if(lifeState.lives<=0){
+    return false;
+}
+
+lifeState.lives--;
+
+if(
+    lifeState.lives<MAX_LIVES &&
+    !lifeState.nextLifeAt
+){
+    lifeState.nextLifeAt=
+        Date.now()+LIFE_REGEN_MS;
+}
+
+saveLifeState();
+updateLifeUI();
+
+return true;
+}
+
+function refillLives(){
+
+lifeState.lives=MAX_LIVES;
+lifeState.nextLifeAt=null;
+
+saveLifeState();
+updateLifeUI();
+}
+
+function addLife(amount=1){
+
+reconcileLives();
+
+lifeState.lives=
+    Math.min(
+        MAX_LIVES,
+        lifeState.lives+amount
+    );
+
+if(lifeState.lives>=MAX_LIVES){
+    lifeState.nextLifeAt=null;
+}else if(!lifeState.nextLifeAt){
+    lifeState.nextLifeAt=
+        Date.now()+LIFE_REGEN_MS;
+}
+
+saveLifeState();
+updateLifeUI();
+}
+
+function formatCountdown(ms){
+
+const seconds=
+    Math.max(
+        0,
+        Math.ceil(ms/1000)
+    );
+
+const minutes=
+    Math.floor(seconds/60);
+
+const remainingSeconds=
+    seconds%60;
+
+return`${minutes}:${String(remainingSeconds).padStart(2,"0")}`;
+}
+
+function heartString(){
+
+return(
+    "❤️".repeat(lifeState.lives)+
+    "🖤".repeat(MAX_LIVES-lifeState.lives)
+);
+}
+
+function getAdHistory(){
+
+try{
+    const raw=
+        JSON.parse(
+            localStorage.getItem(
+                AD_HISTORY_KEY
+            )
+        );
+
+    return Array.isArray(raw)
+        ? raw
+        : [];
+}catch(e){
+    return[];
+}
+}
+
+function cleanAdHistory(){
+
+const cutoff=
+    Date.now()-AD_WINDOW_MS;
+
+const history=
+    getAdHistory()
+    .filter(
+        timestamp=>
+            Number(timestamp)>cutoff
+    );
+
+localStorage.setItem(
+    AD_HISTORY_KEY,
+    JSON.stringify(history)
+);
+
+return history;
+}
+
+function getAdRestoresRemaining(){
+
+return Math.max(
+    0,
+    MAX_AD_RESTORES_PER_WINDOW-
+    cleanAdHistory().length
+);
+}
+
+function getNextAdResetMs(){
+
+const history=
+    cleanAdHistory();
+
+if(
+    history.length<
+    MAX_AD_RESTORES_PER_WINDOW
+){
+    return 0;
+}
+
+return Math.max(
+    0,
+    Number(history[0])+
+    AD_WINDOW_MS-
+    Date.now()
+);
+}
+
+function simulateRewardedAd(){
+
+reconcileLives();
+
+if(lifeState.lives>=MAX_LIVES){
+    updateLifeUI();
+    return;
+}
+
+const history=
+    cleanAdHistory();
+
+if(
+    history.length>=
+    MAX_AD_RESTORES_PER_WINDOW
+){
+    updateLifeUI();
+    return;
+}
+
+/*
+Prototype behaviour:
+the "ad" completes instantly.
+Later, the real rewarded-ad callback will call addLife(1).
+*/
+
+history.push(Date.now());
+
+localStorage.setItem(
+    AD_HISTORY_KEY,
+    JSON.stringify(history)
+);
+
+addLife(1);
+
+if(
+    document
+        .getElementById(
+            "failedScreen"
+        )
+        .classList
+        .contains(
+            "active"
+        )
+){
+    updateFailedLifeState();
+}
+}
+
+function updateLifeUI(){
+
+reconcileLives();
+
+const hearts=
+    heartString();
+
+const countText=
+    `${lifeState.lives} / ${MAX_LIVES} Lives`;
+
+let timerText="Full";
+
+if(
+    lifeState.lives<MAX_LIVES &&
+    lifeState.nextLifeAt
+){
+    timerText=
+        `Next life in ${formatCountdown(
+            lifeState.nextLifeAt-
+            Date.now()
+        )}`;
+}
+
+[
+    ["homeHearts","homeLifeCount","homeLifeTimer"],
+    ["levelHearts","levelLifeCount","levelLifeTimer"]
+]
+.forEach(
+    ids=>{
+        const heartsEl=
+            document.getElementById(
+                ids[0]
+            );
+
+        const countEl=
+            document.getElementById(
+                ids[1]
+            );
+
+        const timerEl=
+            document.getElementById(
+                ids[2]
+            );
+
+        if(heartsEl){
+            heartsEl.textContent=
+                hearts;
+        }
+
+        if(countEl){
+            countEl.textContent=
+                countText;
+        }
+
+        if(timerEl){
+            timerEl.textContent=
+                timerText;
+        }
+    }
+);
+
+const remaining=
+    getAdRestoresRemaining();
+
+const resetMs=
+    getNextAdResetMs();
+
+[
+    ["homeAdButton","homeAdNote"],
+    ["failedAdButton",null]
+]
+.forEach(
+    pair=>{
+        const button=
+            document.getElementById(
+                pair[0]
+            );
+
+        if(!button){
+            return;
+        }
+
+        const canUse=
+            lifeState.lives<
+            MAX_LIVES &&
+            remaining>0;
+
+        button.disabled=
+            !canUse;
+
+        if(lifeState.lives>=MAX_LIVES){
+            button.textContent=
+                "❤️ LIVES FULL";
+        }else if(remaining<=0){
+            button.textContent=
+                `📺 AD RESTORES USED (${MAX_AD_RESTORES_PER_WINDOW}/${MAX_AD_RESTORES_PER_WINDOW})`;
+        }else{
+            button.textContent=
+                `📺 TEST REWARDED AD · +1 LIFE (${remaining} LEFT)`;
+        }
+
+        if(pair[1]){
+            const note=
+                document.getElementById(
+                    pair[1]
+                );
+
+            if(note){
+                note.textContent=
+                    remaining<=0
+                    ? `More rewarded restores in ${formatCountdown(resetMs)}.`
+                    : `Prototype ad restore: max ${MAX_AD_RESTORES_PER_WINDOW} lives per 6 hours.`;
+            }
+        }
+    }
+);
+
+if(
+    document
+        .getElementById(
+            "failedScreen"
+        ) &&
+    document
+        .getElementById(
+            "failedScreen"
+        )
+        .classList
+        .contains(
+            "active"
+        )
+){
+    updateFailedLifeState();
+}
+}
+
+function updateFailedLifeState(){
+
+const heartsEl=
+    document.getElementById(
+        "failedHearts"
+    );
+
+const copyEl=
+    document.getElementById(
+        "failedLifeCopy"
+    );
+
+if(heartsEl){
+    heartsEl.textContent=
+        heartString();
+}
+
+if(copyEl){
+
+    if(lifeState.lives>0){
+        copyEl.textContent=
+            `${lifeState.lives} lives remaining.`;
+    }else if(lifeState.nextLifeAt){
+        copyEl.textContent=
+            `Next life in ${formatCountdown(
+                lifeState.nextLifeAt-
+                Date.now()
+            )}. You can still replay completed levels.`;
+    }else{
+        copyEl.textContent=
+            "No lives remaining.";
+    }
+}
+
+const retry=
+    document.querySelector(
+        '#failedScreen .main-btn'
+    );
+
+if(retry){
+    const isCompleted=
+        Boolean(
+            progress.stars[
+                currentLevelIndex+1
+            ]
+        );
+
+    retry.disabled=
+        lifeState.lives<=0 &&
+        !isCompleted;
+
+    retry.style.opacity=
+        retry.disabled
+        ? ".45"
+        : "1";
+}
+}
+
+function canStartLevel(index){
+
+reconcileLives();
+
+const levelNumber=
+    index+1;
+
+const completed=
+    Boolean(
+        progress.stars[
+            levelNumber
+        ]
+    );
+
+return(
+    completed ||
+    lifeState.lives>0
+);
+}
+
+function startLifeTicker(){
+
+clearInterval(
+    lifeTimerInterval
+);
+
+lifeTimerInterval=
+    setInterval(
+        ()=>{
+            updateLifeUI();
+
+            if(
+                document
+                    .getElementById(
+                        "levelScreen"
+                    )
+                    .classList
+                    .contains(
+                        "active"
+                    )
+            ){
+                renderLevelSelect();
+            }
+        },
+        1000
+    );
+}
+
 
 function defaultProgress(){return{unlocked:1,stars:{}}}
 
@@ -324,7 +970,14 @@ updateHomeStats();
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
-if(id==="homeScreen")updateHomeStats();
+if(id==="homeScreen"){
+updateHomeStats();
+updateLifeUI();
+}
+
+if(id==="levelScreen"){
+updateLifeUI();
+}
 }
 
 function updateHomeStats(){
@@ -335,8 +988,10 @@ document.getElementById("homeStars").textContent=totalStars;
 }
 
 function openLevels(){
+reconcileLives();
 renderLevelSelect();
 showScreen("levelScreen");
+updateLifeUI();
 }
 
 function renderLevelSelect(){
@@ -373,7 +1028,28 @@ button.innerHTML=`
 <div class="level-stars">${unlocked?starText:""}</div>`;
 
 if(unlocked){
-    button.onclick=()=>startLevel(index);
+
+    const completed=
+        Boolean(
+            progress.stars[
+                levelNumber
+            ]
+        );
+
+    if(
+        !completed &&
+        lifeState.lives<=0
+    ){
+        button.classList.add(
+            "no-lives"
+        );
+
+        button.innerHTML+=
+            `<div class="life-lock-note">Need a life</div>`;
+    }else{
+        button.onclick=
+            ()=>startLevel(index);
+    }
 }
 
 container.appendChild(button);
@@ -381,6 +1057,18 @@ container.appendChild(button);
 }
 
 function startLevel(index){
+
+reconcileLives();
+
+if(
+    !canStartLevel(index)
+){
+    openLevels();
+    return;
+}
+
+lifeLostThisFailure=false;
+
 currentLevelIndex=index;
 currentLevel=LEVELS[index];
 solutionsDone=0;
@@ -756,7 +1444,9 @@ return 1;
 }
 
 function completeLevel(){
+
 inputLocked=true;
+
 const levelNumber=currentLevelIndex+1;
 const stars=calculateStars();
 const previousStars=Number(progress.stars[levelNumber]||0);
@@ -766,7 +1456,35 @@ if(levelNumber<LEVELS.length){
 progress.unlocked=Math.max(progress.unlocked,levelNumber+1);
 }
 
+const nextLevelData=
+    LEVELS[
+        currentLevelIndex+1
+    ];
+
+const chapterCompleted=
+    Boolean(
+        nextLevelData &&
+        nextLevelData.chapter!==
+        currentLevel.chapter
+    );
+
+if(chapterCompleted){
+    refillLives();
+}
+
 saveProgress();
+
+const refillMessage=
+    document.getElementById(
+        "chapterRefillMessage"
+    );
+
+if(refillMessage){
+    refillMessage.style.display=
+        chapterCompleted
+        ? "block"
+        : "none";
+}
 
 document.getElementById("starDisplay").textContent="★".repeat(stars)+"☆".repeat(3-stars);
 document.getElementById("completeSolutions").textContent=solutionsDone;
@@ -784,8 +1502,17 @@ showScreen("completeScreen");
 }
 
 function failLevel(){
+
 inputLocked=true;
+
+if(!lifeLostThisFailure){
+    loseLife();
+    lifeLostThisFailure=true;
+}
+
 showScreen("failedScreen");
+updateLifeUI();
+updateFailedLifeState();
 }
 
 function nextLevel(){
@@ -794,7 +1521,18 @@ else openLevels();
 }
 
 function restartLevel(){
-startLevel(currentLevelIndex);
+
+if(
+    canStartLevel(
+        currentLevelIndex
+    )
+){
+    startLevel(
+        currentLevelIndex
+    );
+}else{
+    openLevels();
+}
 }
 
 function exitLevel(){
@@ -802,7 +1540,33 @@ inputLocked=true;
 openLevels();
 }
 
+reconcileLives();
 updateHomeStats();
+updateLifeUI();
+startLifeTicker();
+
+document.addEventListener(
+    "visibilitychange",
+    ()=>{
+        if(!document.hidden){
+            reconcileLives();
+            updateLifeUI();
+
+            if(
+                document
+                    .getElementById(
+                        "levelScreen"
+                    )
+                    .classList
+                    .contains(
+                        "active"
+                    )
+            ){
+                renderLevelSelect();
+            }
+        }
+    }
+);
 </script>
 </body>
 </html>
