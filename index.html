@@ -751,6 +751,19 @@ backdrop-filter:blur(7px);
 .mode-choice[data-mode="arcade"].selected{background:linear-gradient(180deg,#fff,#eef7ff)}
 .mode-choice[data-mode="endless"].selected{background:linear-gradient(180deg,#fff,#f4f0fa)}
 
+
+.build-marker{
+position:fixed;left:8px;bottom:8px;z-index:9999;
+font-size:9px;font-weight:900;padding:4px 7px;border-radius:999px;
+background:rgba(0,0,0,.62);color:white;pointer-events:none;
+}
+.runtime-error-banner{
+display:none;position:fixed;left:10px;right:10px;top:10px;z-index:10000;
+padding:12px;border-radius:12px;background:#8b1e1e;color:white;
+font-size:11px;font-weight:800;line-height:1.35;
+box-shadow:0 8px 24px rgba(0,0,0,.25);word-break:break-word;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -831,25 +844,25 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="mode-selector">
-<button class="mode-choice selected" id="modeChoiceCampaign" data-mode="campaign" onclick="selectGameMode('campaign')">
+<button class="mode-choice selected" id="modeChoiceCampaign" data-mode="campaign" onclick="numbleSafeAction('select campaign',function(){selectGameMode('campaign')})">
 <img class="mode-choice-art" src="assets/campaign-illustration.png" alt="">
 <strong>Campaign</strong>
 <span>Progress & unlocks</span>
 </button>
 
-<button class="mode-choice" id="modeChoiceDaily" data-mode="daily" onclick="selectGameMode('daily')">
+<button class="mode-choice" id="modeChoiceDaily" data-mode="daily" onclick="numbleSafeAction('select daily',function(){selectGameMode('daily')})">
 <img class="mode-choice-art" src="assets/daily-illustration.png" alt="">
 <strong>Daily</strong>
 <span>5 puzzles today</span>
 </button>
 
-<button class="mode-choice" id="modeChoiceArcade" data-mode="arcade" onclick="selectGameMode('arcade')">
+<button class="mode-choice" id="modeChoiceArcade" data-mode="arcade" onclick="numbleSafeAction('select arcade',function(){selectGameMode('arcade')})">
 <img class="mode-choice-art" src="assets/arcade-illustration.png" alt="">
 <strong>Arcade</strong>
 <span>60 second score run</span>
 </button>
 
-<button class="mode-choice" id="modeChoiceEndless" data-mode="endless" onclick="selectGameMode('endless')">
+<button class="mode-choice" id="modeChoiceEndless" data-mode="endless" onclick="numbleSafeAction('select endless',function(){selectGameMode('endless')})">
 <img class="mode-choice-art" src="assets/endless-illustration.png" alt="">
 <strong>Endless</strong>
 <span>Survive 3 mistakes</span>
@@ -866,7 +879,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 </div>
 <p id="modeDetailCopy">Work through the campaign, earn stars and unlock new mechanics for every other mode.</p>
-<button class="main-btn" id="modeDetailPlayButton" onclick="launchSelectedMode()">PLAY CAMPAIGN</button>
+<button class="main-btn" id="modeDetailPlayButton" onclick="numbleSafeAction('launch selected mode',function(){launchSelectedMode()})">PLAY CAMPAIGN</button>
 </div>
 </div>
 </section>
@@ -1112,6 +1125,43 @@ Locked tiles must be used in the successful equation. Hit the target without the
 </div>
 
 <script>
+window.addEventListener("error",function(event){
+    const banner=document.getElementById("runtimeErrorBanner");
+    if(banner){
+        banner.style.display="block";
+        banner.textContent=
+            "NUMBLE ERROR: "+
+            (event.message||"Unknown error")+
+            (event.lineno?` · line ${event.lineno}`:"");
+    }
+});
+
+window.addEventListener("unhandledrejection",function(event){
+    const banner=document.getElementById("runtimeErrorBanner");
+    if(banner){
+        banner.style.display="block";
+        banner.textContent=
+            "NUMBLE ERROR: "+
+            (event.reason&&event.reason.message
+                ? event.reason.message
+                : String(event.reason||"Unhandled promise error"));
+    }
+});
+
+function numbleSafeAction(name,action){
+    try{
+        action();
+    }catch(error){
+        const banner=document.getElementById("runtimeErrorBanner");
+        if(banner){
+            banner.style.display="block";
+            banner.textContent=
+                `NUMBLE ${name} ERROR: ${error.message||error}`;
+        }
+        console.error(name,error);
+    }
+}
+
 const LEVELS=[
 {target:10,goal:4,moves:7,maxNumber:9,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
 {target:12,goal:5,moves:8,maxNumber:11,selectionCount:2,operators:["+"] ,chapter:"Add It Up"},
@@ -1515,6 +1565,38 @@ while(board.length<GRID_SIZE){
 }
 return shuffle(board);
 }
+
+
+function updateStandardHudVisibility(){
+
+const movesBox=
+    document.getElementById(
+        "movesStatBox"
+    );
+
+const solutionsBox=
+    document.getElementById(
+        "solutionsStatBox"
+    );
+
+if(movesBox){
+    /*
+    Campaign uses the traditional move counter.
+    Daily, Arcade and Endless use their own mode-specific
+    failure/pressure systems instead.
+    */
+    movesBox.style.visibility=
+        gameMode==="campaign"
+        ? "visible"
+        : "hidden";
+}
+
+if(solutionsBox){
+    solutionsBox.style.visibility=
+        "visible";
+}
+}
+
 
 function startModePuzzle(level,title){
 currentLevel=level;
@@ -2585,7 +2667,10 @@ if(unlocked){
             `<div class="life-lock-note">Need a life</div>`;
     }else{
         button.onclick=
-            ()=>startLevel(index);
+            ()=>numbleSafeAction(
+                "start campaign level",
+                function(){startLevel(index)}
+            );
     }
 }
 
@@ -4297,5 +4382,7 @@ document.addEventListener(
 <button class="main-btn" onclick="closeUnlockCelebration()">AWESOME</button>
 </div>
 </div>
+<div class="runtime-error-banner" id="runtimeErrorBanner"></div>
+<div class="build-marker">NUMBLE BUILD v0.16.4</div>
 </body>
 </html>
