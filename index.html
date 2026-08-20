@@ -1169,6 +1169,30 @@ body.theme-dark .main-settings-btn{
     opacity:.55;
 }
 
+
+.xp-toast{
+position:fixed;
+left:50%;
+top:24%;
+transform:translateX(-50%);
+z-index:11900;
+padding:9px 14px;
+border-radius:999px;
+background:var(--panel);
+color:var(--text);
+border:1px solid var(--border);
+box-shadow:0 10px 26px rgba(0,0,0,.18);
+font-size:13px;
+font-weight:1000;
+pointer-events:none;
+animation:xpToast .75s ease forwards;
+}
+@keyframes xpToast{
+0%{opacity:0;transform:translate(-50%,8px) scale(.94)}
+25%{opacity:1;transform:translate(-50%,0) scale(1.04)}
+100%{opacity:0;transform:translate(-50%,-28px) scale(1)}
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1312,7 +1336,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.20</strong><br>
+<strong>Numble v0.20.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -3608,10 +3632,20 @@ const next=PLAYER_MILESTONES.find(m=>m.level>playerProgress.level);
 return next?next.level:null;
 }
 
+
+function showXpToast(amount,reason=""){
+const toast=document.createElement("div");
+toast.className="xp-toast";
+toast.textContent=`+${amount} XP${reason?` · ${reason}`:""}`;
+document.body.appendChild(toast);
+setTimeout(()=>toast.remove(),800);
+}
+
 function addPlayerXp(amount,reason=""){
 amount=Math.max(0,Math.floor(Number(amount)||0));
 if(!amount)return;
 
+showXpToast(amount,reason);
 playerProgress.xp+=amount;
 let leveled=false;
 
@@ -3796,7 +3830,6 @@ achievementSetMax(
 
 function openAchievements(){
 syncCampaignAchievements();
-addPlayerXp(25,"Campaign level");
 if(typeof modeStats!=="undefined"){
  achievementSetMax("dailyCompleted",Number(modeStats.dailyCompleted||0));
  achievementSetMax("bestArcadeScore",Number(modeStats.arcadeBest||0));
@@ -5341,6 +5374,10 @@ if(unlockingNextChapterNow){
 saveProgress();
 syncCampaignAchievements();
 
+if(gameMode==="campaign"&&!testMode){
+    addPlayerXp(25,"Level Complete");
+}
+
 const newlyUnlocked=Number(progress.unlocked||1);
 if(newlyUnlocked>lastKnownUnlock){
     const crossed=[6,11,16,26,31].find(n=>n>lastKnownUnlock&&n<=newlyUnlocked);
@@ -5694,6 +5731,6 @@ updatePlayerProgressUI();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.20</div>
+<div class="build-marker">NUMBLE BUILD v0.20.1</div>
 </body>
 </html>
