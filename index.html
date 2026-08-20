@@ -699,6 +699,65 @@ backdrop-filter:blur(7px);
 #homeScreen .main-btn:active,#homeScreen .secondary-btn:active{transform:scale(.975)}
 #homeScreen .secondary-btn{min-height:50px;border-radius:16px;background:rgba(255,255,255,.78);box-shadow:0 5px 14px rgba(0,0,0,.06);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 
+
+/* v0.15 — Mode Art & Visual Identity */
+.mode-choice{
+    position:relative;
+    overflow:hidden;
+    padding-top:108px;
+}
+
+.mode-choice-art{
+    position:absolute;
+    top:8px;
+    left:50%;
+    width:104px;
+    height:92px;
+    transform:translateX(-50%);
+    object-fit:contain;
+    pointer-events:none;
+    transition:transform .18s ease;
+}
+
+.mode-choice.selected .mode-choice-art{
+    transform:translateX(-50%) scale(1.08);
+}
+
+.mode-detail-art-wrap{
+    width:100%;
+    height:150px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:-4px 0 8px;
+    border-radius:18px;
+    overflow:hidden;
+}
+
+.mode-detail-art{
+    width:150px;
+    height:150px;
+    object-fit:contain;
+    animation:modeArtIn .22s ease;
+}
+
+@keyframes modeArtIn{
+    from{opacity:0;transform:scale(.92) translateY(6px)}
+    to{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.mode-choice[data-mode="campaign"].selected{background:linear-gradient(180deg,#fff,#f7f5ef)}
+.mode-choice[data-mode="daily"].selected{background:linear-gradient(180deg,#fff,#fff8e9)}
+.mode-choice[data-mode="arcade"].selected{background:linear-gradient(180deg,#fff,#eef7ff)}
+.mode-choice[data-mode="endless"].selected{background:linear-gradient(180deg,#fff,#f4f0fa)}
+
+@media(max-width:400px){
+    .mode-choice{padding-top:96px}
+    .mode-choice-art{width:92px;height:80px}
+    .mode-detail-art-wrap{height:130px}
+    .mode-detail-art{width:130px;height:130px}
+}
+
 @media(max-width:400px){
     .numble-logo{
         width:min(100%,320px);
@@ -772,34 +831,36 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="mode-selector">
-<button class="mode-choice selected" id="modeChoiceCampaign" onclick="selectGameMode('campaign')">
-<span class="mode-choice-icon">🗺️</span>
+<button class="mode-choice selected" id="modeChoiceCampaign" data-mode="campaign" onclick="selectGameMode('campaign')">
+<img class="mode-choice-art" src="assets/campaign-illustration.png" alt="">
 <strong>Campaign</strong>
 <span>Progress & unlocks</span>
 </button>
 
-<button class="mode-choice" id="modeChoiceDaily" onclick="selectGameMode('daily')">
-<span class="mode-choice-icon">📅</span>
+<button class="mode-choice" id="modeChoiceDaily" data-mode="daily" onclick="selectGameMode('daily')">
+<img class="mode-choice-art" src="assets/daily-illustration.png" alt="">
 <strong>Daily</strong>
 <span>5 puzzles today</span>
 </button>
 
-<button class="mode-choice" id="modeChoiceArcade" onclick="selectGameMode('arcade')">
-<span class="mode-choice-icon">⏱️</span>
+<button class="mode-choice" id="modeChoiceArcade" data-mode="arcade" onclick="selectGameMode('arcade')">
+<img class="mode-choice-art" src="assets/arcade-illustration.png" alt="">
 <strong>Arcade</strong>
 <span>60 second score run</span>
 </button>
 
-<button class="mode-choice" id="modeChoiceEndless" onclick="selectGameMode('endless')">
-<span class="mode-choice-icon">♾️</span>
+<button class="mode-choice" id="modeChoiceEndless" data-mode="endless" onclick="selectGameMode('endless')">
+<img class="mode-choice-art" src="assets/endless-illustration.png" alt="">
 <strong>Endless</strong>
 <span>Survive 3 mistakes</span>
 </button>
 </div>
 
 <div class="mode-detail-card" id="modeDetailCard">
+<div class="mode-detail-art-wrap">
+<img class="mode-detail-art" id="modeDetailArt" src="assets/campaign-illustration.png" alt="Campaign">
+</div>
 <div class="mode-detail-top">
-<div class="mode-detail-icon" id="modeDetailIcon">🗺️</div>
 <div>
 <h3 id="modeDetailTitle">Campaign</h3>
 </div>
@@ -1218,24 +1279,28 @@ function modeMenuData(mode){
 const data={
     campaign:{
         icon:"🗺️",
+        art:"assets/campaign-illustration.png",
         title:"Campaign",
         copy:`Work through ${LEVELS.length} levels, earn stars and unlock new mechanics for every other mode.`,
         button:"PLAY CAMPAIGN"
     },
     daily:{
         icon:"📅",
+        art:"assets/daily-illustration.png",
         title:"Daily Challenge",
         copy:"Five high-target puzzles using the full toolkit. You only have 3 hearts — use them wisely.",
         button:"PLAY DAILY"
     },
     arcade:{
         icon:"⏱️",
+        art:"assets/arcade-illustration.png",
         title:"Arcade",
         copy:"You have 60 seconds. Solve quickly, build your combo and chase a new high score.",
         button:"PLAY ARCADE"
     },
     endless:{
         icon:"♾️",
+        art:"assets/endless-illustration.png",
         title:"Endless",
         copy:"No timer. Keep solving until you make three mistakes. Difficulty increases as your run continues.",
         button:"PLAY ENDLESS"
@@ -1268,7 +1333,12 @@ selectedMenuMode=mode;
 
 const data=modeMenuData(mode);
 
-document.getElementById("modeDetailIcon").textContent=data.icon;
+const art=document.getElementById("modeDetailArt");
+art.src=data.art;
+art.alt=data.title;
+art.style.animation="none";
+void art.offsetWidth;
+art.style.animation="";
 document.getElementById("modeDetailTitle").textContent=data.title;
 document.getElementById("modeDetailCopy").textContent=data.copy;
 document.getElementById("modeDetailPlayButton").textContent=data.button;
