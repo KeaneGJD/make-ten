@@ -2577,6 +2577,21 @@ for(let i=1;i<tokens.length;i+=2){
 return total;
 }
 
+
+function operatorSymbol(operator){
+
+if(operator==="*"){
+    return "×";
+}
+
+if(operator==="-"){
+    return "−";
+}
+
+return "+";
+}
+
+
 function expressionText(){
 
 if(!expressionTokens.length){
