@@ -1591,6 +1591,73 @@ body.tile-theme-crystal .operator-btn{
 .ember-preview{background:linear-gradient(145deg,#ffdfbd,#f08a57 58%,#d74f3d)!important;border-color:#c74a35!important}
 .deepsea-preview{background:linear-gradient(145deg,#dff7ff,#78c9e6 52%,#3b8fbd)!important;border-color:#3c8caf!important}
 
+
+/* v0.21.4 — Cosmetic Layout Stability */
+.tile,
+.operator-btn,
+.cosmetic-option,
+.preview-tile{
+    box-sizing:border-box;
+}
+
+/* Themed tiles must never alter layout metrics */
+body.tile-theme-mint .tile,
+body.tile-theme-ember .tile,
+body.tile-theme-deepsea .tile,
+body.tile-theme-crystal .tile{
+    width:auto;
+    min-width:0;
+    height:auto;
+    margin:0;
+    padding:0;
+    transform:none;
+}
+
+/* Preserve the base grid/tile geometry from the core UI */
+.grid .tile{
+    width:100%;
+    aspect-ratio:1 / 1;
+}
+
+/* Operators keep their original sizing regardless of theme */
+.operator-btn{
+    width:100%;
+    min-width:0;
+}
+
+/* Decorative pseudo-elements are visual-only */
+body.tile-theme-mint .tile::before,
+body.tile-theme-ember .tile::before,
+body.tile-theme-deepsea .tile::before,
+body.tile-theme-deepsea .tile::after,
+body.tile-theme-crystal .tile::before,
+body.tile-theme-crystal .tile::after{
+    box-sizing:border-box;
+    pointer-events:none;
+}
+
+/* Do not let themed shadows/borders influence surrounding flow */
+body.tile-theme-mint .tile,
+body.tile-theme-ember .tile,
+body.tile-theme-deepsea .tile,
+body.tile-theme-crystal .tile,
+body.tile-theme-mint .operator-btn,
+body.tile-theme-ember .operator-btn,
+body.tile-theme-deepsea .operator-btn,
+body.tile-theme-crystal .operator-btn{
+    position:relative;
+    contain:paint;
+}
+
+/* Keep menus/cards from being affected by theme classes */
+.mode-choice,
+.mode-detail-card,
+.card,
+.home-card,
+.level-card{
+    box-sizing:border-box;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1794,7 +1861,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.21.3</strong><br>
+<strong>Numble v0.21.4</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -6353,6 +6420,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.21.3</div>
+<div class="build-marker">NUMBLE BUILD v0.21.4</div>
 </body>
 </html>
