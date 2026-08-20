@@ -841,6 +841,113 @@ box-shadow:0 8px 24px rgba(0,0,0,.25);word-break:break-word;
     cursor:pointer;
 }
 
+
+/* v0.18 — Settings & Accessibility */
+.settings-screen-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:14px;
+}
+
+.setting-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:14px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:#fff;
+    text-align:left;
+}
+
+.setting-copy strong{
+    display:block;
+    font-size:14px;
+    margin-bottom:3px;
+}
+
+.setting-copy span{
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.4;
+}
+
+.setting-toggle{
+    min-width:74px;
+    border:0;
+    border-radius:999px;
+    padding:9px 12px;
+    font-size:11px;
+    font-weight:1000;
+    cursor:pointer;
+    background:#ece8e1;
+    color:var(--text);
+}
+
+.setting-toggle.on{
+    background:var(--blue);
+    color:white;
+}
+
+.settings-danger{
+    margin-top:16px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+}
+
+.settings-danger .secondary-btn{
+    background:#fff1f1;
+}
+
+.settings-meta{
+    margin-top:16px;
+    font-size:11px;
+    color:var(--muted);
+    line-height:1.5;
+    text-align:center;
+}
+
+.main-settings-btn{
+    position:absolute;
+    top:12px;
+    right:12px;
+    width:42px;
+    height:42px;
+    border:0;
+    border-radius:13px;
+    background:rgba(255,255,255,.88);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    font-size:18px;
+    z-index:5;
+}
+
+body.high-contrast{
+    --panel:#ffffff;
+    --border:#a6a6a6;
+    --text:#111111;
+    --muted:#4a4a4a;
+}
+
+body.high-contrast .tile{
+    border:2px solid #222;
+    box-shadow:none;
+}
+
+body.high-contrast .operator-btn{
+    border:2px solid #222;
+}
+
+body.reduced-motion *,
+body.reduced-motion *::before,
+body.reduced-motion *::after{
+    animation:none !important;
+    transition:none !important;
+    scroll-behavior:auto !important;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -869,6 +976,7 @@ box-shadow:0 8px 24px rgba(0,0,0,.25);word-break:break-word;
 </div>
 
 <section class="screen active" id="homeScreen">
+<button class="main-settings-btn" onclick="openSettings()">⚙️</button>
 <div class="card home-card">
 <div class="hero-target"><span>10</span></div>
 <h1 class="home-title">Hit the target.</h1>
@@ -904,6 +1012,62 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 </section>
 
+
+
+<section class="screen" id="settingsScreen">
+<div class="card home-card">
+<div class="level-header">
+<button class="back-btn" onclick="showScreen('homeScreen')">←</button>
+<h2>Settings</h2>
+<div style="width:42px"></div>
+</div>
+
+<div class="settings-screen-list">
+
+<div class="setting-row">
+<div class="setting-copy">
+<strong>Sound Effects</strong>
+<span>Tile taps, correct answers, mistakes and combo sounds.</span>
+</div>
+<button class="setting-toggle" id="settingsSoundToggle" onclick="settingsToggleSound()">ON</button>
+</div>
+
+<div class="setting-row">
+<div class="setting-copy">
+<strong>Haptics</strong>
+<span>Small vibration feedback on supported phones.</span>
+</div>
+<button class="setting-toggle" id="settingsHapticsToggle" onclick="settingsToggleHaptics()">ON</button>
+</div>
+
+<div class="setting-row">
+<div class="setting-copy">
+<strong>Reduced Motion</strong>
+<span>Disables most shakes, pulses and animated feedback.</span>
+</div>
+<button class="setting-toggle" id="settingsMotionToggle" onclick="settingsToggleMotion()">OFF</button>
+</div>
+
+<div class="setting-row">
+<div class="setting-copy">
+<strong>High Contrast</strong>
+<span>Stronger borders and clearer UI separation.</span>
+</div>
+<button class="setting-toggle" id="settingsContrastToggle" onclick="settingsToggleContrast()">OFF</button>
+</div>
+
+</div>
+
+<div class="settings-danger">
+<button class="secondary-btn" onclick="confirmResetProgress()">RESET PROGRESS</button>
+</div>
+
+<div class="settings-meta">
+<strong>Numble v0.18</strong><br>
+A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
+</div>
+</div>
+</section>
 
 <section class="screen" id="playMenuScreen">
 <div class="card home-card">
@@ -1241,6 +1405,15 @@ function numbleSafeAction(name,action){
 
 let numbleSoundEnabled =
     localStorage.getItem("numbleSoundEnabled") !== "false";
+let numbleHapticsEnabled =
+    localStorage.getItem("numbleHapticsEnabled") !== "false";
+
+let numbleReducedMotion =
+    localStorage.getItem("numbleReducedMotion") === "true";
+
+let numbleHighContrast =
+    localStorage.getItem("numbleHighContrast") === "true";
+
 
 let numbleAudioContext = null;
 
@@ -1361,14 +1534,108 @@ function numbleSfx(kind){
 function numbleHaptic(pattern){
 
     if(
-        typeof navigator !== "undefined" &&
-        navigator.vibrate
+        !numbleHapticsEnabled ||
+        typeof navigator === "undefined" ||
+        !navigator.vibrate
     ){
-        navigator.vibrate(pattern);
+        return;
+    }
+
+    navigator.vibrate(pattern);
+}
+
+function applyAccessibilitySettings(){
+
+    document.body.classList.toggle(
+        "reduced-motion",
+        numbleReducedMotion
+    );
+
+    document.body.classList.toggle(
+        "high-contrast",
+        numbleHighContrast
+    );
+
+    updateSettingsUI();
+}
+
+function updateSettingsUI(){
+
+    const sound =
+        document.getElementById(
+            "settingsSoundToggle"
+        );
+
+    const haptics =
+        document.getElementById(
+            "settingsHapticsToggle"
+        );
+
+    const motion =
+        document.getElementById(
+            "settingsMotionToggle"
+        );
+
+    const contrast =
+        document.getElementById(
+            "settingsContrastToggle"
+        );
+
+    if(sound){
+        sound.textContent =
+            numbleSoundEnabled
+            ? "ON"
+            : "OFF";
+
+        sound.classList.toggle(
+            "on",
+            numbleSoundEnabled
+        );
+    }
+
+    if(haptics){
+        haptics.textContent =
+            numbleHapticsEnabled
+            ? "ON"
+            : "OFF";
+
+        haptics.classList.toggle(
+            "on",
+            numbleHapticsEnabled
+        );
+    }
+
+    if(motion){
+        motion.textContent =
+            numbleReducedMotion
+            ? "ON"
+            : "OFF";
+
+        motion.classList.toggle(
+            "on",
+            numbleReducedMotion
+        );
+    }
+
+    if(contrast){
+        contrast.textContent =
+            numbleHighContrast
+            ? "ON"
+            : "OFF";
+
+        contrast.classList.toggle(
+            "on",
+            numbleHighContrast
+        );
     }
 }
 
-function numbleToggleSound(){
+function openSettings(){
+    applyAccessibilitySettings();
+    showScreen("settingsScreen");
+}
+
+function settingsToggleSound(){
 
     numbleSoundEnabled =
         !numbleSoundEnabled;
@@ -1378,27 +1645,99 @@ function numbleToggleSound(){
         String(numbleSoundEnabled)
     );
 
-    numbleUpdateSoundToggle();
+    updateSettingsUI();
 
     if(numbleSoundEnabled){
         numbleSfx("tap");
     }
 }
 
-function numbleUpdateSoundToggle(){
+function settingsToggleHaptics(){
 
-    const button =
-        document.getElementById(
-            "soundToggle"
-        );
+    numbleHapticsEnabled =
+        !numbleHapticsEnabled;
 
-    if(button){
-        button.textContent =
-            numbleSoundEnabled
-            ? "🔊 SOUND"
-            : "🔇 SOUND";
+    localStorage.setItem(
+        "numbleHapticsEnabled",
+        String(numbleHapticsEnabled)
+    );
+
+    updateSettingsUI();
+
+    if(numbleHapticsEnabled){
+        numbleHaptic(25);
     }
 }
+
+function settingsToggleMotion(){
+
+    numbleReducedMotion =
+        !numbleReducedMotion;
+
+    localStorage.setItem(
+        "numbleReducedMotion",
+        String(numbleReducedMotion)
+    );
+
+    applyAccessibilitySettings();
+}
+
+function settingsToggleContrast(){
+
+    numbleHighContrast =
+        !numbleHighContrast;
+
+    localStorage.setItem(
+        "numbleHighContrast",
+        String(numbleHighContrast)
+    );
+
+    applyAccessibilitySettings();
+}
+
+function confirmResetProgress(){
+
+    const first =
+        window.confirm(
+            "Reset all Numble campaign progress, stars, lives and mode stats?"
+        );
+
+    if(!first){
+        return;
+    }
+
+    const second =
+        window.confirm(
+            "This cannot be undone. Reset everything?"
+        );
+
+    if(!second){
+        return;
+    }
+
+    localStorage.removeItem(
+        SAVE_KEY
+    );
+
+    localStorage.removeItem(
+        OLD_SAVE_KEY
+    );
+
+    localStorage.removeItem(
+        LIFE_SAVE_KEY
+    );
+
+    localStorage.removeItem(
+        MODE_STATS_KEY
+    );
+
+    localStorage.removeItem(
+        TEST_MODE_KEY
+    );
+
+    location.reload();
+}
+
 
 function numbleSuccessFeedback(){
 
@@ -4681,6 +5020,15 @@ if(document.readyState==="loading"){
 }else{
     numbleUpdateSoundToggle();
 }
+
+if(document.readyState==="loading"){
+    document.addEventListener(
+        "DOMContentLoaded",
+        applyAccessibilitySettings
+    );
+}else{
+    applyAccessibilitySettings();
+}
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -4691,7 +5039,6 @@ if(document.readyState==="loading"){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<button class="sound-toggle" id="soundToggle" onclick="numbleToggleSound()">🔊 SOUND</button>
-<div class="build-marker">NUMBLE BUILD v0.17.1</div>
+<div class="build-marker">NUMBLE BUILD v0.18</div>
 </body>
 </html>
