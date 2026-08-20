@@ -392,6 +392,68 @@ button{font:inherit}
 .dev-latest{display:none;margin-top:8px;background:#2f3137;color:white}
 .test-banner{display:none;margin:8px 0 0;padding:9px;border-radius:12px;background:#fff0c9;color:#8a6412;font-size:10px;font-weight:900;text-align:center}
 
+
+.tile.bomb{
+    outline:3px solid #f0b429;
+    outline-offset:-3px;
+    position:relative;
+}
+.bomb-badge{
+    position:absolute;
+    top:5px;
+    right:6px;
+    min-width:25px;
+    height:25px;
+    padding:0 6px;
+    border-radius:999px;
+    background:#2f3137;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10px;
+    font-weight:900;
+}
+.bomb-symbol{
+    position:absolute;
+    top:5px;
+    left:7px;
+    font-size:16px;
+}
+.ad-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:300;
+    background:rgba(42,44,50,.82);
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+}
+.ad-card{
+    width:100%;
+    max-width:390px;
+    background:white;
+    border-radius:24px;
+    padding:26px 22px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+.ad-placeholder{
+    height:180px;
+    border-radius:18px;
+    background:#f1eee8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    margin:16px 0;
+    color:var(--muted);
+    font-weight:900;
+}
+.ad-countdown{font-size:12px;color:var(--muted);margin-bottom:10px}
+
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
 </head>
@@ -592,6 +654,18 @@ Locked tiles must be used in the successful equation. Hit the target without the
 </div>
 </div>
 
+<div class="ad-overlay" id="interstitialOverlay">
+<div class="ad-card">
+<div style="font-size:11px;font-weight:900;color:var(--muted);letter-spacing:1px">TEST INTERSTITIAL</div>
+<div class="ad-placeholder">
+<div style="font-size:34px">📺</div>
+<div>AD WOULD PLAY HERE</div>
+</div>
+<div class="ad-countdown">Development placeholder only</div>
+<button class="main-btn" onclick="finishInterstitial()">CONTINUE TO NEXT CHAPTER</button>
+</div>
+</div>
+
 <script>
 const LEVELS=[
 {target:10,goal:4,moves:7,maxNumber:9,selectionCount:2,operators:["+"],chapter:"Add It Up"},
@@ -626,7 +700,12 @@ const LEVELS=[
 {target:24,goal:6,moves:9,maxNumber:12,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
 {target:30,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,lockedCount:1},
 {target:40,goal:7,moves:10,maxNumber:16,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:1},
-{target:48,goal:8,moves:11,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:2}
+{target:48,goal:8,moves:11,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Locked Tiles",expressionMode:true,freeForm:true,lockedCount:2},
+{target:20,goal:6,moves:9,maxNumber:12,selectionCount:2,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:4},
+{target:24,goal:7,moves:10,maxNumber:14,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:3},
+{target:30,goal:7,moves:10,maxNumber:16,selectionCount:3,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,bombCount:1,bombFuse:2},
+{target:36,goal:7,moves:10,maxNumber:18,selectionCount:null,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:1,bombFuse:2},
+{target:40,goal:8,moves:11,maxNumber:20,selectionCount:null,operators:["+","-","*"],chapter:"Bomb Squad",expressionMode:true,freeForm:true,bombCount:2,bombFuse:3}
 ];
 
 const GRID_SIZE=16;
@@ -664,6 +743,9 @@ let mistakesThisLevel=0;
 let expressionTokens=[];
 let expressionTileIndexes=[];
 let pendingOperator=null;
+let bombStates={};
+let bombExplosionMessage="";
+let pendingInterstitialNextIndex=null;
 let lockedIndexes=[];
 let pendingChapterNextIndex=null;
 
@@ -1249,13 +1331,10 @@ if(level.chapter!==lastChapter){
     const heading=document.createElement("div");
     heading.className="chapter-title";
     const chapterNumber=
-    level.chapter==="Add It Up"
-    ? 1
-    : level.chapter==="Take It Away"
-    ? 2
-    : level.chapter==="Multiply"
-    ? 3
-    : 4;
+    level.chapter==="Add It Up"?1:
+    level.chapter==="Take It Away"?2:
+    level.chapter==="Multiply"?3:
+    level.chapter==="Locked In"?4:5;
 
 heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
     container.appendChild(heading);
@@ -1338,6 +1417,7 @@ selectedOperator=currentLevel.operators.includes("+")
 : currentLevel.operators[0];
 
 tiles=generateBoard();
+initializeBombs();
 
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
@@ -1371,6 +1451,11 @@ if(currentLevel.expressionMode){
 }else{
     document.getElementById("objectiveText").textContent=
     `Use exactly 2 tiles to make ${currentLevel.target}.`;
+}
+
+if(currentLevel.bombCount){
+    document.getElementById("objectiveText").textContent+=
+    ` 💣 Use bomb tiles before their fuse reaches 0.`;
 }
 
 updateOperatorControls();
@@ -1790,6 +1875,71 @@ document.getElementById("lockMechanicOverlay").style.display="none";
 }
 
 
+
+function initializeBombs(){
+bombStates={};
+if(!currentLevel.bombCount)return;
+
+const candidates=shuffle(Array.from({length:tiles.length},(_,i)=>i));
+const count=Math.min(currentLevel.bombCount,candidates.length);
+
+for(let i=0;i<count;i++){
+    bombStates[candidates[i]]=currentLevel.bombFuse||3;
+}
+}
+
+function tickBombs(usedIndexes){
+
+if(!currentLevel.bombCount)return;
+
+const used=new Set(usedIndexes||[]);
+const next={};
+let exploded=0;
+
+Object.entries(bombStates).forEach(([key,fuse])=>{
+    const index=Number(key);
+
+    if(used.has(index)){
+        return;
+    }
+
+    const newFuse=Number(fuse)-1;
+
+    if(newFuse<=0){
+        exploded++;
+    }else{
+        next[index]=newFuse;
+    }
+});
+
+bombStates=next;
+
+if(exploded>0){
+    movesLeft=Math.max(0,movesLeft-exploded);
+    bombExplosionMessage=exploded===1
+        ?"💥 Bomb exploded — lost 1 move!"
+        :`💥 ${exploded} bombs exploded — lost ${exploded} moves!`;
+}else{
+    bombExplosionMessage="";
+}
+}
+
+function remapBombsAfterReplacement(indexes){
+
+if(!currentLevel.bombCount)return;
+
+/* Cleared/expired bombs are replaced so the pressure continues through the level. */
+const desired=currentLevel.bombCount;
+const occupied=new Set(Object.keys(bombStates).map(Number));
+const candidates=shuffle(Array.from({length:tiles.length},(_,i)=>i)
+    .filter(i=>!occupied.has(i)));
+
+while(Object.keys(bombStates).length<desired&&candidates.length){
+    const i=candidates.pop();
+    bombStates[i]=currentLevel.bombFuse||3;
+}
+}
+
 function updateEquationBuilder(){
 
 const builder=document.getElementById("equationBuilder");
@@ -1926,8 +2076,15 @@ if(total===currentLevel.target&&locksSatisfied){
     document.getElementById("selectionText").innerHTML=
         `${equation} = <strong>${currentLevel.target}</strong>`;
 
+    tickBombs(used);
+
     const buttons=document.querySelectorAll(".tile");
     used.forEach(i=>buttons[i]&&buttons[i].classList.add("correct-pop"));
+
+    if(bombExplosionMessage){
+        document.getElementById("feedback").textContent=bombExplosionMessage;
+        document.getElementById("feedback").className="feedback wrong";
+    }
 
     if(solutionsDone>=currentLevel.goal){
         setTimeout(completeLevel,420);
@@ -2329,8 +2486,24 @@ updateFailedLifeState();
 }
 
 function nextLevel(){
-if(currentLevelIndex<LEVELS.length-1)startLevel(currentLevelIndex+1);
-else openLevels();
+
+const nextIndex=currentLevelIndex+1;
+
+if(nextIndex>=LEVELS.length){
+    openLevels();
+    return;
+}
+
+const isChapterTransition=
+    LEVELS[nextIndex].chapter!==currentLevel.chapter;
+
+if(isChapterTransition&&!testMode){
+    pendingInterstitialNextIndex=nextIndex;
+    document.getElementById("interstitialOverlay").style.display="flex";
+    return;
+}
+
+startLevel(nextIndex);
 }
 
 function restartLevel(){
@@ -2353,6 +2526,18 @@ inputLocked=true;
 openLevels();
 }
 
+
+
+function finishInterstitial(){
+document.getElementById("interstitialOverlay").style.display="none";
+const next=pendingInterstitialNextIndex;
+pendingInterstitialNextIndex=null;
+if(next!==null&&next<LEVELS.length){
+    startLevel(next);
+}else{
+    openLevels();
+}
+}
 
 function updateTestModeUI(){
 const toggle=document.getElementById("devToggleButton");
