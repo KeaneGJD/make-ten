@@ -1193,6 +1193,115 @@ animation:xpToast .75s ease forwards;
 100%{opacity:0;transform:translate(-50%,-28px) scale(1)}
 }
 
+
+/* v0.21 — Customisation & Cosmetic Rewards */
+.customise-grid{
+    display:grid;
+    gap:12px;
+    margin-top:14px;
+}
+
+.customise-section{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:var(--panel);
+    padding:14px;
+    text-align:left;
+}
+
+.customise-section h3{
+    margin:0 0 10px;
+    font-size:14px;
+}
+
+.cosmetic-options{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
+}
+
+.cosmetic-option{
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px;
+    background:var(--soft);
+    color:var(--text);
+    font-weight:900;
+    cursor:pointer;
+    min-height:74px;
+}
+
+.cosmetic-option.selected{
+    outline:3px solid var(--blue);
+    outline-offset:-3px;
+}
+
+.cosmetic-option.locked{
+    opacity:.45;
+    cursor:default;
+}
+
+.cosmetic-preview{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-bottom:8px;
+}
+
+.preview-tile{
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:1000;
+    border:1px solid var(--border);
+}
+
+body.tile-theme-soft .tile{
+    background:linear-gradient(145deg,#fff7e8,#f7e8c8);
+}
+
+body.tile-theme-soft .preview-tile{
+    background:linear-gradient(145deg,#fff7e8,#f7e8c8);
+}
+
+body.accent-mint{
+    --blue:#51b8a5;
+}
+
+body.accent-mint .preview-accent{
+    background:#51b8a5;
+}
+
+.profile-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:6px;
+    padding:5px 8px;
+    border-radius:999px;
+    background:var(--soft);
+    font-size:10px;
+    font-weight:1000;
+}
+
+body.special-tile-skin .tile{
+    box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,.35),
+        0 8px 18px rgba(0,0,0,.08);
+}
+
+body.special-tile-skin .tile::after{
+    content:"";
+    position:absolute;
+    inset:5px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,.22);
+    pointer-events:none;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1230,6 +1339,7 @@ animation:xpToast .75s ease forwards;
 <div class="player-level-badge" id="homePlayerLevel">1</div>
 <div class="player-level-copy">
 <strong id="homePlayerTitle">Player Level 1</strong>
+<div class="profile-badge" id="homeProfileBadge" style="display:none">🏅 Number Crafter</div>
 <div class="player-xp-row"><span id="homeXpText">0 / 100 XP</span><span id="homeNextReward">Next reward: Lv 5</span></div>
 <div class="player-xp-bar"><div class="player-xp-fill" id="homeXpFill" style="width:0%"></div></div>
 </div>
@@ -1258,6 +1368,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <button class="secondary-btn" onclick="openHowToPlay()" style="margin-top:8px">HOW TO PLAY</button>
 <button class="secondary-btn" onclick="openStats()" style="margin-top:8px">STATS</button>
 <button class="secondary-btn" onclick="openAchievements()" style="margin-top:8px">ACHIEVEMENTS</button>
+<button class="secondary-btn" onclick="openCustomise()" style="margin-top:8px">CUSTOMISE</button>
 <div class="dev-tools">
 <button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
 <div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS & LIVES IGNORED</div>
@@ -1267,6 +1378,64 @@ Prototype only — this simulates the future rewarded-ad restore.
 </section>
 
 
+
+
+<section class="screen" id="customiseScreen">
+<div class="card home-card">
+<div class="level-header">
+<button class="back-btn" onclick="showScreen('homeScreen')">←</button>
+<h2>Customise</h2>
+<div style="width:42px"></div>
+</div>
+
+<div class="customise-grid">
+
+<div class="customise-section">
+<h3>Tile Style</h3>
+<div class="cosmetic-options">
+<button class="cosmetic-option" id="tileDefaultOption" onclick="setTileTheme('default')">
+<div class="cosmetic-preview">
+<div class="preview-tile">4</div><div class="preview-tile">8</div>
+</div>
+Default
+</button>
+<button class="cosmetic-option" id="tileSoftOption" onclick="setTileTheme('soft')">
+<div class="cosmetic-preview">
+<div class="preview-tile" style="background:linear-gradient(145deg,#fff7e8,#f7e8c8)">4</div>
+<div class="preview-tile" style="background:linear-gradient(145deg,#fff7e8,#f7e8c8)">8</div>
+</div>
+Soft Tiles · Lv 5
+</button>
+</div>
+</div>
+
+<div class="customise-section">
+<h3>Accent</h3>
+<div class="cosmetic-options">
+<button class="cosmetic-option" id="accentDefaultOption" onclick="setAccentTheme('default')">Default</button>
+<button class="cosmetic-option preview-accent" id="accentMintOption" onclick="setAccentTheme('mint')">Mint · Lv 10</button>
+</div>
+</div>
+
+<div class="customise-section">
+<h3>Profile Badge</h3>
+<div class="cosmetic-options">
+<button class="cosmetic-option" id="badgeNoneOption" onclick="setProfileBadge('none')">None</button>
+<button class="cosmetic-option" id="badgeCrafterOption" onclick="setProfileBadge('crafter')">🏅 Number Crafter · Lv 15</button>
+</div>
+</div>
+
+<div class="customise-section">
+<h3>Special Tile Skin</h3>
+<div class="cosmetic-options">
+<button class="cosmetic-option" id="skinDefaultOption" onclick="setSpecialSkin('default')">Default</button>
+<button class="cosmetic-option" id="skinSpecialOption" onclick="setSpecialSkin('special')">✨ Framed Tiles · Lv 20</button>
+</div>
+</div>
+
+</div>
+</div>
+</section>
 
 <section class="screen" id="achievementsScreen">
 <div class="card home-card">
@@ -1336,7 +1505,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.20.3</strong><br>
+<strong>Numble v0.21</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2107,6 +2276,10 @@ function confirmResetProgress(){
 
     localStorage.removeItem(
         PLAYER_PROGRESS_KEY
+    );
+
+    localStorage.removeItem(
+        CUSTOMISE_KEY
     );
 
     location.reload();
@@ -3588,6 +3761,96 @@ updateHomeStats();
 
 
 
+
+const CUSTOMISE_KEY="numbleCustomiseV1";
+
+let customiseState=loadCustomiseState();
+
+function loadCustomiseState(){
+try{
+ const s=JSON.parse(localStorage.getItem(CUSTOMISE_KEY)||"{}");
+ return{
+  tileTheme:s.tileTheme||"default",
+  accent:s.accent||"default",
+  badge:s.badge||"none",
+  skin:s.skin||"default"
+ };
+}catch(e){
+ return{tileTheme:"default",accent:"default",badge:"none",skin:"default"};
+}
+}
+
+function saveCustomiseState(){
+localStorage.setItem(CUSTOMISE_KEY,JSON.stringify(customiseState));
+}
+
+function cosmeticUnlocked(level){
+return Number(playerProgress&&playerProgress.level||1)>=level;
+}
+
+function applyCustomisation(){
+document.body.classList.toggle("tile-theme-soft",customiseState.tileTheme==="soft");
+document.body.classList.toggle("accent-mint",customiseState.accent==="mint");
+document.body.classList.toggle("special-tile-skin",customiseState.skin==="special");
+
+const badge=document.getElementById("homeProfileBadge");
+if(badge){
+ const show=customiseState.badge==="crafter"&&cosmeticUnlocked(15);
+ badge.style.display=show?"inline-flex":"none";
+}
+updateCustomiseUI();
+}
+
+function setTileTheme(theme){
+if(theme==="soft"&&!cosmeticUnlocked(5))return;
+customiseState.tileTheme=theme;
+saveCustomiseState();applyCustomisation();
+}
+
+function setAccentTheme(theme){
+if(theme==="mint"&&!cosmeticUnlocked(10))return;
+customiseState.accent=theme;
+saveCustomiseState();applyCustomisation();
+}
+
+function setProfileBadge(badge){
+if(badge==="crafter"&&!cosmeticUnlocked(15))return;
+customiseState.badge=badge;
+saveCustomiseState();applyCustomisation();
+}
+
+function setSpecialSkin(skin){
+if(skin==="special"&&!cosmeticUnlocked(20))return;
+customiseState.skin=skin;
+saveCustomiseState();applyCustomisation();
+}
+
+function updateCustomiseUI(){
+const config=[
+ ["tileDefaultOption",customiseState.tileTheme==="default",true],
+ ["tileSoftOption",customiseState.tileTheme==="soft",cosmeticUnlocked(5)],
+ ["accentDefaultOption",customiseState.accent==="default",true],
+ ["accentMintOption",customiseState.accent==="mint",cosmeticUnlocked(10)],
+ ["badgeNoneOption",customiseState.badge==="none",true],
+ ["badgeCrafterOption",customiseState.badge==="crafter",cosmeticUnlocked(15)],
+ ["skinDefaultOption",customiseState.skin==="default",true],
+ ["skinSpecialOption",customiseState.skin==="special",cosmeticUnlocked(20)]
+];
+
+config.forEach(([id,selected,unlocked])=>{
+ const el=document.getElementById(id);
+ if(!el)return;
+ el.classList.toggle("selected",!!selected);
+ el.classList.toggle("locked",!unlocked);
+});
+}
+
+function openCustomise(){
+applyCustomisation();
+showScreen("customiseScreen");
+updateCustomiseUI();
+}
+
 const PLAYER_PROGRESS_KEY="numblePlayerProgressV1";
 
 const PLAYER_MILESTONES=[
@@ -3663,6 +3926,7 @@ while(true){
 
 savePlayerProgress();
 updatePlayerProgressUI();
+applyCustomisation();
 
 if(leveled){
  showLevelUpToast();
@@ -5739,6 +6003,8 @@ if(window.matchMedia){
 applyAppearanceMode();
 
 updatePlayerProgressUI();
+
+applyCustomisation();
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -5749,6 +6015,6 @@ updatePlayerProgressUI();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.20.3</div>
+<div class="build-marker">NUMBLE BUILD v0.21</div>
 </body>
 </html>
