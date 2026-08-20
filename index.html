@@ -1,3 +1,134 @@
+Edit
+Pasted text(1).txt
+Document
+Pasted text(2).txt
+Document
+try this one - its the code it full that I already have
+Pasted text(3).txt
+Document
+Here's the index code :
+
+Exactly. I think progressively teaching mechanics is much better than giving the player + − × ÷ immediately.
+
+The campaign could evolve roughly like this:
+
+Levels	Mechanics	Example
+1–5	➕ Addition	7 + 3 = 10
+6–10	➕ Addition + bigger targets	11 + 7 = 18
+11–15	➕ Three-number addition	8 + 5 + 7 = 20
+16–20	➖ Subtraction introduced	17 − 7 = 10
+21–25	➕ ➖ Mixed	12 + 7 − 4 = 15
+26–30	✖️ Multiplication introduced	6 × 3 = 18
+31–35	➕ ➖ ✖️ Mixed	More possibilities
+36+	Special mechanics	🔒 💣 🧊 ⭐ etc.
+
+The important part is that old mechanics don't disappear. The player's toolbox grows.
+
+So when subtraction is first introduced, we might explicitly say:
+
+NEW! SUBTRACTION ➖
+You can now subtract numbers to hit the target.
+
+Then the first subtraction level could be extremely obvious:
+
+MAKE 10
+
+[ 14 ] [ 4 ]
+
+Tap 14, tap −, tap 4.
+
+But later:
+
+MAKE 18
+
+[ 7 ] [ 4 ] [ 5 ] [ 23 ] ...
+
+Now the player might see:
+
+23 − 5 = 18
+
+or
+
+7 + 4 + 7 = 18
+
+Eventually, the interesting part becomes finding the best solution among several possibilities, rather than simply spotting two complementary numbers.
+
+One change I'd make to our current 15 levels
+
+Rather than cramming subtraction into what we already have, I'd keep Levels 1–15 exactly as our introductory addition chapter.
+
+Then:
+
+Levels 16–20 = Subtraction chapter
+
+That gives the game a nice rhythm:
+
+1–10: learn addition and changing targets
+11–15: master three-number addition
+16: 🎉 NEW MECHANIC — SUBTRACTION
+
+And later we can have little chapter markers:
+
+CHAPTER 1 — Add It Up
+Levels 1–15
+
+CHAPTER 2 — Take It Away
+Levels 16–25
+
+CHAPTER 3 — Multiply
+Levels 26–35
+
+CHAPTER 4 — Chaos
+Mixed operators + special tiles
+
+That also gives us a much better progression/reward loop for a mobile game. Getting to Level 16 doesn't just mean another harder number — the player actually unlocks something new.
+
+So yes: that's exactly how I'd build it. And I'd make our next version add Levels 16–20 and the subtraction mechanic, without changing the 15 levels you've already tested.
+
+let's do it
+
+Yep — next build should be v0.3: Chapter 2 / Subtraction.
+
+I’ll keep Levels 1–15 as they are, then add:
+
+Levels 16–20
+A “New Mechanic: Subtraction” introduction when Level 16 starts
+➕ and ➖ operator buttons when subtraction is available
+Addition still remains usable
+Subtraction respects selection order — 18 − 6 is different from 6 − 18
+Boards generated so there is always at least one valid solution
+Level 16 starts easy, then the subtraction puzzles get progressively trickier
+Existing saved progress/stars remain intact
+Level-select begins to establish Chapter 1: Add It Up and Chapter 2: Take It Away
+
+One small design decision I'm making here: I'm not adding multiplication yet. I want subtraction to have enough levels to actually change how the player thinks before another operator gets thrown at them.
+
+Please upload/paste the current v0.2 index.html you're using from GitHub. Then I'll modify that exact working version and give you the entire v0.3 file back, rather than risking rebuilding from an earlier copy.
+
+Pasted text(4).txt
+Document
+Here's v0.2 index
+
+Done — I’ve updated your exact v0.2 into Make Ten v0.3.
+
+Download the full updated index.html
+
+This version keeps Levels 1–15 intact and adds:
+
+Levels 16–20
+Chapter 2 — Take It Away
+subtraction introduced at Level 16
+a one-time “New Mechanic!” intro
+subtraction-only early levels
+mixed + / − levels later
+operator buttons when both operations are available
+subtraction uses selection order, so 18 − 6 is different from 6 − 18
+boards still guarantee at least one valid solution
+your existing v0.2 progress is migrated rather than wiped
+level-select now visibly separates Chapter 1 — Add It Up and Chapter 2 — Take It Away
+
+Replace the contents of your GitHub index.html with this file and commit it. Your existing GitHub Pages link will update automatically. 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34,443 +165,5 @@ button{font:inherit}
 .home-title{margin:0;font-size:31px}
 .home-copy{color:var(--muted);line-height:1.55;max-width:390px;margin:12px auto 24px}
 .home-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0}
-.home-stat{background:#faf8f4;border-radius:15px;padding:14px}
-.home-stat strong{display:block;font-size:23px}.home-stat span{color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase}
-.level-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.level-header h2{margin:0;font-size:28px}
-.back-btn{border:0;background:#fff;border-radius:12px;width:42px;height:42px;font-weight:900;cursor:pointer;box-shadow:var(--shadow)}
-.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.level-card{border:1px solid var(--border);background:#fff;border-radius:18px;padding:16px 8px;cursor:pointer;min-height:104px;box-shadow:var(--shadow)}
-.level-card.locked{opacity:.45;cursor:default}.level-number{font-size:26px;font-weight:900}
-.level-target{color:var(--muted);font-size:11px;font-weight:900;text-transform:uppercase;margin-top:4px}.level-stars{margin-top:9px;letter-spacing:1px;font-size:16px}
-.game-top{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
-.stat-box{background:#fff;border-radius:15px;padding:10px 12px;box-shadow:var(--shadow)}.stat-box.right{text-align:right}
-.stat-label{color:var(--muted);font-size:9px;font-weight:900;letter-spacing:1px}.stat-value{font-size:21px;font-weight:900;margin-top:2px}
-.game-menu-btn{border:0;width:44px;height:44px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:var(--shadow);font-weight:900}
-.level-title{text-align:center;color:var(--muted);font-weight:900;font-size:12px;letter-spacing:1px;margin-top:24px}
-.target-wrap{text-align:center;margin:7px 0 18px}.target-label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:900;letter-spacing:2px}
-.target-number{font-size:82px;font-weight:900;line-height:.9;color:var(--text)}
-.objective{background:#fff;border-radius:14px;padding:10px 14px;text-align:center;font-weight:800;color:var(--muted);margin-bottom:15px;box-shadow:var(--shadow)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.tile{aspect-ratio:1/1;border:0;border-radius:19px;font-size:30px;font-weight:900;color:#30343a;cursor:pointer;position:relative;box-shadow:0 6px 0 rgba(70,65,60,.08),0 10px 22px rgba(60,55,50,.07);transition:transform .12s ease,filter .12s ease}
-.tile:nth-child(5n+1){background:#dcecff}.tile:nth-child(5n+2){background:#ddf5eb}.tile:nth-child(5n+3){background:#ffe7d8}.tile:nth-child(5n+4){background:#fff3ba}.tile:nth-child(5n+5){background:#e8e1fb}
-.tile:active{transform:translateY(3px)}.tile.selected{outline:4px solid #3f4650;transform:scale(1.05)}
-.tile.correct-pop{animation:popOut .34s ease forwards}.tile.wrong-shake{animation:shake .32s ease}.tile.drop-in{animation:dropIn .35s ease}
-@keyframes popOut{0%{transform:scale(1)}45%{transform:scale(1.22);filter:brightness(1.08)}100%{transform:scale(.2);opacity:0}}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
-@keyframes dropIn{0%{transform:translateY(-35px);opacity:0}100%{transform:translateY(0);opacity:1}}
-.selection-text{min-height:32px;text-align:center;margin-top:16px;color:var(--muted);font-weight:800}.selection-text strong{color:var(--text)}
-.feedback{min-height:34px;text-align:center;font-size:20px;font-weight:900}.feedback.correct{color:var(--success)}.feedback.wrong{color:var(--danger)}
-.complete-card,.failed-card{padding:30px 22px;text-align:center}.complete-badge{width:96px;height:96px;border-radius:28px;margin:0 auto 18px;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:46px}
-.complete-card h2,.failed-card h2{margin:0;font-size:35px}.star-row{font-size:38px;margin:16px 0;letter-spacing:5px}
-.complete-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:22px 0}.complete-stat{background:#faf8f4;border-radius:15px;padding:14px}
-.complete-stat strong{display:block;font-size:24px}.complete-stat span{color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
-.complete-actions{display:grid;gap:10px}.failed-copy{color:var(--muted);margin:10px 0 24px;line-height:1.5}
-@media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
-</style>
-</head>
-<body>
-<div class="app">
-<div class="brand">
-<div class="brand-small">NUMBER PUZZLE</div>
-<div class="brand-main"><span class="make">MAKE</span> <span class="ten">TEN</span></div>
-</div>
-
-<section class="screen active" id="homeScreen">
-<div class="card home-card">
-<div class="hero-target"><span>10</span></div>
-<h1 class="home-title">Hit the target.</h1>
-<p class="home-copy">Combine number tiles to reach the target. Clear enough solutions before you run out of moves and unlock the next puzzle.</p>
-<div class="home-stats">
-<div class="home-stat"><strong id="homeLevels">0</strong><span>Levels Cleared</span></div>
-<div class="home-stat"><strong id="homeStars">0</strong><span>Stars Earned</span></div>
-</div>
-<button class="main-btn" onclick="openLevels()">PLAY</button>
-</div>
-</section>
-
-<section class="screen" id="levelScreen">
-<div class="level-header">
-<button class="back-btn" onclick="showScreen('homeScreen')">←</button>
-<h2>Choose Level</h2>
-<div style="width:42px"></div>
-</div>
-<div class="level-grid" id="levelGrid"></div>
-</section>
-
-<section class="screen" id="gameScreen">
-<div class="game-top">
-<div class="stat-box"><div class="stat-label">SOLUTIONS</div><div class="stat-value"><span id="solutionsDone">0</span>/<span id="solutionsGoal">0</span></div></div>
-<button class="game-menu-btn" onclick="exitLevel()">✕</button>
-<div class="stat-box right"><div class="stat-label">MOVES</div><div class="stat-value" id="movesDisplay">0</div></div>
-</div>
-<div class="level-title" id="levelTitle">LEVEL 1</div>
-<div class="target-wrap"><div class="target-label">Make</div><div class="target-number" id="targetDisplay">10</div></div>
-<div class="objective" id="objectiveText"></div>
-<div class="grid" id="gameGrid"></div>
-<div class="selection-text" id="selectionText">Select two numbers.</div>
-<div class="feedback" id="feedback"></div>
-</section>
-
-<section class="screen" id="completeScreen">
-<div class="card complete-card">
-<div class="complete-badge">✓</div>
-<h2>Level Complete!</h2>
-<div class="star-row" id="starDisplay">★★★</div>
-<div class="complete-stats">
-<div class="complete-stat"><strong id="completeSolutions">0</strong><span>Solutions</span></div>
-<div class="complete-stat"><strong id="completeMoves">0</strong><span>Moves Left</span></div>
-</div>
-<div class="complete-actions">
-<button class="main-btn" id="nextLevelButton" onclick="nextLevel()">NEXT LEVEL</button>
-<button class="secondary-btn" onclick="openLevels()">LEVEL SELECT</button>
-</div>
-</div>
-</section>
-
-<section class="screen" id="failedScreen">
-<div class="card failed-card">
-<h2>Out of Moves</h2>
-<p class="failed-copy">You were close. Try the level again and look for better combinations.</p>
-<div class="complete-actions">
-<button class="main-btn" onclick="restartLevel()">TRY AGAIN</button>
-<button class="secondary-btn" onclick="openLevels()">LEVEL SELECT</button>
-</div>
-</div>
-</section>
-</div>
-
-<script>
-const LEVELS=[
-{target:10,goal:4,moves:7,maxNumber:9,selectionCount:2},
-{target:10,goal:6,moves:9,maxNumber:9,selectionCount:2},
-{target:12,goal:6,moves:9,maxNumber:11,selectionCount:2},
-{target:15,goal:7,moves:10,maxNumber:14,selectionCount:2},
-{target:18,goal:8,moves:11,maxNumber:17,selectionCount:2},
-{target:20,goal:8,moves:11,maxNumber:19,selectionCount:2},
-{target:13,goal:8,moves:11,maxNumber:12,selectionCount:2},
-{target:17,goal:9,moves:12,maxNumber:16,selectionCount:2},
-{target:21,goal:9,moves:12,maxNumber:20,selectionCount:2},
-{target:25,goal:10,moves:13,maxNumber:24,selectionCount:2},
-{target:10,goal:6,moves:9,maxNumber:8,selectionCount:3},
-{target:15,goal:7,moves:10,maxNumber:11,selectionCount:3},
-{target:20,goal:8,moves:11,maxNumber:14,selectionCount:3},
-{target:24,goal:9,moves:12,maxNumber:16,selectionCount:3},
-{target:30,goal:10,moves:13,maxNumber:20,selectionCount:3}
-];
-
-const GRID_SIZE=16;
-const SAVE_KEY="makeTenProgressV02";
-
-let progress=loadProgress();
-let currentLevelIndex=0;
-let currentLevel=null;
-let tiles=[];
-let selectedIndexes=[];
-let solutionsDone=0;
-let movesLeft=0;
-let inputLocked=false;
-let newTileIndexes=[];
-
-function shuffle(array){
-const copy=[...array];
-for(let i=copy.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[copy[i],copy[j]]=[copy[j],copy[i]];
-}
-return copy;
-}
-
-function defaultProgress(){return{unlocked:1,stars:{}}}
-
-function loadProgress(){
-try{
-const data=JSON.parse(localStorage.getItem(SAVE_KEY));
-if(!data||typeof data!=="object")return defaultProgress();
-return{unlocked:Math.max(1,data.unlocked||1),stars:data.stars||{}};
-}catch(e){return defaultProgress()}
-}
-
-function saveProgress(){
-localStorage.setItem(SAVE_KEY,JSON.stringify(progress));
-updateHomeStats();
-}
-
-function showScreen(id){
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-if(id==="homeScreen")updateHomeStats();
-}
-
-function updateHomeStats(){
-const completed=Object.keys(progress.stars).length;
-const totalStars=Object.values(progress.stars).reduce((sum,v)=>sum+Number(v),0);
-document.getElementById("homeLevels").textContent=completed;
-document.getElementById("homeStars").textContent=totalStars;
-}
-
-function openLevels(){
-renderLevelSelect();
-showScreen("levelScreen");
-}
-
-function renderLevelSelect(){
-const container=document.getElementById("levelGrid");
-container.innerHTML="";
-LEVELS.forEach((level,index)=>{
-const levelNumber=index+1;
-const unlocked=levelNumber<=progress.unlocked;
-const stars=Number(progress.stars[levelNumber]||0);
-const button=document.createElement("button");
-button.className="level-card";
-if(!unlocked)button.classList.add("locked");
-const starText="★".repeat(stars)+"☆".repeat(3-stars);
-button.innerHTML=`
-<div class="level-number">${unlocked?levelNumber:"🔒"}</div>
-<div class="level-target">${unlocked?`Make ${level.target}`:"Locked"}</div>
-<div class="level-stars">${unlocked?starText:""}</div>`;
-if(unlocked)button.onclick=()=>startLevel(index);
-container.appendChild(button);
-});
-}
-
-function startLevel(index){
-currentLevelIndex=index;
-currentLevel=LEVELS[index];
-solutionsDone=0;
-movesLeft=currentLevel.moves;
-selectedIndexes=[];
-inputLocked=false;
-newTileIndexes=[];
-tiles=generateBoard();
-
-document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
-document.getElementById("targetDisplay").textContent=currentLevel.target;
-document.getElementById("solutionsGoal").textContent=currentLevel.goal;
-document.getElementById("objectiveText").textContent=currentLevel.selectionCount===2
-?`Use exactly 2 tiles to make ${currentLevel.target}.`
-:`Use exactly 3 tiles to make ${currentLevel.target}.`;
-
-document.getElementById("feedback").textContent="";
-document.getElementById("feedback").className="feedback";
-resetSelectionText();
-updateHUD();
-renderGrid();
-showScreen("gameScreen");
-}
-
-function randomNumber(){
-return Math.floor(Math.random()*currentLevel.maxNumber)+1;
-}
-
-function makeGuaranteedSolution(){
-for(let attempt=0;attempt<200;attempt++){
-if(currentLevel.selectionCount===2){
-const a=randomNumber();
-const b=currentLevel.target-a;
-if(b>=1&&b<=currentLevel.maxNumber)return[a,b];
-}else{
-const a=randomNumber();
-const b=randomNumber();
-const c=currentLevel.target-a-b;
-if(c>=1&&c<=currentLevel.maxNumber)return[a,b,c];
-}
-}
-return currentLevel.selectionCount===2?[1,currentLevel.target-1]:[1,1,currentLevel.target-2];
-}
-
-function generateBoard(){
-const board=Array.from({length:GRID_SIZE},()=>randomNumber());
-guaranteeSolutionOnBoard(board);
-return board;
-}
-
-function guaranteeSolutionOnBoard(board){
-if(boardHasSolution(board))return;
-const solution=makeGuaranteedSolution();
-const indexes=shuffle(Array.from({length:board.length},(_,i)=>i)).slice(0,solution.length);
-solution.forEach((value,i)=>board[indexes[i]]=value);
-}
-
-function boardHasSolution(board){
-if(currentLevel.selectionCount===2){
-for(let i=0;i<board.length;i++){
-for(let j=i+1;j<board.length;j++){
-if(board[i]+board[j]===currentLevel.target)return true;
-}}
-return false;
-}
-for(let i=0;i<board.length;i++){
-for(let j=i+1;j<board.length;j++){
-for(let k=j+1;k<board.length;k++){
-if(board[i]+board[j]+board[k]===currentLevel.target)return true;
-}}}
-return false;
-}
-
-function renderGrid(){
-const container=document.getElementById("gameGrid");
-container.innerHTML="";
-tiles.forEach((value,index)=>{
-const button=document.createElement("button");
-button.className="tile";
-button.textContent=value;
-button.dataset.index=index;
-if(selectedIndexes.includes(index))button.classList.add("selected");
-if(newTileIndexes.includes(index))button.classList.add("drop-in");
-button.onclick=()=>selectTile(index);
-container.appendChild(button);
-});
-newTileIndexes=[];
-}
-
-function selectTile(index){
-if(inputLocked)return;
-
-if(selectedIndexes.includes(index)){
-selectedIndexes=selectedIndexes.filter(v=>v!==index);
-renderGrid();
-updateSelectionText();
-return;
-}
-
-selectedIndexes.push(index);
-renderGrid();
-updateSelectionText();
-
-if(selectedIndexes.length===currentLevel.selectionCount)checkSelection();
-}
-
-function resetSelectionText(){
-document.getElementById("selectionText").innerHTML=
-currentLevel&&currentLevel.selectionCount===3
-?"Select three numbers."
-:"Select two numbers.";
-}
-
-function updateSelectionText(){
-if(selectedIndexes.length===0){resetSelectionText();return}
-const values=selectedIndexes.map(i=>tiles[i]);
-const total=values.reduce((s,v)=>s+v,0);
-document.getElementById("selectionText").innerHTML=`<strong>${values.join(" + ")}</strong> = ${total}`;
-}
-
-function checkSelection(){
-inputLocked=true;
-movesLeft--;
-const values=selectedIndexes.map(i=>tiles[i]);
-const total=values.reduce((s,v)=>s+v,0);
-if(total===currentLevel.target)handleCorrect(values);
-else handleWrong(total);
-}
-
-function handleCorrect(values){
-solutionsDone++;
-updateHUD();
-document.getElementById("feedback").textContent="Perfect!";
-document.getElementById("feedback").className="feedback correct";
-document.getElementById("selectionText").innerHTML=`${values.join(" + ")} = <strong>${currentLevel.target}</strong>`;
-
-const buttons=document.querySelectorAll(".tile");
-selectedIndexes.forEach(i=>buttons[i]&&buttons[i].classList.add("correct-pop"));
-
-if(solutionsDone>=currentLevel.goal){
-setTimeout(completeLevel,420);
-return;
-}
-
-setTimeout(replaceSelectedTiles,340);
-}
-
-function handleWrong(total){
-updateHUD();
-document.getElementById("feedback").textContent=`${total} — not ${currentLevel.target}`;
-document.getElementById("feedback").className="feedback wrong";
-
-const buttons=document.querySelectorAll(".tile");
-selectedIndexes.forEach(i=>buttons[i]&&buttons[i].classList.add("wrong-shake"));
-
-setTimeout(()=>{
-selectedIndexes=[];
-inputLocked=false;
-renderGrid();
-resetSelectionText();
-if(movesLeft<=0)failLevel();
-},330);
-}
-
-function replaceSelectedTiles(){
-const replaced=[...selectedIndexes];
-replaced.forEach(i=>tiles[i]=randomNumber());
-guaranteeSolutionOnBoard(tiles);
-newTileIndexes=replaced;
-selectedIndexes=[];
-inputLocked=false;
-renderGrid();
-resetSelectionText();
-
-if(movesLeft<=0&&solutionsDone<currentLevel.goal)failLevel();
-}
-
-function updateHUD(){
-document.getElementById("solutionsDone").textContent=solutionsDone;
-document.getElementById("movesDisplay").textContent=movesLeft;
-}
-
-function calculateStars(){
-if(movesLeft>=4)return 3;
-if(movesLeft>=2)return 2;
-return 1;
-}
-
-function completeLevel(){
-inputLocked=true;
-const levelNumber=currentLevelIndex+1;
-const stars=calculateStars();
-const previousStars=Number(progress.stars[levelNumber]||0);
-progress.stars[levelNumber]=Math.max(previousStars,stars);
-
-if(levelNumber<LEVELS.length){
-progress.unlocked=Math.max(progress.unlocked,levelNumber+1);
-}
-
-saveProgress();
-
-document.getElementById("starDisplay").textContent="★".repeat(stars)+"☆".repeat(3-stars);
-document.getElementById("completeSolutions").textContent=solutionsDone;
-document.getElementById("completeMoves").textContent=movesLeft;
-
-const nextButton=document.getElementById("nextLevelButton");
-if(currentLevelIndex>=LEVELS.length-1){
-nextButton.textContent="LEVEL SELECT";
-nextButton.onclick=openLevels;
-}else{
-nextButton.textContent="NEXT LEVEL";
-nextButton.onclick=nextLevel;
-}
-showScreen("completeScreen");
-}
-
-function failLevel(){
-inputLocked=true;
-showScreen("failedScreen");
-}
-
-function nextLevel(){
-if(currentLevelIndex<LEVELS.length-1)startLevel(currentLevelIndex+1);
-else openLevels();
-}
-
-function restartLevel(){
-startLevel(currentLevelIndex);
-}
-
-function exitLevel(){
-inputLocked=true;
-openLevels();
-}
-
-updateHomeStats();
-</script>
-</body>
-</html>
+make-ten-v03-index.html
+HTML
