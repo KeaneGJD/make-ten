@@ -2345,13 +2345,32 @@ if(pendingOperator){
 line.innerHTML=html;
 }
 
+
+function getEffectiveTileValue(index){
+
+if(
+    wildcardIndexes.includes(index) &&
+    Object.prototype.hasOwnProperty.call(
+        wildcardValues,
+        index
+    )
+){
+    return Number(
+        wildcardValues[index]
+    );
+}
+
+return tiles[index];
+}
+
+
 function selectExpressionTile(index){
 
 if(inputLocked||expressionTileIndexes.includes(index)){
     return;
 }
 
-const value=tiles[index];
+const value=getEffectiveTileValue(index);
 
 if(expressionTokens.length===0){
     expressionTokens.push(value);
