@@ -752,31 +752,18 @@ backdrop-filter:blur(7px);
 .mode-choice[data-mode="endless"].selected{background:linear-gradient(180deg,#fff,#f4f0fa)}
 
 
-/* v0.16 — Game Feel */
 .tile{transition:transform .12s ease,box-shadow .12s ease}
 .tile:active{transform:scale(.94)}
 .tile.selected{animation:tileSelect .18s ease}
 @keyframes tileSelect{50%{transform:scale(1.07)}}
-
 .feedback.correct{animation:feedbackGood .35s ease}
 .feedback.wrong{animation:feedbackBad .32s ease}
 @keyframes feedbackGood{50%{transform:scale(1.06)}}
 @keyframes feedbackBad{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
-
-.game-card.correct-flash{animation:correctFlash .42s ease}
-.game-card.wrong-flash{animation:wrongFlash .38s ease}
-@keyframes correctFlash{50%{box-shadow:0 0 0 5px rgba(94,190,125,.18),var(--shadow)}}
-@keyframes wrongFlash{50%{box-shadow:0 0 0 5px rgba(220,90,90,.16),var(--shadow)}}
-
 .target-number.target-pop{animation:targetPop .32s ease}
 @keyframes targetPop{50%{transform:scale(1.12)}}
-
-.screen.screen-enter .card{animation:screenEnter .24s ease}
-@keyframes screenEnter{from{opacity:.35;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
-
 .float-feedback{position:fixed;z-index:450;left:50%;top:29%;transform:translate(-50%,-50%);font-size:25px;font-weight:1000;pointer-events:none;animation:floatFeedback .7s ease forwards}
 @keyframes floatFeedback{0%{opacity:0;transform:translate(-50%,-20%) scale(.8)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}100%{opacity:0;transform:translate(-50%,-95%) scale(1)}}
-
 .settings-mini{position:fixed;right:12px;bottom:12px;z-index:200;border:1px solid var(--border);background:rgba(255,255,255,.88);border-radius:999px;padding:8px 11px;font-weight:900;font-size:11px;box-shadow:var(--shadow);cursor:pointer}
 
 @media(max-width:400px){
@@ -1976,6 +1963,65 @@ function exitModeOrLevel(){
 if(gameMode==="campaign")exitLevel();
 else{clearModeTimer();inputLocked=true;openPlayMenu();}
 }
+
+let soundEnabled=localStorage.getItem("numbleSoundEnabled")!=="false";
+let audioCtx=null;
+
+function getAudioCtx(){
+if(!audioCtx){
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(Ctx)audioCtx=new Ctx();
+}
+return audioCtx;
+}
+
+function tone(freq,duration=.07,type="sine",volume=.03,delay=0){
+if(!soundEnabled)return;
+const ctx=getAudioCtx();
+if(!ctx)return;
+const osc=ctx.createOscillator();
+const gain=ctx.createGain();
+osc.type=type;
+osc.frequency.value=freq;
+gain.gain.setValueAtTime(.0001,ctx.currentTime+delay);
+gain.gain.exponentialRampToValueAtTime(volume,ctx.currentTime+delay+.01);
+gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+delay+duration);
+osc.connect(gain);gain.connect(ctx.destination);
+osc.start(ctx.currentTime+delay);
+osc.stop(ctx.currentTime+delay+duration+.02);
+}
+
+function sfx(kind){
+if(kind==="tap")tone(330,.045,"sine",.016);
+if(kind==="correct"){tone(520,.08,"sine",.028);tone(700,.1,"sine",.025,.07);}
+if(kind==="wrong"){tone(180,.10,"square",.014);tone(140,.11,"square",.012,.06);}
+if(kind==="combo"){tone(620,.05,"triangle",.02);tone(820,.06,"triangle",.02,.05);}
+if(kind==="unlock"){tone(440,.08,"sine",.02);tone(660,.09,"sine",.02,.08);tone(880,.13,"sine",.025,.16);}
+}
+
+function haptic(pattern){
+if(navigator.vibrate)navigator.vibrate(pattern);
+}
+
+function toggleSound(){
+soundEnabled=!soundEnabled;
+localStorage.setItem("numbleSoundEnabled",String(soundEnabled));
+updateSoundToggle();
+if(soundEnabled)sfx("tap");
+}
+
+function updateSoundToggle(){
+const b=document.getElementById("soundToggle");
+if(b)b.textContent=soundEnabled?"🔊 SOUND":"🔇 SOUND";
+}
+
+function floatFeedback(text){
+const el=document.createElement("div");
+el.className="float-feedback";
+el.textContent=text;
+document.body.appendChild(el);
+setTimeout(()=>el.remove(),750);
+}
 function shuffle(array){
 const copy=[...array];
 for(let i=copy.length-1;i>0;i--){
@@ -2518,76 +2564,9 @@ localStorage.setItem(SAVE_KEY,JSON.stringify(progress));
 updateHomeStats();
 }
 
-
-let soundEnabled=localStorage.getItem("numbleSoundEnabled")!=="false";
-let audioCtx=null;
-
-function getAudioCtx(){
-if(!audioCtx){
- const Ctx=window.AudioContext||window.webkitAudioContext;
- if(Ctx)audioCtx=new Ctx();
-}
-return audioCtx;
-}
-function tone(freq,duration=.07,type="sine",volume=.035,delay=0){
-if(!soundEnabled)return;
-const ctx=getAudioCtx();if(!ctx)return;
-const osc=ctx.createOscillator(),gain=ctx.createGain();
-osc.type=type;osc.frequency.value=freq;
-gain.gain.setValueAtTime(0.0001,ctx.currentTime+delay);
-gain.gain.exponentialRampToValueAtTime(volume,ctx.currentTime+delay+.01);
-gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+delay+duration);
-osc.connect(gain);gain.connect(ctx.destination);
-osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+duration+.02);
-}
-function sfx(kind){
-if(kind==="tap")tone(330,.045,"sine",.018);
-if(kind==="correct"){tone(520,.08,"sine",.03);tone(700,.1,"sine",.03,.07);}
-if(kind==="wrong"){tone(180,.11,"square",.018);tone(140,.12,"square",.014,.07);}
-if(kind==="combo"){tone(620,.055,"triangle",.025);tone(820,.07,"triangle",.025,.05);}
-if(kind==="unlock"){tone(440,.08,"sine",.025);tone(660,.09,"sine",.025,.08);tone(880,.14,"sine",.03,.16);}
-}
-function haptic(pattern){
-if(navigator.vibrate)navigator.vibrate(pattern);
-}
-function toggleSound(){
-soundEnabled=!soundEnabled;
-localStorage.setItem("numbleSoundEnabled",String(soundEnabled));
-updateSoundToggle();
-if(soundEnabled)sfx("tap");
-}
-function updateSoundToggle(){
-const b=document.getElementById("soundToggle");
-if(b)b.textContent=soundEnabled?"🔊 SOUND":"🔇 SOUND";
-}
-function gameFeel(kind){
-const card=document.querySelector("#gameScreen .card");
-const target=document.querySelector("#gameScreen .target-number");
-if(card){
- card.classList.remove("correct-flash","wrong-flash");
- void card.offsetWidth;
- card.classList.add(kind==="correct"?"correct-flash":"wrong-flash");
-}
-if(kind==="correct"&&target){
- target.classList.remove("target-pop");void target.offsetWidth;target.classList.add("target-pop");
-}
-sfx(kind);
-haptic(kind==="correct"?35:[25,35,25]);
-}
-function floatFeedback(text){
-const el=document.createElement("div");
-el.className="float-feedback";el.textContent=text;
-document.body.appendChild(el);
-setTimeout(()=>el.remove(),750);
-}
-
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-const activeScreen=document.getElementById(id);
-activeScreen.classList.add("active");
-activeScreen.classList.remove("screen-enter");
-void activeScreen.offsetWidth;
-activeScreen.classList.add("screen-enter");
+document.getElementById(id).classList.add("active");
 
 document.body.classList.toggle(
     "numble-home-bg",
@@ -3576,6 +3555,8 @@ line.innerHTML=html;
 }
 
 function selectExpressionTile(index){
+sfx("tap");
+
 
 if(inputLocked||expressionTileIndexes.includes(index)){
     return;
@@ -3706,7 +3687,6 @@ const equation=expressionText();
 if(Number.isNaN(total)){
 
     mistakesThisLevel++;
-    gameFeel("wrong");
     if(gameMode==="campaign")movesLeft--;
     else modeWrong();
     updateHUD();
@@ -3761,16 +3741,12 @@ if(
         inputLocked=true;
         document.getElementById("feedback").textContent="Perfect!";
         document.getElementById("feedback").className="feedback correct";
-        gameFeel("correct");
-        floatFeedback("NICE!");
         document.getElementById("selectionText").innerHTML=
             `${equation} = <strong>${currentLevel.target}</strong>`;
         modeCorrect();
         return;
     }
 
-    gameFeel("correct");
-    floatFeedback("PERFECT!");
     solutionsDone++;
     modeStats.equations++;
     saveModeStats();
@@ -3825,7 +3801,6 @@ if(
 }
 
 mistakesThisLevel++;
-gameFeel("wrong");
 if(gameMode!=="campaign")modeWrong();
 updateHUD();
 
@@ -3840,6 +3815,7 @@ document.getElementById("feedback").textContent=
 
 document.getElementById("feedback").className=
     "feedback wrong";
+sfx("wrong");haptic([25,35,25]);
 
 const buttons=document.querySelectorAll(".tile");
 
