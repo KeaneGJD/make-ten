@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Make Ten</title>
+
+<style>
+
+:root{
+    --bg:#f4f1ec;
+    --panel:#ffffff;
+    --text:#1f1f1f;
+    --muted:#77736d;
+    --primary:#51377a;
+    --accent:#c7e539;
+    --danger:#e75d5d;
+    --tile:#ffffff;
+    --tile-border:#ded9d2;
+    --selected:#51377a;
+}
+
+*{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+}
+
+button{
+    font:inherit;
+}
+
+/* =========================
+APP
+========================= */
+
+.app{
+    width:100%;
+    max-width:520px;
+    min-height:100vh;
+    padding:22px 18px 35px;
+    display:flex;
+    flex-direction:column;
+}
+
+/* =========================
+START SCREEN
+========================= */
+
+.start-screen{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+}
+
+.logo-small{
+    color:var(--primary);
+    font-size:16px;
+    font-weight:900;
+    letter-spacing:2px;
+    margin-bottom:6px;
+}
+
+.logo-big{
+    color:var(--primary);
+    font-size:clamp(72px,20vw,110px);
+    font-weight:900;
+    line-height:.82;
+    letter-spacing:-6px;
+}
+
+.logo-big span{
+    color:var(--accent);
+}
+
+.start-copy{
+    max-width:390px;
+    margin:28px auto;
+    color:var(--muted);
+    font-size:17px;
+    line-height:1.55;
+}
+
+.start-rules{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+    margin-bottom:28px;
+}
+
+.rule{
+    background:var(--panel);
+    border-radius:16px;
+    padding:17px 8px;
+}
+
+.rule-icon{
+    font-size:26px;
+    margin-bottom:6px;
+}
+
+.rule strong{
+    color:var(--primary);
+    display:block;
+    font-size:13px;
+}
+
+.rule small{
+    display:block;
+    color:var(--muted);
+    margin-top:4px;
+    font-size:11px;
+    line-height:1.3;
+}
+
+.main-btn{
+    border:0;
+    background:var(--accent);
+    color:#202020;
+    border-radius:16px;
+    padding:18px;
+    font-weight:900;
+    font-size:20px;
+    cursor:pointer;
+    box-shadow:0 5px 0 #a8c31f;
+}
+
+.main-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 2px 0 #a8c31f;
+}
+
+/* =========================
+GAME SCREEN
+========================= */
+
+.game-screen{
+    display:none;
+    flex:1;
+}
+
+.top-bar{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:10px;
+}
+
+.stat{
+    background:var(--panel);
+    border-radius:14px;
+    padding:11px 13px;
+}
+
+.stat.right{
+    text-align:right;
+}
+
+.stat-label{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1px;
+}
+
+.stat-value{
+    color:var(--primary);
+    font-size:22px;
+    font-weight:900;
+    margin-top:2px;
+}
+
+.pause-btn{
+    width:45px;
+    height:45px;
+    border:0;
+    border-radius:50%;
+    background:var(--panel);
+    color:var(--primary);
+    font-size:19px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.target-section{
+    text-align:center;
+    margin:32px 0 24px;
+}
+
+.make-label{
+    color:var(--muted);
+    text-transform:uppercase;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:2px;
+}
+
+.target-number{
+    color:var(--primary);
+    font-size:88px;
+    font-weight:900;
+    line-height:.9;
+    margin-top:4px;
+}
+
+.combo{
+    min-height:26px;
+    margin-top:10px;
+    color:var(--danger);
+    font-size:18px;
+    font-weight:900;
+}
+
+/* =========================
+GRID
+========================= */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin:auto 0;
+}
+
+.tile{
+    aspect-ratio:1/1;
+    border:2px solid var(--tile-border);
+    background:var(--tile);
+    border-radius:18px;
+    color:var(--primary);
+    font-size:32px;
+    font-weight:900;
+    cursor:pointer;
+    position:relative;
+    transition:
+        transform .12s ease,
+        background .12s ease,
+        border-color .12s ease;
+    box-shadow:0 4px 8px rgba(0,0,0,.04);
+}
+
+.tile:active{
+    transform:scale(.94);
+}
+
+.tile.selected{
+    background:var(--selected);
+    color:white;
+    border-color:var(--selected);
+    transform:scale(1.05);
+}
+
+.tile.correct-pop{
+    animation:correctPop .35s ease forwards;
+}
+
+.tile.wrong-shake{
+    animation:wrongShake .32s ease;
+}
+
+@keyframes correctPop{
+
+    0%{
+        transform:scale(1);
+    }
+
+    45%{
+        transform:scale(1.18);
+        background:var(--accent);
+        border-color:var(--accent);
+        color:#222;
+    }
+
+    100%{
+        transform:scale(0);
+        opacity:0;
+    }
+}
+
+@keyframes wrongShake{
+
+    0%,100%{
+        transform:translateX(0);
+    }
+
+    20%{
+        transform:translateX(-7px);
+    }
+
+    40%{
+        transform:translateX(7px);
+    }
+
+    60%{
+        transform:translateX(-5px);
+    }
+
+    80%{
+        transform:translateX(5px);
+    }
+}
+
+/* =========================
+BOTTOM INFO
+========================= */
+
+.bottom-info{
+    margin-top:24px;
+    text-align:center;
+}
+
+.selection-text{
+    min-height:28px;
+    color:var(--muted);
+    font-size:15px;
+    font-weight:800;
+}
+
+.selection-text strong{
+    color:var(--primary);
+}
+
+.feedback{
+    min-height:32px;
+    margin-top:6px;
+    font-size:18px;
+    font-weight:900;
+}
+
+.feedback.correct{
+    color:#57a83b;
+}
+
+.feedback.wrong{
+    color:var(--danger);
+}
+
+/* =========================
+RESULTS
+========================= */
+
+.results-screen{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+}
+
+.results-heading{
+    color:var(--primary);
+    font-size:20px;
+    font-weight:900;
+    letter-spacing:2px;
+}
+
+.results-score{
+    color:var(--primary);
+    font-size:96px;
+    line-height:.95;
+    font-weight:900;
+    margin-top:8px;
+}
+
+.results-score-label{
+    color:var(--muted);
+    font-size:12px;
+    font-weight:900;
+    text-transform:uppercase;
+}
+
+.results-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+    margin:30px 0;
+}
+
+.result-box{
+    background:var(--panel);
+    border-radius:16px;
+    padding:18px 8px;
+}
+
+.result-number{
+    color:var(--primary);
+    font-size:27px;
+    font-weight:900;
+}
+
+.result-label{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:900;
+    text-transform:uppercase;
+    margin-top:4px;
+}
+
+/* =========================
+PAUSE
+========================= */
+
+.pause-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(25,20,30,.82);
+    z-index:100;
+    align-items:center;
+    justify-content:center;
+    padding:25px;
+}
+
+.pause-card{
+    width:100%;
+    max-width:360px;
+    background:white;
+    border-radius:22px;
+    padding:30px 24px;
+    text-align:center;
+}
+
+.pause-card h2{
+    margin:0 0 10px;
+    color:var(--primary);
+    font-size:34px;
+}
+
+.pause-card p{
+    color:var(--muted);
+    margin:0 0 22px;
+}
+
+.resume-btn{
+    width:100%;
+    border:0;
+    border-radius:13px;
+    background:var(--accent);
+    color:#222;
+    padding:15px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+/* =========================
+MOBILE
+========================= */
+
+@media(max-width:400px){
+
+    .app{
+        padding-left:14px;
+        padding-right:14px;
+    }
+
+    .grid{
+        gap:8px;
+    }
+
+    .tile{
+        border-radius:15px;
+        font-size:28px;
+    }
+
+    .target-number{
+        font-size:75px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- =========================
+START
+========================= -->
+
+<section
+    class="start-screen"
+    id="startScreen">
+
+<div class="logo-small">
+NUMBER PUZZLE
+</div>
+
+<div class="logo-big">
+MAKE<br><span>TEN</span>
+</div>
+
+<p class="start-copy">
+
+Tap two number tiles that add up to 10.
+
+Clear as many pairs as possible before the timer runs out
+and keep your combo alive for bigger scores.
+
+</p>
+
+<div class="start-rules">
+
+<div class="rule">
+
+<div class="rule-icon">
+🎯
+</div>
+
+<strong>
+Make 10
+</strong>
+
+<small>
+Combine two numbers.
+</small>
+
+</div>
+
+<div class="rule">
+
+<div class="rule-icon">
+🔥
+</div>
+
+<strong>
+Build Combos
+</strong>
+
+<small>
+Correct pairs increase your multiplier.
+</small>
+
+</div>
+
+<div class="rule">
+
+<div class="rule-icon">
+⏱️
+</div>
+
+<strong>
+60 Seconds
+</strong>
+
+<small>
+Score as much as you can.
+</small>
+
+</div>
+
+</div>
+
+<button
+    class="main-btn"
+    onclick="startGame()">
+
+PLAY
+
+</button>
+
+</section>
+
+
+<!-- =========================
+GAME
+========================= -->
+
+<section
+    class="game-screen"
+    id="gameScreen">
+
+<div class="top-bar">
+
+<div class="stat">
+
+<div class="stat-label">
+SCORE
+</div>
+
+<div
+    class="stat-value"
+    id="scoreDisplay">
+
+0
+
+</div>
+
+</div>
+
+
+<button
+    class="pause-btn"
+    onclick="pauseGame()">
+
+Ⅱ
+
+</button>
+
+
+<div class="stat right">
+
+<div class="stat-label">
+TIME
+</div>
+
+<div
+    class="stat-value"
+    id="timeDisplay">
+
+60
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="target-section">
+
+<div class="make-label">
+Make
+</div>
+
+<div
+    class="target-number"
+    id="targetDisplay">
+
+10
+
+</div>
+
+<div
+    class="combo"
+    id="comboDisplay">
+</div>
+
+</div>
+
+
+<div
+    class="grid"
+    id="gameGrid">
+</div>
+
+
+<div class="bottom-info">
+
+<div
+    class="selection-text"
+    id="selectionText">
+
+Select two numbers.
+
+</div>
+
+<div
+    class="feedback"
+    id="feedback">
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =========================
+RESULTS
+========================= -->
+
+<section
+    class="results-screen"
+    id="resultsScreen">
+
+<div class="results-heading">
+TIME'S UP
+</div>
+
+<div
+    class="results-score"
+    id="finalScore">
+
+0
+
+</div>
+
+<div class="results-score-label">
+Final Score
+</div>
+
+
+<div class="results-grid">
+
+<div class="result-box">
+
+<div
+    class="result-number"
+    id="pairsResult">
+
+0
+
+</div>
+
+<div class="result-label">
+Pairs
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div
+    class="result-number"
+    id="bestComboResult">
+
+0
+
+</div>
+
+<div class="result-label">
+Best Combo
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div
+    class="result-number"
+    id="mistakesResult">
+
+0
+
+</div>
+
+<div class="result-label">
+Mistakes
+</div>
+
+</div>
+
+</div>
+
+
+<button
+    class="main-btn"
+    onclick="startGame()">
+
+PLAY AGAIN
+
+</button>
+
+</section>
+
+</div>
+
+
+<!-- =========================
+PAUSE
+========================= -->
+
+<div
+    class="pause-overlay"
+    id="pauseOverlay">
+
+<div class="pause-card">
+
+<h2>
+Paused
+</h2>
+
+<p>
+Your timer has stopped.
+</p>
+
+<button
+    class="resume-btn"
+    onclick="resumeGame()">
+
+Resume
+
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ======================================================
+SETTINGS
+====================================================== */
+
+const TARGET = 10;
+
+const GRID_SIZE = 16;
+
+const GAME_TIME = 60;
+
+const BASE_POINTS = 100;
+
+
+/* ======================================================
+STATE
+====================================================== */
+
+let tiles = [];
+
+let selectedIndexes = [];
+
+let score = 0;
+
+let combo = 0;
+
+let bestCombo = 0;
+
+let pairs = 0;
+
+let mistakes = 0;
+
+let timeLeft = GAME_TIME;
+
+let timer = null;
+
+let gameRunning = false;
+
+let paused = false;
+
+let inputLocked = false;
+
+
+/* ======================================================
+NUMBER GENERATION
+
+Generate 1–9.
+
+This intentionally gives us lots of possible combinations:
+
+1+9
+2+8
+3+7
+4+6
+5+5
+====================================================== */
+
+function randomNumber(){
+
+    return Math.floor(
+        Math.random() * 9
+    ) + 1;
+}
+
+
+/* ======================================================
+MAKE SURE THE BOARD ALWAYS HAS
+AT LEAST ONE VALID PAIR
+====================================================== */
+
+function boardHasPair(){
+
+    for(
+        let i = 0;
+        i < tiles.length;
+        i++
+    ){
+
+        for(
+            let j = i + 1;
+            j < tiles.length;
+            j++
+        ){
+
+            if(
+                tiles[i] +
+                tiles[j] ===
+                TARGET
+            ){
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+function ensureValidBoard(){
+
+    if(
+        boardHasPair()
+    ){
+
+        return;
+    }
+
+
+    const firstIndex =
+        Math.floor(
+            Math.random() *
+            tiles.length
+        );
+
+
+    let secondIndex =
+        Math.floor(
+            Math.random() *
+            tiles.length
+        );
+
+
+    while(
+        secondIndex ===
+        firstIndex
+    ){
+
+        secondIndex =
+            Math.floor(
+                Math.random() *
+                tiles.length
+            );
+    }
+
+
+    const firstNumber =
+        randomNumber();
+
+
+    tiles[
+        firstIndex
+    ] =
+        firstNumber;
+
+
+    tiles[
+        secondIndex
+    ] =
+        TARGET -
+        firstNumber;
+}
+
+
+/* ======================================================
+START GAME
+====================================================== */
+
+function startGame(){
+
+    clearInterval(
+        timer
+    );
+
+
+    tiles =
+        Array.from(
+            {
+                length:
+                    GRID_SIZE
+            },
+            () =>
+                randomNumber()
+        );
+
+
+    ensureValidBoard();
+
+
+    selectedIndexes =
+        [];
+
+
+    score = 0;
+
+    combo = 0;
+
+    bestCombo = 0;
+
+    pairs = 0;
+
+    mistakes = 0;
+
+    timeLeft =
+        GAME_TIME;
+
+    gameRunning =
+        true;
+
+    paused =
+        false;
+
+    inputLocked =
+        false;
+
+
+    document
+        .getElementById(
+            "startScreen"
+        )
+        .style.display =
+        "none";
+
+
+    document
+        .getElementById(
+            "resultsScreen"
+        )
+        .style.display =
+        "none";
+
+
+    document
+        .getElementById(
+            "gameScreen"
+        )
+        .style.display =
+        "block";
+
+
+    document
+        .getElementById(
+            "pauseOverlay"
+        )
+        .style.display =
+        "none";
+
+
+    updateHUD();
+
+    renderGrid();
+
+
+    document
+        .getElementById(
+            "feedback"
+        )
+        .textContent =
+        "";
+
+
+    document
+        .getElementById(
+            "selectionText"
+        )
+        .innerHTML =
+        "Select two numbers.";
+
+
+    timer =
+        setInterval(
+            tick,
+            1000
+        );
+}
+
+
+/* ======================================================
+TIMER
+====================================================== */
+
+function tick(){
+
+    if(
+        !gameRunning ||
+        paused
+    ){
+
+        return;
+    }
+
+
+    timeLeft--;
+
+
+    document
+        .getElementById(
+            "timeDisplay"
+        )
+        .textContent =
+        timeLeft;
+
+
+    if(
+        timeLeft <= 0
+    ){
+
+        finishGame();
+    }
+}
+
+
+/* ======================================================
+GRID
+====================================================== */
+
+function renderGrid(){
+
+    const grid =
+        document
+        .getElementById(
+            "gameGrid"
+        );
+
+
+    grid.innerHTML =
+        "";
+
+
+    tiles.forEach(
+        (
+            number,
+            index
+        ) => {
+
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.className =
+                "tile";
+
+
+            button.textContent =
+                number;
+
+
+            button.dataset.index =
+                index;
+
+
+            if(
+                selectedIndexes.includes(
+                    index
+                )
+            ){
+
+                button.classList.add(
+                    "selected"
+                );
+            }
+
+
+            button.onclick =
+                () =>
+                    selectTile(
+                        index
+                    );
+
+
+            grid.appendChild(
+                button
+            );
+        }
+    );
+}
+
+
+/* ======================================================
+SELECT TILE
+====================================================== */
+
+function selectTile(index){
+
+    if(
+        !gameRunning ||
+        paused ||
+        inputLocked
+    ){
+
+        return;
+    }
+
+
+    /*
+    Tap selected tile again to deselect it.
+    */
+
+    if(
+        selectedIndexes.includes(
+            index
+        )
+    ){
+
+        selectedIndexes =
+            selectedIndexes.filter(
+                selected =>
+                    selected !==
+                    index
+            );
+
+
+        updateSelectionText();
+
+        renderGrid();
+
+        return;
+    }
+
+
+    selectedIndexes.push(
+        index
+    );
+
+
+    renderGrid();
+
+    updateSelectionText();
+
+
+    if(
+        selectedIndexes.length === 2
+    ){
+
+        checkPair();
+    }
+}
+
+
+/* ======================================================
+SELECTION TEXT
+====================================================== */
+
+function updateSelectionText(){
+
+    const element =
+        document
+        .getElementById(
+            "selectionText"
+        );
+
+
+    if(
+        selectedIndexes.length === 0
+    ){
+
+        element.innerHTML =
+            "Select two numbers.";
+
+        return;
+    }
+
+
+    if(
+        selectedIndexes.length === 1
+    ){
+
+        const number =
+            tiles[
+                selectedIndexes[0]
+            ];
+
+
+        element.innerHTML =
+            `<strong>${number}</strong> + ? = ${TARGET}`;
+    }
+}
+
+
+/* ======================================================
+CHECK PAIR
+====================================================== */
+
+function checkPair(){
+
+    inputLocked =
+        true;
+
+
+    const first =
+        selectedIndexes[0];
+
+
+    const second =
+        selectedIndexes[1];
+
+
+    const firstValue =
+        tiles[first];
+
+
+    const secondValue =
+        tiles[second];
+
+
+    const total =
+        firstValue +
+        secondValue;
+
+
+    if(
+        total ===
+        TARGET
+    ){
+
+        handleCorrect(
+            first,
+            second
+        );
+
+    }else{
+
+        handleWrong(
+            first,
+            second,
+            total
+        );
+    }
+}
+
+
+/* ======================================================
+CORRECT
+====================================================== */
+
+function handleCorrect(
+    first,
+    second
+){
+
+    combo++;
+
+    pairs++;
+
+
+    bestCombo =
+        Math.max(
+            bestCombo,
+            combo
+        );
+
+
+    const points =
+        BASE_POINTS *
+        combo;
+
+
+    score +=
+        points;
+
+
+    updateHUD();
+
+
+    document
+        .getElementById(
+            "feedback"
+        )
+        .textContent =
+        `+${points}`;
+
+
+    document
+        .getElementById(
+            "feedback"
+        )
+        .className =
+        "feedback correct";
+
+
+    document
+        .getElementById(
+            "selectionText"
+        )
+        .innerHTML =
+        `${tiles[first]} + ${tiles[second]} = <strong>${TARGET}</strong>`;
+
+
+    const buttons =
+        document
+        .querySelectorAll(
+            ".tile"
+        );
+
+
+    buttons[first]
+        .classList.add(
+            "correct-pop"
+        );
+
+
+    buttons[second]
+        .classList.add(
+            "correct-pop"
+        );
+
+
+    setTimeout(
+        () => {
+
+
+            /*
+            Replace cleared tiles with fresh numbers.
+            */
+
+            tiles[first] =
+                randomNumber();
+
+
+            tiles[second] =
+                randomNumber();
+
+
+            ensureValidBoard();
+
+
+            selectedIndexes =
+                [];
+
+
+            inputLocked =
+                false;
+
+
+            renderGrid();
+
+            updateHUD();
+
+
+            document
+                .getElementById(
+                    "selectionText"
+                )
+                .innerHTML =
+                "Select two numbers.";
+
+
+        },
+        330
+    );
+}
+
+
+/* ======================================================
+WRONG
+====================================================== */
+
+function handleWrong(
+    first,
+    second,
+    total
+){
+
+    mistakes++;
+
+    combo =
+        0;
+
+
+    updateHUD();
+
+
+    document
+        .getElementById(
+            "feedback"
+        )
+        .textContent =
+        `${total} — not 10`;
+
+
+    document
+        .getElementById(
+            "feedback"
+        )
+        .className =
+        "feedback wrong";
+
+
+    const buttons =
+        document
+        .querySelectorAll(
+            ".tile"
+        );
+
+
+    buttons[first]
+        .classList.add(
+            "wrong-shake"
+        );
+
+
+    buttons[second]
+        .classList.add(
+            "wrong-shake"
+        );
+
+
+    setTimeout(
+        () => {
+
+
+            selectedIndexes =
+                [];
+
+
+            inputLocked =
+                false;
+
+
+            renderGrid();
+
+
+            document
+                .getElementById(
+                    "selectionText"
+                )
+                .innerHTML =
+                "Select two numbers.";
+
+
+        },
+        330
+    );
+}
+
+
+/* ======================================================
+HUD
+====================================================== */
+
+function updateHUD(){
+
+    document
+        .getElementById(
+            "scoreDisplay"
+        )
+        .textContent =
+        score;
+
+
+    document
+        .getElementById(
+            "timeDisplay"
+        )
+        .textContent =
+        timeLeft;
+
+
+    const comboElement =
+        document
+        .getElementById(
+            "comboDisplay"
+        );
+
+
+    if(
+        combo >= 2
+    ){
+
+        comboElement.textContent =
+            `🔥 COMBO ×${combo}`;
+
+    }else{
+
+        comboElement.textContent =
+            "";
+    }
+}
+
+
+/* ======================================================
+PAUSE
+====================================================== */
+
+function pauseGame(){
+
+    if(
+        !gameRunning
+    ){
+
+        return;
+    }
+
+
+    paused =
+        true;
+
+
+    document
+        .getElementById(
+            "pauseOverlay"
+        )
+        .style.display =
+        "flex";
+}
+
+
+function resumeGame(){
+
+    paused =
+        false;
+
+
+    document
+        .getElementById(
+            "pauseOverlay"
+        )
+        .style.display =
+        "none";
+}
+
+
+/* ======================================================
+FINISH GAME
+====================================================== */
+
+function finishGame(){
+
+    gameRunning =
+        false;
+
+
+    clearInterval(
+        timer
+    );
+
+
+    document
+        .getElementById(
+            "gameScreen"
+        )
+        .style.display =
+        "none";
+
+
+    document
+        .getElementById(
+            "pauseOverlay"
+        )
+        .style.display =
+        "none";
+
+
+    const results =
+        document
+        .getElementById(
+            "resultsScreen"
+        );
+
+
+    results.style.display =
+        "flex";
+
+
+    document
+        .getElementById(
+            "finalScore"
+        )
+        .textContent =
+        score;
+
+
+    document
+        .getElementById(
+            "pairsResult"
+        )
+        .textContent =
+        pairs;
+
+
+    document
+        .getElementById(
+            "bestComboResult"
+        )
+        .textContent =
+        bestCombo;
+
+
+    document
+        .getElementById(
+            "mistakesResult"
+        )
+        .textContent =
+        mistakes;
+}
+
+
+/* ======================================================
+PAUSE WHEN APP/TAB IS LEFT
+
+This will matter later on mobile because players
+shouldn't lose time if they switch apps.
+====================================================== */
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if(
+            document.hidden &&
+            gameRunning &&
+            !paused
+        ){
+
+            pauseGame();
+        }
+    }
+);
+
+</script>
+
+</body>
+</html>
