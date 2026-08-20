@@ -1093,7 +1093,7 @@ const data={
     daily:{
         icon:"📅",
         title:"Daily Challenge",
-        copy:"Five puzzles generated for today. Build your streak and come back tomorrow for a fresh challenge.",
+        copy:"Five tougher multi-step puzzles. No target tiles or ×1 shortcuts — earn your streak.",
         button:"PLAY DAILY"
     },
     arcade:{
@@ -1297,7 +1297,9 @@ lockedIndexes=[];
 inputLocked=false;
 newTileIndexes=[];
 selectedOperator=level.operators.includes("+")?"+":level.operators[0];
-tiles=generateBoard();
+tiles=gameMode==="daily"&&level.dailySolutionValues
+    ? buildDailyBoard(level)
+    : generateBoard();
 successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
 document.getElementById("levelTitle").textContent=title;
@@ -1346,16 +1348,186 @@ inputLocked=true;
 modeStats.endlessBest=Math.max(modeStats.endlessBest,modeSolved);saveModeStats();
 showModeComplete("♾️","Endless Complete",`You solved ${modeSolved} puzzle${modeSolved===1?"":"s"}. Best: ${modeStats.endlessBest}`,startEndlessMode);
 }
+
+function dailyChallengeLevel(puzzleIndex,seed){
+
+const ops=unlockedOperators();
+const f=unlockedFeatureSet();
+
+/*
+Daily is deliberately harder than normal free-play generation:
+- Puzzle 1 starts at 3 tiles.
+- Later puzzles use 3–4 tiles.
+- Targets are generated from a multi-step equation.
+- 1 is removed from Daily boards to prevent ×1 / ÷1 shortcuts.
+- The target value itself is removed from the board so a target tile cannot trivialise it.
+*/
+
+const tileCount=puzzleIndex<2?3:4;
+const maxNumber=
+    ops.includes("/")?24:
+    ops.includes("*")?20:18;
+
+let state=(seed+puzzleIndex*9973)>>>0;
+
+function rng(){
+    state=(state*1664525+1013904223)>>>0;
+    return state/4294967296;
+}
+
+function pick(min,max){
+    return Math.floor(rng()*(max-min+1))+min;
+}
+
+function pickOperator(total,next){
+
+    let valid=ops.filter(op=>{
+        if(op==="/"){
+            return next!==0&&next!==1&&total%next===0;
+        }
+        if(op==="*"){
+            return next!==1;
+        }
+        return true;
+    });
+
+    if(!valid.length){
+        valid=["+"];
+    }
+
+    return valid[Math.floor(rng()*valid.length)];
+}
+
+for(let attempt=0;attempt<500;attempt++){
+
+    const values=[];
+    values.push(pick(2,maxNumber));
+
+    let total=values[0];
+    const chosenOps=[];
+
+    for(let i=1;i<tileCount;i++){
+
+        let next=pick(2,maxNumber);
+        let op=pickOperator(total,next);
+
+        if(op==="/"){
+
+            const divisors=[];
+
+            for(let d=2;d<=maxNumber;d++){
+                if(total%d===0){
+                    divisors.push(d);
+                }
+            }
+
+            if(divisors.length){
+                next=divisors[Math.floor(rng()*divisors.length)];
+            }else{
+                op="+";
+            }
+        }
+
+        values.push(next);
+        chosenOps.push(op);
+
+        if(op==="+")total+=next;
+        else if(op==="-")total-=next;
+        else if(op==="*")total*=next;
+        else if(op==="/")total/=next;
+    }
+
+    if(
+        !Number.isInteger(total) ||
+        total<12 ||
+        total>240 ||
+        values.includes(total)
+    ){
+        continue;
+    }
+
+    const level={
+        target:total,
+        goal:1,
+        moves:99,
+        maxNumber,
+        selectionCount:tileCount,
+        operators:ops,
+        chapter:"Daily Challenge",
+        expressionMode:true,
+        wholeDivision:ops.includes("/"),
+        dailySolutionValues:values,
+        dailySolutionOperators:chosenOps,
+        dailySeed:seed+puzzleIndex
+    };
+
+    if(f.locks&&puzzleIndex>=3){
+        level.lockedCount=1;
+    }
+
+    return level;
+}
+
+/* Safe fallback still requires 3 tiles. */
+return{
+    target:36,
+    goal:1,
+    moves:99,
+    maxNumber:18,
+    selectionCount:3,
+    operators:ops,
+    chapter:"Daily Challenge",
+    expressionMode:true,
+    wholeDivision:ops.includes("/"),
+    dailySolutionValues:[8,4,4],
+    dailySolutionOperators:["+","*"],
+    dailySeed:seed+puzzleIndex
+};
+}
+
+
+function buildDailyBoard(level){
+
+const solution=[...(level.dailySolutionValues||[])];
+
+let state=(Number(level.dailySeed)||1)>>>0;
+
+function rng(){
+    state=(state*1103515245+12345)>>>0;
+    return state/4294967296;
+}
+
+const board=[...solution];
+
+while(board.length<GRID_SIZE){
+
+    let value=2+Math.floor(rng()*Math.max(2,level.maxNumber-1));
+
+    /*
+    No 1s and no tile equal to the target.
+    This blocks the most obvious Daily shortcuts.
+    */
+    if(value===1||value===level.target){
+        continue;
+    }
+
+    board.push(value);
+}
+
+return shuffle(board);
+}
+
+
 function startDailyMode(){
 gameMode="daily";modeSolved=0;modeMistakes=0;dailyPuzzleNumber=0;dailyResults=[];
 const d=dateSeed();dailyDateKey=d.key;
-startModePuzzle(makeModeLevel("daily",0,d.seed),"DAILY");
+startModePuzzle(dailyChallengeLevel(0,d.seed),"DAILY");
 }
 function nextDailyPuzzle(){
 dailyPuzzleNumber++;
 if(dailyPuzzleNumber>=5){finishDaily();return;}
 const d=dateSeed();
-startModePuzzle(makeModeLevel("daily",dailyPuzzleNumber,d.seed+dailyPuzzleNumber*97),"DAILY");
+startModePuzzle(dailyChallengeLevel(dailyPuzzleNumber,d.seed),"DAILY");
 }
 function finishDaily(){
 const already=modeStats.lastDailyDate===dailyDateKey;
