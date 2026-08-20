@@ -379,7 +379,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <div class="equation-line" id="equationLine">Choose a number</div>
 <div class="eq-actions">
 <button class="eq-action eq-undo" onclick="undoEquation()">↩ UNDO</button>
-<button class="eq-action eq-clear" onclick="clearEquation()">✕ CLEAR</button>
+<button class="eq-action eq-clear" onclick="clearExpression()">✕ CLEAR</button>
 </div>
 </div>
 
@@ -1157,6 +1157,71 @@ if(!canStartLevel(index)){
     return;
 }
 
+lifeLostThisFailure=false;
+mistakesThisLevel=0;
+expressionTokens=[];
+expressionTileIndexes=[];
+pendingOperator=null;
+
+currentLevelIndex=index;
+currentLevel=LEVELS[index];
+solutionsDone=0;
+movesLeft=currentLevel.moves;
+selectedIndexes=[];
+inputLocked=false;
+newTileIndexes=[];
+
+selectedOperator=currentLevel.operators.includes("+")
+? "+"
+: currentLevel.operators[0];
+
+tiles=generateBoard();
+
+document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
+document.getElementById("targetDisplay").textContent=currentLevel.target;
+document.getElementById("solutionsGoal").textContent=currentLevel.goal;
+
+if(currentLevel.expressionMode){
+    if(currentLevel.freeForm){
+        document.getElementById("objectiveText").textContent=
+        `Make ${currentLevel.target}. Use as many tiles as you need.`;
+    }else{
+        document.getElementById("objectiveText").textContent=
+        `Make ${currentLevel.target} using exactly ${currentLevel.selectionCount} tiles.`;
+    }
+}else if(currentLevel.selectionCount===3){
+    document.getElementById("objectiveText").textContent=
+    `Use exactly 3 tiles to make ${currentLevel.target}.`;
+}else if(currentLevel.operators.length===1&&currentLevel.operators[0]==="-"){
+    document.getElementById("objectiveText").textContent=
+    `Subtract 2 tiles to make ${currentLevel.target}. Order matters.`;
+}else if(currentLevel.operators.includes("-")){
+    document.getElementById("objectiveText").textContent=
+    `Use + or − with 2 tiles to make ${currentLevel.target}.`;
+}else{
+    document.getElementById("objectiveText").textContent=
+    `Use exactly 2 tiles to make ${currentLevel.target}.`;
+}
+
+updateOperatorControls();
+updateEquationBuilder();
+
+document.getElementById("feedback").textContent="";
+document.getElementById("feedback").className="feedback";
+
+resetSelectionText();
+updateHUD();
+renderGrid();
+showScreen("gameScreen");
+
+if(index===15&&!localStorage.getItem(SUBTRACTION_INTRO_KEY)){
+    document.getElementById("mechanicOverlay").style.display="flex";
+}
+
+if(index===20&&!localStorage.getItem(MULTIPLICATION_INTRO_KEY)){
+    document.getElementById("multiplyMechanicOverlay").style.display="flex";
+}
+}
 
 function randomNumber(){
 return Math.floor(Math.random()*currentLevel.maxNumber)+1;
@@ -1236,36 +1301,6 @@ return currentLevel.selectionCount===3
 : {values:[1,Math.max(1,currentLevel.target-1)],operator:"+"};
 }
 
-if(currentLevel.selectionCount===3){
-    return{
-        values:[1,1,Math.max(1,currentLevel.target-2)],
-        operator:"+"
-    };
-}
-
-if(currentLevel.operators.includes("*")){
-    for(let a=1;a<=currentLevel.maxNumber;a++){
-        if(currentLevel.target%a===0){
-            const b=currentLevel.target/a;
-            if(b>=1&&b<=currentLevel.maxNumber){
-                return{values:[a,b],operator:"*"};
-            }
-        }
-    }
-}
-
-if(currentLevel.operators.includes("-")){
-    return{
-        values:[Math.min(currentLevel.maxNumber,currentLevel.target+1),1],
-        operator:"-"
-    };
-}
-
-return{
-    values:[1,Math.max(1,currentLevel.target-1)],
-    operator:"+"
-};
-}
 
 function randomAllowedOperator(){
 return currentLevel.operators[
