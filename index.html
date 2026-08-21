@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
 <title>Numble</title>
 <style>
 :root{
@@ -1532,6 +1532,51 @@ body.special-tile-skin .tile::after{
     line-height:1.5;
 }
 
+
+/* v0.27 — Release readiness / mobile app viewport */
+html,body{width:100%;min-height:100%;overscroll-behavior:none}
+body.gameplay-active{height:100dvh;overflow:hidden}
+body.gameplay-active .app{
+height:100dvh;min-height:0;max-height:100dvh;overflow:hidden;
+padding:max(8px,env(safe-area-inset-top)) 10px max(8px,env(safe-area-inset-bottom))
+}
+body.gameplay-active #gameScreen.active{
+height:100%;min-height:0;overflow:hidden;display:flex;flex-direction:column
+}
+body.gameplay-active #gameScreen .level-title{margin-top:5px;font-size:10px}
+body.gameplay-active #gameScreen .target-wrap{margin:2px 0 5px}
+body.gameplay-active #gameScreen .target-number{font-size:clamp(44px,8vh,66px)}
+body.gameplay-active #gameScreen .objective{margin-bottom:5px;padding:6px 8px;font-size:clamp(9px,1.7vh,12px);line-height:1.2}
+body.gameplay-active #gameScreen .campaign-hints{margin:3px 0;gap:5px}
+body.gameplay-active #gameScreen .hint-btn{padding:6px;font-size:10px}
+body.gameplay-active #gameScreen .hint-regen{font-size:9px}
+body.gameplay-active #gameScreen .operator-wrap{margin:4px 0 0;gap:5px}
+body.gameplay-active #gameScreen .operator-btn{padding:6px;min-height:34px;font-size:19px}
+body.gameplay-active #gameScreen .grid{
+flex:1 1 auto;min-height:0;max-height:42dvh;
+grid-template-rows:repeat(4,minmax(0,1fr));gap:5px
+}
+body.gameplay-active #gameScreen .tile{aspect-ratio:auto;min-height:0;font-size:clamp(19px,4vh,27px);border-radius:13px}
+body.gameplay-active #gameScreen .selection-text{min-height:20px;margin-top:4px;font-size:11px}
+body.gameplay-active #gameScreen .feedback{min-height:20px;font-size:13px}
+body.gameplay-active #gameScreen .equation-builder{margin:4px 0 0;padding:5px}
+body.gameplay-active #gameScreen .equation-line{min-height:22px;gap:3px;font-size:15px}
+body.gameplay-active #gameScreen .eq-token{min-width:24px;min-height:24px;padding:2px 4px}
+body.gameplay-active #gameScreen .eq-actions{gap:4px;margin-top:4px}
+body.gameplay-active #gameScreen .eq-action{padding:6px;font-size:10px}
+body.gameplay-active #gameScreen .arcade-hud{margin:3px 0 5px;gap:4px}
+body.gameplay-active #gameScreen .arcade-hud-card{padding:5px 4px}
+body.gameplay-active #gameScreen .arcade-hud-value{font-size:17px}
+body.gameplay-active #gameScreen .arcade-hud-card.timer .arcade-hud-value{font-size:21px}
+@media(max-height:700px){
+body.gameplay-active #gameScreen .target-number{font-size:42px}
+body.gameplay-active #gameScreen .objective{font-size:9px;padding:4px 6px}
+body.gameplay-active #gameScreen .grid{max-height:38dvh}
+}
+body:not(.gameplay-active){overflow:auto}
+.release-debug{display:none;margin-top:10px;padding:10px;border:1px dashed var(--border);border-radius:12px;background:var(--soft);text-align:left;font-size:10px;line-height:1.5;color:var(--muted)}
+.release-debug strong{color:var(--text)}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1587,7 +1632,7 @@ body.special-tile-skin .tile::after{
 <button class="secondary-btn" onclick="openCustomise()" style="margin-top:8px">CUSTOMISE</button>
 <div class="dev-tools">
 <button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
-<div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS IGNORED</div>
+<div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS IGNORED</div><div class="release-debug" id="releaseDebugPanel"></div>
 <button class="dev-latest" id="latestTestButton" onclick="startLatestTest()">LATEST TEST → LEVEL 60</button>
 <button class="dev-latest" id="testCosmeticsButton" onclick="toggleTestCosmetics()" style="display:none">🎨 PREVIEW ALL COSMETICS: OFF</button>
 </div>
@@ -1724,7 +1769,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.26</strong><br>
+<strong>Numble v0.27</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2454,61 +2499,36 @@ function settingsToggleContrast(){
 
 function confirmResetProgress(){
 
-    const first =
-        window.confirm(
-            "Reset all Numble campaign progress, stars, lives and mode stats?"
-        );
+const first=window.confirm(
+ "Reset all Numble progress, stars, hints, achievements, cosmetics and mode stats?"
+);
 
-    if(!first){
-        return;
-    }
+if(!first)return;
 
-    const second =
-        window.confirm(
-            "This cannot be undone. Reset everything?"
-        );
+const second=window.confirm(
+ "This cannot be undone. Reset everything?"
+);
 
-    if(!second){
-        return;
-    }
+if(!second)return;
 
-    localStorage.removeItem(
-        SAVE_KEY
-    );
+[
+ SAVE_KEY,
+ ...LEGACY_SAVE_KEYS,
+ MODE_STATS_KEY,
+ TEST_MODE_KEY,
+ ACHIEVEMENT_KEY,
+ PLAYER_PROGRESS_KEY,
+ CUSTOMISE_KEY,
+ TEST_COSMETICS_KEY,
+ HINT_KEY,
+ HINT_AD_KEY,
+ CHAPTER_COLLAPSE_KEY,
+ TUTORIAL_SEEN_KEY,
+ LIFE_SAVE_KEY,
+ AD_HISTORY_KEY
+].forEach(key=>localStorage.removeItem(key));
 
-    localStorage.removeItem(
-        OLD_SAVE_KEY
-    );
-
-    localStorage.removeItem(
-        LIFE_SAVE_KEY
-    );
-
-    localStorage.removeItem(
-        MODE_STATS_KEY
-    );
-
-    localStorage.removeItem(
-        TEST_MODE_KEY
-    );
-
-    localStorage.removeItem(
-        ACHIEVEMENT_KEY
-    );
-
-    localStorage.removeItem(
-        PLAYER_PROGRESS_KEY
-    );
-
-    localStorage.removeItem(
-        CUSTOMISE_KEY
-    );
-
-    localStorage.removeItem(
-        TEST_COSMETICS_KEY
-    );
-
-    location.reload();
+location.reload();
 }
 
 
@@ -2642,8 +2662,9 @@ const LEVELS=[
 ];
 
 const GRID_SIZE=16;
-const SAVE_KEY="makeTenProgressV03";
-const OLD_SAVE_KEY="makeTenProgressV02";
+const SAVE_VERSION=2;
+const SAVE_KEY="numbleProgressV2";
+const LEGACY_SAVE_KEYS=["makeTenProgressV03","makeTenProgressV02"];
 
 let progress=loadProgress();
 let currentLevelIndex=0;
@@ -2690,6 +2711,7 @@ let campaignHintsUsed=0;
 let arcadeTimeBonuses={};
 let arcadeContinueUsed=false;
 let arcadeRunActive=false;
+let arcadePausedByVisibility=false;
 
 const HINT_KEY="numbleCampaignHintsV1";
 const HINT_MAX=2;
@@ -3481,27 +3503,39 @@ if(c)c.style.display=arcadeContinueUsed?"none":"block";
 }
 function simulateArcadeContinueAd(){
 if(gameMode!=="arcade"||arcadeContinueUsed)return;
-arcadeContinueUsed=true;
-arcadeRunActive=true;
-modeTimeLeft=30;
-inputLocked=false;
-document.getElementById("arcadeContinueButton").style.display="none";
-showScreen("gameScreen");updateModeStatus();
-clearModeTimer();
-modeTimer=setInterval(()=>{
-    if(!arcadeRunActive){
-        clearModeTimer();
-        return;
-    }
 
-    modeTimeLeft=Math.max(0,modeTimeLeft-1);
-    updateModeStatus();
+requestRewardedAd(
+ "arcade_continue",
+ ()=>{
+  arcadeContinueUsed=true;
+  arcadeRunActive=true;
+  modeTimeLeft=30;
+  inputLocked=false;
 
-    if(modeTimeLeft===0){
-        finishArcade();
-    }
-},1000);
+  const button=document.getElementById("arcadeContinueButton");
+  if(button)button.style.display="none";
+
+  showScreen("gameScreen");
+  updateModeStatus();
+  clearModeTimer();
+
+  modeTimer=setInterval(()=>{
+   if(!arcadeRunActive){
+    clearModeTimer();
+    return;
+   }
+
+   modeTimeLeft=Math.max(0,modeTimeLeft-1);
+   updateModeStatus();
+
+   if(modeTimeLeft===0){
+    finishArcade();
+   }
+  },1000);
+ }
+);
 }
+
 function startEndlessMode(){
 openTutorialOverlay("endless");
 gameMode="endless";modeSolved=0;modeMistakes=0;modeScore=0;
@@ -4369,18 +4403,36 @@ function spendHint(k){
 function hintAdHistory(){
  try{return JSON.parse(localStorage.getItem(HINT_AD_KEY)||"[]").filter(t=>Date.now()-Number(t)<HINT_AD_WINDOW)}catch(e){return[]}
 }
+function requestRewardedAd(placement,onReward){
+const provider=window.NumbleAdProvider;
+if(provider&&typeof provider.showRewarded==="function"){
+ provider.showRewarded(placement,onReward);
+ return;
+}
+if(testMode){
+ onReward();
+}
+}
+
 function simulateHintRewardedAd(type){
- if(type!=="solve"&&type!=="narrow")return;
- let h=hintAdHistory();
- if(h.length>=HINT_AD_LIMIT)return;
- reconcileHints();
- if(hintState[type]!==0)return;
- hintState[type]=1;
- if(hintState[type]>=HINT_MAX)hintState[type+"Next"]=0;
- h.push(Date.now());
- localStorage.setItem(HINT_AD_KEY,JSON.stringify(h));
- saveHintState();
- updateHintUI();
+if(type!=="solve"&&type!=="narrow")return;
+
+let history=hintAdHistory();
+if(history.length>=HINT_AD_LIMIT)return;
+
+reconcileHints();
+if(hintState[type]!==0)return;
+
+requestRewardedAd(
+ `campaign_hint_${type}`,
+ ()=>{
+  hintState[type]=1;
+  history.push(Date.now());
+  localStorage.setItem(HINT_AD_KEY,JSON.stringify(history));
+  saveHintState();
+  updateHintUI();
+ }
+);
 }
 
 function updateHintUI(){
@@ -4468,29 +4520,39 @@ function useCampaignHint(type){
  }
 }
 
-function defaultProgress(){return{unlocked:1,stars:{}}}
+function defaultProgress(){
+return{saveVersion:SAVE_VERSION,unlocked:1,stars:{}};
+}
+
+function migrateProgress(data){
+if(!data||typeof data!=="object")return defaultProgress();
+return{
+ saveVersion:SAVE_VERSION,
+ unlocked:Math.max(1,Number(data.unlocked||1)),
+ stars:data.stars&&typeof data.stars==="object"?data.stars:{}
+};
+}
 
 function loadProgress(){
 try{
-let raw=localStorage.getItem(SAVE_KEY);
+ let raw=localStorage.getItem(SAVE_KEY);
 
-if(!raw){
-    raw=localStorage.getItem(OLD_SAVE_KEY);
-}
+ if(!raw){
+  for(const key of LEGACY_SAVE_KEYS){
+   raw=localStorage.getItem(key);
+   if(raw)break;
+  }
+ }
 
-const data=raw?JSON.parse(raw):null;
+ const parsed=raw?JSON.parse(raw):null;
+ const migrated=migrateProgress(parsed);
 
-if(!data||typeof data!=="object"){
-    return defaultProgress();
-}
+ localStorage.setItem(SAVE_KEY,JSON.stringify(migrated));
+ return migrated;
 
-return{
-    unlocked:Math.max(1,data.unlocked||1),
-    stars:data.stars||{}
-};
-
-}catch(e){
-    return defaultProgress();
+}catch(error){
+ console.error("Progress migration failed",error);
+ return defaultProgress();
 }
 }
 
@@ -5132,6 +5194,11 @@ if(gameMode==="campaign"){
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
+
+document.body.classList.toggle(
+    "gameplay-active",
+    id==="gameScreen"
+);
 
 document.body.classList.toggle(
     "numble-home-bg",
@@ -6460,6 +6527,8 @@ if(inputLocked){
     return;
 }
 
+inputLocked=true;
+
 const total=evaluateTokens(expressionTokens);
 const used=[...expressionTileIndexes];
 const equation=expressionText();
@@ -6504,7 +6573,6 @@ if(Number.isNaN(total)){
     return;
 }
 
-inputLocked=true;
 if(gameMode==="campaign")movesLeft--;
 
 const locksSatisfied=
@@ -7145,6 +7213,27 @@ updateCustomiseUI();
 applyCustomisation();
 }
 
+function updateReleaseDebugPanel(){
+const panel=document.getElementById("releaseDebugPanel");
+if(!panel)return;
+
+panel.style.display=testMode?"block":"none";
+if(!testMode)return;
+
+reconcileHints();
+
+panel.innerHTML=
+ `<strong>Release Diagnostics</strong><br>
+ Build: v0.27<br>
+ Save version: ${SAVE_VERSION}<br>
+ Campaign unlock: ${progress.unlocked}/${LEVELS.length}<br>
+ Player: Lv ${playerProgress.level} · ${playerProgress.xp} total XP<br>
+ Solve hints: ${hintState.solve}/${HINT_MAX}<br>
+ Narrow hints: ${hintState.narrow}/${HINT_MAX}<br>
+ Arcade continue used: ${arcadeContinueUsed?"yes":"no"}<br>
+ Active screen: ${document.querySelector(".screen.active")?.id||"—"}`;
+}
+
 function updateTestModeUI(){
 const toggle=document.getElementById("devToggleButton");
 const latest=document.getElementById("latestTestButton");
@@ -7159,6 +7248,7 @@ if(latest){
     latest.textContent=`LATEST TEST → LEVEL ${LEVELS.length}`;
 }
 if(banner)banner.style.display=testMode?"block":"none";
+updateReleaseDebugPanel();
 
 if(cosmetics){
     cosmetics.style.display=testMode?"block":"none";
@@ -7196,21 +7286,56 @@ updateTestModeUI();
 document.addEventListener(
     "visibilitychange",
     ()=>{
-        if(!document.hidden){
-                        
+
+        if(document.hidden){
+
             if(
-                document
-                    .getElementById(
-                        "levelScreen"
-                    )
-                    .classList
-                    .contains(
-                        "active"
-                    )
+                gameMode==="arcade" &&
+                arcadeRunActive
             ){
-                renderLevelSelect();
+                arcadePausedByVisibility=true;
+                clearModeTimer();
             }
+
+            return;
         }
+
+        reconcileHints();
+        updateHintUI();
+
+        if(
+            arcadePausedByVisibility &&
+            gameMode==="arcade" &&
+            arcadeRunActive &&
+            modeTimeLeft>0
+        ){
+            arcadePausedByVisibility=false;
+
+            modeTimer=setInterval(()=>{
+
+                if(!arcadeRunActive){
+                    clearModeTimer();
+                    return;
+                }
+
+                modeTimeLeft=Math.max(0,modeTimeLeft-1);
+                updateModeStatus();
+
+                if(modeTimeLeft===0){
+                    finishArcade();
+                }
+
+            },1000);
+        }
+
+        if(
+            document.getElementById("levelScreen")
+            .classList.contains("active")
+        ){
+            renderLevelSelect();
+        }
+
+        updateReleaseDebugPanel();
     }
 );
 
@@ -7312,7 +7437,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.26</div>
+<div class="build-marker">NUMBLE BUILD v0.27</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
