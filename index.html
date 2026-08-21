@@ -1744,6 +1744,104 @@ body.gameplay-active #gameScreen #modeStatus{
     body.gameplay-active #gameScreen .operator-btn{min-height:30px}
 }
 
+
+/* v0.27.4 — Gameplay branding / spacing pass */
+
+/*
+The full Numble logo belongs to navigation/title screens.
+Hide the global brand while a puzzle is active so gameplay
+gets the vertical space instead of decorative branding.
+*/
+body.gameplay-active .numble-brand{
+    display:none;
+}
+
+/*
+Use the recovered space selectively:
+- a little more separation around the target/instruction
+- a larger, calmer tile board
+- slightly more comfortable controls/equation area
+No artificial spacer is added.
+*/
+body.gameplay-active #gameScreen .game-top{
+    margin-bottom:7px;
+}
+
+body.gameplay-active #gameScreen .target-wrap{
+    margin:5px 0 6px;
+}
+
+body.gameplay-active #gameScreen .target-number{
+    font-size:clamp(52px,9vh,72px);
+}
+
+body.gameplay-active #gameScreen .objective{
+    margin-bottom:7px;
+    padding:3px 7px;
+    font-size:clamp(10px,1.8vh,12px);
+}
+
+body.gameplay-active #gameScreen .campaign-hints{
+    margin:5px 0 7px;
+}
+
+body.gameplay-active #gameScreen .hint-btn{
+    padding:7px 10px;
+}
+
+body.gameplay-active #gameScreen .operator-wrap{
+    margin:5px 0 7px;
+    gap:7px;
+}
+
+body.gameplay-active #gameScreen .operator-btn{
+    min-height:36px;
+    padding:7px;
+    font-size:20px;
+}
+
+body.gameplay-active #gameScreen .grid{
+    max-height:50dvh;
+    gap:7px;
+}
+
+body.gameplay-active #gameScreen .tile{
+    font-size:clamp(21px,4.3vh,29px);
+    border-radius:15px;
+}
+
+body.gameplay-active #gameScreen .selection-text{
+    margin-top:6px;
+    min-height:20px;
+}
+
+body.gameplay-active #gameScreen .equation-builder{
+    margin-top:5px;
+    padding:7px;
+}
+
+body.gameplay-active #gameScreen .equation-line{
+    min-height:26px;
+    font-size:16px;
+}
+
+body.gameplay-active #gameScreen .feedback{
+    margin-top:4px;
+    min-height:20px;
+}
+
+@media(max-height:700px){
+    body.gameplay-active #gameScreen .game-top{margin-bottom:4px}
+    body.gameplay-active #gameScreen .target-wrap{margin:2px 0 3px}
+    body.gameplay-active #gameScreen .target-number{font-size:44px}
+    body.gameplay-active #gameScreen .objective{margin-bottom:4px}
+    body.gameplay-active #gameScreen .campaign-hints{margin:3px 0 4px}
+    body.gameplay-active #gameScreen .operator-wrap{margin:3px 0 4px}
+    body.gameplay-active #gameScreen .operator-btn{min-height:31px;padding:5px}
+    body.gameplay-active #gameScreen .grid{max-height:45dvh;gap:5px}
+    body.gameplay-active #gameScreen .equation-builder{padding:5px}
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1936,7 +2034,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.27.3</strong><br>
+<strong>Numble v0.27.4</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -7700,7 +7798,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.27.3</div>
+<div class="build-marker">NUMBLE BUILD v0.27.4</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
