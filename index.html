@@ -1596,7 +1596,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.23.5</strong><br>
+<strong>Numble v0.23.6</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -5600,33 +5600,104 @@ if(!tokens.length){
     return null;
 }
 
-let total=Number(tokens[0]);
+if(tokens.length%2===0){
+    return NaN;
+}
 
-for(let i=1;i<tokens.length;i+=2){
+/*
+Standard order of operations:
+1. Multiplication and division, left-to-right
+2. Addition and subtraction, left-to-right
 
-    const operator=tokens[i];
-    const value=Number(tokens[i+1]);
+Earlier builds evaluated every operator strictly from left-to-right,
+which incorrectly rejected equations such as:
+8 ÷ 2 + 10 × 3 = 34
+*/
 
-    if(operator==="+"){
-        total+=value;
+const values=[];
+const operators=[];
 
-    }else if(operator==="-"){
-        total-=value;
+for(let i=0;i<tokens.length;i++){
 
-    }else if(operator==="*"){
-        total*=value;
+    if(i%2===0){
+        const value=Number(tokens[i]);
 
-    }else if(operator==="/"){
-
-        if(
-            value===0 ||
-            !Number.isFinite(total) ||
-            total%value!==0
-        ){
+        if(!Number.isFinite(value)){
             return NaN;
         }
 
-        total/=value;
+        values.push(value);
+
+    }else{
+        operators.push(tokens[i]);
+    }
+}
+
+/*
+Collapse multiplication/division first.
+Division remains whole-number-only where Numble requires it.
+*/
+const reducedValues=[values[0]];
+const reducedOps=[];
+
+for(let i=0;i<operators.length;i++){
+
+    const operator=operators[i];
+    const value=values[i+1];
+
+    if(operator==="*"||operator==="/"){
+
+        let left=
+            reducedValues[
+                reducedValues.length-1
+            ];
+
+        if(operator==="*"){
+            left*=value;
+        }else{
+
+            if(
+                value===0 ||
+                !Number.isFinite(left) ||
+                (
+                    currentLevel &&
+                    currentLevel.wholeDivision &&
+                    left%value!==0
+                )
+            ){
+                return NaN;
+            }
+
+            left/=value;
+        }
+
+        reducedValues[
+            reducedValues.length-1
+        ]=left;
+
+    }else{
+
+        reducedOps.push(operator);
+        reducedValues.push(value);
+    }
+}
+
+/*
+Then resolve addition/subtraction.
+*/
+let total=reducedValues[0];
+
+for(let i=0;i<reducedOps.length;i++){
+
+    const operator=reducedOps[i];
+    const value=reducedValues[i+1];
+
+    if(operator==="+"){
+        total+=value;
+    }else if(operator==="-"){
+        total-=value;
+    }else{
+        return NaN;
     }
 }
 
@@ -6461,6 +6532,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.23.5</div>
+<div class="build-marker">NUMBLE BUILD v0.23.6</div>
 </body>
 </html>
