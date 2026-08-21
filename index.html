@@ -1596,7 +1596,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.24</strong><br>
+<strong>Numble v0.24.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4312,6 +4312,19 @@ return findValidSolutionForLevel(
 );
 }
 
+
+function handleHintButton(type){
+
+reconcileHints();
+
+if(hintState[type]>0){
+    useCampaignHint(type);
+    return;
+}
+
+simulateHintRewardedAd(type);
+}
+
 function useCampaignHint(type){
  if(gameMode!=="campaign"||!spendHint(type))return;
  const sol=findHintSolution();
@@ -6824,6 +6837,6 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.24</div>
+<div class="build-marker">NUMBLE BUILD v0.24.1</div>
 </body>
 </html>
