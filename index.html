@@ -1596,7 +1596,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.23.6</strong><br>
+<strong>Numble v0.24</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1750,6 +1750,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 <div class="target-wrap"><div class="target-label">Make</div><div class="target-number" id="targetDisplay">10</div></div>
 <div class="objective" id="objectiveText"></div>
+<div id="puzzleInspector" style="display:none;margin:8px 0;padding:10px;border:1px dashed var(--border);border-radius:10px;font-size:10px;color:var(--muted);font-weight:800"></div>
 <div class="campaign-hints" id="campaignHints" style="display:none">
 <button class="hint-btn" id="narrowHintButton" onclick="handleHintButton('narrow')">🎯 NARROW <span id="narrowHintCount">2/2</span></button>
 <button class="hint-btn" id="solveHintButton" onclick="handleHintButton('solve')">💡 SOLVE <span id="solveHintCount">2/2</span></button>
@@ -2913,6 +2914,279 @@ if(solutionsBox){
 }
 
 
+
+function evaluateTokensWithRules(tokens,wholeDivision=false){
+
+if(!tokens.length||tokens.length%2===0)return NaN;
+
+const values=[];
+const ops=[];
+
+for(let i=0;i<tokens.length;i++){
+    if(i%2===0){
+        const n=Number(tokens[i]);
+        if(!Number.isFinite(n))return NaN;
+        values.push(n);
+    }else{
+        ops.push(tokens[i]);
+    }
+}
+
+const reduced=[values[0]];
+const reducedOps=[];
+
+for(let i=0;i<ops.length;i++){
+    const op=ops[i];
+    const v=values[i+1];
+
+    if(op==="*"||op==="/"){
+        let left=reduced[reduced.length-1];
+
+        if(op==="*"){
+            left*=v;
+        }else{
+            if(v===0)return NaN;
+            if(wholeDivision&&left%v!==0)return NaN;
+            left/=v;
+        }
+
+        reduced[reduced.length-1]=left;
+    }else{
+        reducedOps.push(op);
+        reduced.push(v);
+    }
+}
+
+let total=reduced[0];
+
+for(let i=0;i<reducedOps.length;i++){
+    total=reducedOps[i]==="+"
+        ? total+reduced[i+1]
+        : total-reduced[i+1];
+}
+
+return total;
+}
+
+function findValidSolutionForLevel(level,board,requiredIndexes=[]){
+
+const maxTiles=
+    level.freeForm
+    ? Math.min(level.maxTiles||5,5)
+    : (level.maxTiles||level.selectionCount||2);
+
+const minTiles=
+    level.freeForm
+    ? 2
+    : (level.selectionCount||2);
+
+const indexes=[...board.keys()];
+
+function combinations(arr,k,start=0,pick=[],out=[]){
+    if(pick.length===k){
+        out.push([...pick]);
+        return out;
+    }
+    for(let i=start;i<arr.length;i++){
+        pick.push(arr[i]);
+        combinations(arr,k,i+1,pick,out);
+        pick.pop();
+    }
+    return out;
+}
+
+function permutations(arr){
+    if(arr.length<=1)return [arr];
+    const out=[];
+    arr.forEach((v,i)=>{
+        permutations(arr.slice(0,i).concat(arr.slice(i+1)))
+        .forEach(rest=>out.push([v,...rest]));
+    });
+    return out;
+}
+
+function opCombos(length,ops,prefix=[],out=[]){
+    if(prefix.length===length){
+        out.push([...prefix]);
+        return out;
+    }
+    ops.forEach(op=>{
+        prefix.push(op);
+        opCombos(length,ops,prefix,out);
+        prefix.pop();
+    });
+    return out;
+}
+
+for(let count=minTiles;count<=maxTiles;count++){
+
+    const combos=combinations(indexes,count);
+
+    for(const chosen of combos){
+
+        if(
+            requiredIndexes.length &&
+            !requiredIndexes.every(i=>chosen.includes(i))
+        ){
+            continue;
+        }
+
+        if(
+            level.lockedCount &&
+            lockedIndexes.length &&
+            !lockedIndexes.every(i=>chosen.includes(i))
+        ){
+            continue;
+        }
+
+        for(const order of permutations(chosen)){
+
+            const values=order.map(i=>board[i]);
+            const operatorCombos=opCombos(count-1,level.operators||["+"]);
+
+            for(const ops of operatorCombos){
+
+                const tokens=[values[0]];
+
+                for(let i=0;i<ops.length;i++){
+                    tokens.push(ops[i],values[i+1]);
+                }
+
+                const total=
+                    evaluateTokensWithRules(
+                        tokens,
+                        !!level.wholeDivision
+                    );
+
+                if(total===level.target){
+                    return{
+                        indexes:order,
+                        tokens,
+                        text:tokens.map(t=>
+                            t==="*"?"×":
+                            t==="/"?"÷":
+                            t==="-"?"−":t
+                        ).join(" ")+" = "+level.target
+                    };
+                }
+            }
+        }
+    }
+}
+
+return null;
+}
+
+function validateCurrentPuzzle(){
+
+const requiredBombIndexes=
+    gameMode==="arcade"
+    ? Object.keys(arcadeTimeBonuses||{})
+      .map(Number)
+      .filter(i=>arcadeTimeBonuses[i]>0)
+    : [];
+
+const anySolution=
+    findValidSolutionForLevel(
+        currentLevel,
+        tiles,
+        []
+    );
+
+return{
+    any:anySolution,
+    bonusSolutions:
+        requiredBombIndexes.map(i=>({
+            index:i,
+            solution:findValidSolutionForLevel(
+                currentLevel,
+                tiles,
+                [i]
+            )
+        }))
+};
+}
+
+function refreshPuzzleInspector(){
+
+const el=
+    document.getElementById(
+        "puzzleInspector"
+    );
+
+if(!el)return;
+
+if(!testMode){
+    el.style.display="none";
+    return;
+}
+
+const validation=validateCurrentPuzzle();
+
+el.style.display="block";
+
+const parts=[
+    validation.any
+        ? `✅ Valid: ${validation.any.text}`
+        : "❌ NO VALID SOLUTION FOUND"
+];
+
+if(
+    gameMode==="arcade" &&
+    validation.bonusSolutions.length
+){
+    validation.bonusSolutions.forEach(item=>{
+        const bonus=arcadeTimeBonuses[item.index];
+        parts.push(
+            item.solution
+            ? `⏱ +${bonus}s tile valid: ${item.solution.text}`
+            : `⚠️ +${bonus}s tile has no valid solution`
+        );
+    });
+}
+
+el.innerHTML=parts.join("<br>");
+}
+
+function ensureValidPuzzle(){
+
+let validation=validateCurrentPuzzle();
+
+if(!validation.any){
+    tiles=
+        currentLevel.guaranteedModeBoard &&
+        currentLevel.modeSolutionValues
+        ? buildGuaranteedModeBoard(currentLevel)
+        : generateBoard();
+
+    renderGrid();
+    validation=validateCurrentPuzzle();
+}
+
+if(gameMode==="arcade"){
+
+    Object.keys(arcadeTimeBonuses||{})
+    .map(Number)
+    .forEach(index=>{
+
+        const result=
+            findValidSolutionForLevel(
+                currentLevel,
+                tiles,
+                [index]
+            );
+
+        if(!result){
+            delete arcadeTimeBonuses[index];
+        }
+    });
+}
+
+refreshPuzzleInspector();
+
+return !!validation.any;
+}
+
 function startModePuzzle(level,title){
 
 if(
@@ -2971,7 +3245,14 @@ if(gameMode==="arcade"){
    arcadeTimeBonuses[i]=10;
  }
 }
-renderGrid();resetSelectionText();updateEquationBuilder();updateOperatorControls();showScreen("gameScreen");updateModeStatus();
+ensureValidPuzzle();
+renderGrid();
+resetSelectionText();
+updateEquationBuilder();
+updateOperatorControls();
+showScreen("gameScreen");
+updateModeStatus();
+refreshPuzzleInspector();
 }
 function updateModeStatus(){
 
@@ -4023,41 +4304,12 @@ function findSimpleHintSolution(){
  return null;
 }
 function findHintSolution(){
- const simple=findSimpleHintSolution();if(simple)return simple;
- // fallback uses the board's own guaranteed-solution machinery by searching combinations up to 5
- const ops=currentLevel.operators||["+"];
- const max=Math.min(currentLevel.maxTiles||currentLevel.selectionCount||5,5);
- const idx=[...tiles.keys()];
- function rec(chosen){
-  if(chosen.length>=2){
-   const vals=chosen.map(i=>tiles[i]);
-   const perm=(a)=>{
-    if(a.length===1)return [{v:a[0],s:String(a[0])}];
-    const out=[];
-    for(let cut=1;cut<a.length;cut++){
-     for(const L of perm(a.slice(0,cut)))for(const R of perm(a.slice(cut)))for(const op of ops){
-      if(op==="/"&&R.v===0)continue;
-      let v=op==="+"?L.v+R.v:op==="-"?L.v-R.v:op==="*"?L.v*R.v:L.v/R.v;
-      if(currentLevel.wholeDivision&&op==="/"&&!Number.isInteger(v))continue;
-      out.push({v,s:`${L.s} ${op==="*"?"×":op==="-"?"−":op==="/"?"÷":op} ${R.s}`});
-     }
-    } return out.slice(0,3000);
-   };
-   for(const r of perm(vals))if(r.v===currentLevel.target)return{indexes:[...chosen],text:`${r.s} = ${currentLevel.target}`};
-  }
-  if(chosen.length===max)return null;
-  for(let i=(chosen.at(-1)??-1)+1;i<idx.length;i++){const r=rec([...chosen,i]);if(r)return r}
-  return null;
- }
- return rec([]);
-}
-function handleHintButton(type){
-reconcileHints();
-if(hintState[type]>0){
-    useCampaignHint(type);
-    return;
-}
-simulateHintRewardedAd(type);
+
+return findValidSolutionForLevel(
+    currentLevel,
+    tiles,
+    []
+);
 }
 
 function useCampaignHint(type){
@@ -5958,6 +6210,7 @@ renderGrid();
 updateEquationBuilder();
 updateOperatorControls();
 resetSelectionText();
+refreshPuzzleInspector();
 
 document.getElementById("feedback").textContent="";
 
@@ -6083,6 +6336,7 @@ selectedIndexes=[];
 inputLocked=false;
 renderGrid();
 resetSelectionText();
+refreshPuzzleInspector();
 
 if(movesLeft<=0&&solutionsDone<currentLevel.goal)failLevel();
 }
@@ -6522,6 +6776,44 @@ applyAppearanceMode();
 updatePlayerProgressUI();
 
 applyCustomisation();
+
+function runNumbleRegressionChecks(){
+
+const tests=[
+    {tokens:[8,"/",2,"+",10,"*",3],expected:34},
+    {tokens:[2,"-",10],expected:-8},
+    {tokens:[16,"+",4,"*",2],expected:24},
+    {tokens:[18,"*",2],expected:36},
+    {tokens:[3,"*",10,"+",12,"+",-6],expected:36}
+];
+
+return tests.map(test=>({
+    expression:test.tokens.join(" "),
+    expected:test.expected,
+    actual:evaluateTokensWithRules(
+        test.tokens,
+        false
+    ),
+    pass:
+        evaluateTokensWithRules(
+            test.tokens,
+            false
+        )===test.expected
+}));
+}
+
+if(testMode){
+    const failures=
+        runNumbleRegressionChecks()
+        .filter(t=>!t.pass);
+
+    if(failures.length){
+        console.error(
+            "Numble regression failures",
+            failures
+        );
+    }
+}
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -6532,6 +6824,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.23.6</div>
+<div class="build-marker">NUMBLE BUILD v0.24</div>
 </body>
 </html>
