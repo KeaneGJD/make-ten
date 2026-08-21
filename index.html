@@ -1577,6 +1577,173 @@ body:not(.gameplay-active){overflow:auto}
 .release-debug{display:none;margin-top:10px;padding:10px;border:1px dashed var(--border);border-radius:12px;background:var(--soft);text-align:left;font-size:10px;line-height:1.5;color:var(--muted)}
 .release-debug strong{color:var(--text)}
 
+
+/* v0.27.1 — Gameplay UI Reorganisation */
+body.gameplay-active #gameScreen .game-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:4px;
+}
+
+body.gameplay-active #gameScreen .game-top .stat-box{
+    display:none;
+}
+
+body.gameplay-active #gameScreen .level-title{
+    flex:1;
+    order:-1;
+    margin:0;
+    text-align:left;
+    font-size:11px;
+    color:var(--text);
+    letter-spacing:.5px;
+}
+
+.compact-run-stat{
+    flex:0 0 auto;
+    padding:6px 9px;
+    border-radius:999px;
+    background:var(--soft);
+    font-size:10px;
+    font-weight:1000;
+    white-space:nowrap;
+}
+
+.game-actions{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex:0 0 auto;
+}
+
+body.gameplay-active #gameScreen .target-wrap{
+    margin:2px 0 4px;
+}
+
+body.gameplay-active #gameScreen .target-label{
+    display:none;
+}
+
+body.gameplay-active #gameScreen .target-number{
+    font-size:clamp(48px,8vh,66px);
+}
+
+body.gameplay-active #gameScreen .objective{
+    background:transparent;
+    box-shadow:none;
+    padding:2px 6px;
+    margin-bottom:4px;
+    font-size:10px;
+    color:var(--text);
+}
+
+body.gameplay-active #gameScreen .objective .instruction-emphasis{
+    padding:2px 5px;
+}
+
+body.gameplay-active #gameScreen .campaign-hints{
+    display:flex!important;
+    justify-content:center;
+    gap:7px;
+    margin:3px 0 5px;
+}
+
+body.gameplay-active #gameScreen .campaign-hints[style*="display: none"]{
+    display:none!important;
+}
+
+body.gameplay-active #gameScreen .hint-btn{
+    width:auto;
+    min-width:92px;
+    border-radius:999px;
+    padding:6px 9px;
+    font-size:10px;
+}
+
+body.gameplay-active #gameScreen .hint-regen{
+    display:none;
+}
+
+body.gameplay-active #gameScreen .operator-wrap{
+    order:0;
+    margin:4px 0 5px;
+}
+
+body.gameplay-active #gameScreen .operator-btn{
+    border-radius:11px;
+    padding:5px;
+    min-height:32px;
+    font-size:18px;
+}
+
+body.gameplay-active #gameScreen .grid{
+    order:1;
+    flex:1 1 auto;
+    min-height:0;
+    max-height:46dvh;
+}
+
+body.gameplay-active #gameScreen .selection-text{
+    order:2;
+    margin-top:4px;
+    min-height:18px;
+    font-size:11px;
+}
+
+body.gameplay-active #gameScreen .equation-builder{
+    order:3;
+    margin-top:3px;
+    border-radius:12px;
+}
+
+body.gameplay-active #gameScreen .feedback{
+    order:4;
+    min-height:18px;
+    font-size:12px;
+    margin-top:2px;
+}
+
+body.gameplay-active #gameScreen .arcade-hud{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin:3px 0 5px;
+}
+
+body.gameplay-active #gameScreen .arcade-hud-card{
+    flex:1 1 0;
+    min-width:0;
+    border-radius:12px;
+    padding:5px 7px;
+    box-shadow:none;
+}
+
+body.gameplay-active #gameScreen .arcade-hud-card.timer{
+    transform:none;
+}
+
+body.gameplay-active #gameScreen .arcade-hud-card.timer .arcade-hud-value,
+body.gameplay-active #gameScreen .arcade-hud-value{
+    font-size:18px;
+}
+
+body.gameplay-active #gameScreen .arcade-hud-label{
+    font-size:8px;
+    margin-bottom:1px;
+}
+
+body.gameplay-active #gameScreen #modeStatus{
+    display:none!important;
+}
+
+@media(max-height:700px){
+    body.gameplay-active #gameScreen .target-number{font-size:40px}
+    body.gameplay-active #gameScreen .grid{max-height:44dvh}
+    body.gameplay-active #gameScreen .hint-btn{padding:5px 8px}
+    body.gameplay-active #gameScreen .operator-btn{min-height:30px}
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1769,7 +1936,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.27</strong><br>
+<strong>Numble v0.27.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1901,14 +2068,13 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 
 <section class="screen" id="gameScreen">
 <div class="game-top">
-<div class="stat-box" id="solutionsStatBox"><div class="stat-label">SOLUTIONS</div><div class="stat-value"><span id="solutionsDone">0</span>/<span id="solutionsGoal">0</span></div></div>
-<div style="display:flex;gap:7px;align-items:center">
+<div class="level-title" id="levelTitle">LEVEL 1</div>
+<div class="compact-run-stat" id="compactRunStat">0/0</div>
+<div class="game-actions">
 <button class="help-btn" onclick="openContextHelp()">?</button>
 <button class="game-menu-btn" onclick="exitModeOrLevel()">✕</button>
 </div>
-<div class="stat-box right" id="movesStatBox"><div class="stat-label">MOVES</div><div class="stat-value" id="movesDisplay">0</div></div>
 </div>
-<div class="level-title" id="levelTitle">LEVEL 1</div>
 <div class="unlock-strip" id="modeStatus" style="display:none"></div>
 <div class="arcade-hud" id="arcadeHud">
 <div class="arcade-hud-card timer" id="arcadeTimerCard">
@@ -3382,12 +3548,12 @@ document.getElementById("targetDisplay").textContent=level.target;
 document.getElementById("solutionsGoal").textContent=1;
 setObjectiveHTML(
     gameMode==="daily"
-    ? `Daily Challenge: Make ${level.target} using ${instructionEmphasis(`EXACTLY ${level.selectionCount} TILES`)}.`
+    ? `DAILY · ${instructionEmphasis(`USE EXACTLY ${level.selectionCount} TILES`)}`
     : level.freeForm
-      ? `Make ${level.target}. ${instructionEmphasis("USE AS MANY TILES AS YOU NEED")}.`
+      ? `${instructionEmphasis("FREE-FORM EQUATION")}`
       : level.maxTiles
-        ? `Make ${level.target} using ${instructionEmphasis(`UP TO ${level.maxTiles} TILES`)}.`
-        : `Make ${level.target} using ${instructionEmphasis(`EXACTLY ${level.selectionCount} TILES`)}.`
+        ? `${instructionEmphasis(`USE UP TO ${level.maxTiles} TILES`)}`
+        : `${instructionEmphasis(`USE EXACTLY ${level.selectionCount} TILES`)}`
 );
 document.getElementById("solutionsDone").textContent=0;
 document.getElementById("movesDisplay").textContent=gameMode==="arcade"?"∞":gameMode==="endless"?"❤":gameMode==="daily"?"5":"";
@@ -3410,10 +3576,14 @@ resetSelectionText();
 updateEquationBuilder();
 updateOperatorControls();
 showScreen("gameScreen");
+updateCompactRunStat();
 updateModeStatus();
+updateCompactRunStat();
 refreshPuzzleInspector();
 }
 function updateModeStatus(){
+
+updateCompactRunStat();
 
 const el=document.getElementById("modeStatus");
 const arcadeHud=document.getElementById("arcadeHud");
@@ -5384,11 +5554,11 @@ if(currentLevel.expressionMode){
     let objectiveText="";
 
     if(currentLevel.maxTiles){
-        objectiveText=`Make ${currentLevel.target} using ${instructionEmphasis(`UP TO ${currentLevel.maxTiles} TILES`)}.`;
+        objectiveText=`${instructionEmphasis(`USE UP TO ${currentLevel.maxTiles} TILES`)}`;
     }else if(currentLevel.freeForm){
-        objectiveText=`Make ${currentLevel.target}. ${instructionEmphasis("USE AS MANY TILES AS YOU NEED")}.`;
+        objectiveText=`${instructionEmphasis("USE AS MANY TILES AS YOU NEED")}`;
     }else{
-        objectiveText=`Make ${currentLevel.target} using ${instructionEmphasis(`EXACTLY ${currentLevel.selectionCount} TILES`)}.`;
+        objectiveText=`${instructionEmphasis(`USE EXACTLY ${currentLevel.selectionCount} TILES`)}`;
     }
 
     if(currentLevel.lockedCount){
@@ -5400,19 +5570,19 @@ if(currentLevel.expressionMode){
     setObjectiveHTML(objectiveText);
 }else if(currentLevel.selectionCount===3){
     setObjectiveHTML(
-    `${instructionEmphasis("USE EXACTLY 3 TILES")} to make ${currentLevel.target}.`
+    `${instructionEmphasis("USE EXACTLY 3 TILES")}`
 );
 }else if(currentLevel.operators.length===1&&currentLevel.operators[0]==="-"){
     setObjectiveHTML(
-    `${instructionEmphasis("SUBTRACT 2 TILES")} to make ${currentLevel.target}. ${instructionEmphasis("ORDER MATTERS")}.`
+    `${instructionEmphasis("SUBTRACT 2 TILES")} · ${instructionEmphasis("ORDER MATTERS")}`
 );
 }else if(currentLevel.operators.includes("-")){
     setObjectiveHTML(
-    `${instructionEmphasis("USE + OR − WITH 2 TILES")} to make ${currentLevel.target}.`
+    `${instructionEmphasis("USE + OR − WITH 2 TILES")}`
 );
 }else{
     setObjectiveHTML(
-    `${instructionEmphasis("USE EXACTLY 2 TILES")} to make ${currentLevel.target}.`
+    `${instructionEmphasis("USE EXACTLY 2 TILES")}`
 );
 }
 
@@ -6891,7 +7061,47 @@ refreshPuzzleInspector();
 if(movesLeft<=0&&solutionsDone<currentLevel.goal)failLevel();
 }
 
+
+function updateCompactRunStat(){
+
+const el=
+    document.getElementById(
+        "compactRunStat"
+    );
+
+if(!el){
+    return;
+}
+
+if(gameMode==="campaign"){
+    el.textContent=
+        `${solutionsDone}/${currentLevel?.goal||0} SOLVED`;
+    return;
+}
+
+if(gameMode==="arcade"){
+    el.textContent=
+        `${modeScore.toLocaleString()} PTS`;
+    return;
+}
+
+if(gameMode==="daily"){
+    el.textContent=
+        `${Math.max(0,dailyHearts)} ♥`;
+    return;
+}
+
+if(gameMode==="endless"){
+    el.textContent=
+        `${modeSolved} SOLVED`;
+    return;
+}
+
+el.textContent="";
+}
+
 function updateHUD(){
+updateCompactRunStat();
 updateHintUI();
 document.getElementById("solutionsDone").textContent=solutionsDone;
 document.getElementById("movesDisplay").textContent=movesLeft;
@@ -7437,7 +7647,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.27</div>
+<div class="build-marker">NUMBLE BUILD v0.27.1</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
