@@ -1394,6 +1394,16 @@ body.special-tile-skin .tile::after{
 .tile.arcade-time-10::after{content:"+10s"}
 .arcade-time-burst{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:12000;font-size:22px;font-weight:1000;pointer-events:none;animation:xpToast .8s ease forwards}
 
+
+.objective .instruction-emphasis{
+    display:inline-block;
+    font-weight:1000;
+    color:var(--blue);
+    background:color-mix(in srgb,var(--blue) 12%,transparent);
+    border-radius:7px;
+    padding:2px 6px;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1586,7 +1596,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.23.2</strong><br>
+<strong>Numble v0.23.3</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2920,12 +2930,15 @@ initializeBombs();
 document.getElementById("levelTitle").textContent=title;
 document.getElementById("targetDisplay").textContent=level.target;
 document.getElementById("solutionsGoal").textContent=1;
-document.getElementById("objectiveText").textContent=
+setObjectiveHTML(
     gameMode==="daily"
-    ? `Daily Challenge: Make ${level.target} using exactly ${level.selectionCount} tiles.`
-    : level.maxTiles
-      ? `Make ${level.target} using up to ${level.maxTiles} tiles.`
-      : `Make ${level.target} using exactly ${level.selectionCount} tiles.`;
+    ? `Daily Challenge: Make ${level.target} using ${instructionEmphasis(`EXACTLY ${level.selectionCount} TILES`)}.`
+    : level.freeForm
+      ? `Make ${level.target}. ${instructionEmphasis("USE AS MANY TILES AS YOU NEED")}.`
+      : level.maxTiles
+        ? `Make ${level.target} using ${instructionEmphasis(`UP TO ${level.maxTiles} TILES`)}.`
+        : `Make ${level.target} using ${instructionEmphasis(`EXACTLY ${level.selectionCount} TILES`)}.`
+);
 document.getElementById("solutionsDone").textContent=0;
 document.getElementById("movesDisplay").textContent=gameMode==="arcade"?"∞":gameMode==="endless"?"❤":gameMode==="daily"?"5":"";
 document.getElementById("modeStatus").style.display="block";
@@ -4559,37 +4572,41 @@ if(currentLevel.expressionMode){
     let objectiveText="";
 
     if(currentLevel.maxTiles){
-        objectiveText=`Make ${currentLevel.target} using up to ${currentLevel.maxTiles} tiles.`;
+        objectiveText=`Make ${currentLevel.target} using ${instructionEmphasis(`UP TO ${currentLevel.maxTiles} TILES`)}.`;
     }else if(currentLevel.freeForm){
-        objectiveText=`Make ${currentLevel.target}. Use as many tiles as you need.`;
+        objectiveText=`Make ${currentLevel.target}. ${instructionEmphasis("USE AS MANY TILES AS YOU NEED")}.`;
     }else{
-        objectiveText=`Make ${currentLevel.target} using exactly ${currentLevel.selectionCount} tiles.`;
+        objectiveText=`Make ${currentLevel.target} using ${instructionEmphasis(`EXACTLY ${currentLevel.selectionCount} TILES`)}.`;
     }
 
     if(currentLevel.lockedCount){
         objectiveText+=currentLevel.lockedCount===1
-        ? " Use the locked tile."
-        : " Use both locked tiles.";
+        ? ` ${instructionEmphasis("USE THE LOCKED TILE")}.`
+        : ` ${instructionEmphasis("USE BOTH LOCKED TILES")}.`;
     }
 
-    document.getElementById("objectiveText").textContent=objectiveText;
+    setObjectiveHTML(objectiveText);
 }else if(currentLevel.selectionCount===3){
-    document.getElementById("objectiveText").textContent=
-    `Use exactly 3 tiles to make ${currentLevel.target}.`;
+    setObjectiveHTML(
+    `${instructionEmphasis("USE EXACTLY 3 TILES")} to make ${currentLevel.target}.`
+);
 }else if(currentLevel.operators.length===1&&currentLevel.operators[0]==="-"){
-    document.getElementById("objectiveText").textContent=
-    `Subtract 2 tiles to make ${currentLevel.target}. Order matters.`;
+    setObjectiveHTML(
+    `${instructionEmphasis("SUBTRACT 2 TILES")} to make ${currentLevel.target}. ${instructionEmphasis("ORDER MATTERS")}.`
+);
 }else if(currentLevel.operators.includes("-")){
-    document.getElementById("objectiveText").textContent=
-    `Use + or − with 2 tiles to make ${currentLevel.target}.`;
+    setObjectiveHTML(
+    `${instructionEmphasis("USE + OR − WITH 2 TILES")} to make ${currentLevel.target}.`
+);
 }else{
-    document.getElementById("objectiveText").textContent=
-    `Use exactly 2 tiles to make ${currentLevel.target}.`;
+    setObjectiveHTML(
+    `${instructionEmphasis("USE EXACTLY 2 TILES")} to make ${currentLevel.target}.`
+);
 }
 
 if(currentLevel.bombCount){
-    document.getElementById("objectiveText").textContent+=
-    ` 💣 Bombs return during the level. Fuse 1 means the next successful equation must use that bomb.`;
+    document.getElementById("objectiveText").innerHTML+=
+    ` 💣 ${instructionEmphasis("BOMB TILES MUST BE USED BEFORE THEIR FUSE EXPIRES")}.`;
 }
 
 updateOperatorControls();
@@ -4964,6 +4981,15 @@ if(selectedOperator==="+"){
 
 document.getElementById("selectionText").innerHTML=
 `<strong>${values[0]} ${selectedOperator} ${values[1]}</strong> = ${total}`;
+}
+
+function setObjectiveHTML(html){
+const el=document.getElementById("objectiveText");
+if(el)el.innerHTML=html;
+}
+
+function instructionEmphasis(text){
+return `<span class="instruction-emphasis">${text}</span>`;
 }
 
 function updateOperatorControls(){
@@ -6342,6 +6368,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.23.2</div>
+<div class="build-marker">NUMBLE BUILD v0.23.3</div>
 </body>
 </html>
