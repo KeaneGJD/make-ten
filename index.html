@@ -1404,6 +1404,44 @@ body.special-tile-skin .tile::after{
     padding:2px 6px;
 }
 
+
+/* v0.25 — Campaign Navigation & Chapter Polish */
+.chapter-title{
+    margin-top:18px;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:var(--panel);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    cursor:pointer;
+}
+.chapter-title.current{
+    outline:3px solid color-mix(in srgb,var(--blue) 28%,transparent);
+    outline-offset:-3px;
+}
+.chapter-title-copy{min-width:0}
+.chapter-title-copy strong{display:block;font-size:13px}
+.chapter-title-copy span{display:block;margin-top:3px;color:var(--muted);font-size:10px;font-weight:800}
+.chapter-toggle{flex:0 0 auto;font-size:13px;font-weight:1000;color:var(--muted)}
+.level-card.current-level{
+    outline:3px solid var(--blue);
+    outline-offset:-3px;
+    transform:scale(1.02);
+}
+.level-card.current-level .level-number::after{
+    content:" NEXT";
+    font-size:8px;
+    margin-left:4px;
+    color:var(--blue);
+    font-weight:1000;
+}
+.chapter-complete-summary{display:grid;gap:8px;margin:14px 0}
+.chapter-summary-row{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--soft);font-size:11px;font-weight:900}
+.life-strip,.life-ad-btn,.failed-hearts,.failed-life-copy{display:none!important}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1596,7 +1634,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.24.1</strong><br>
+<strong>Numble v0.25</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1821,6 +1859,11 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <div class="chapter-unlock-name" id="unlockedChapterName"></div>
 </div>
 
+<div class="chapter-complete-summary">
+<div class="chapter-summary-row"><span>Chapter Stars</span><strong id="chapterSummaryStars">0 / 15 ⭐</strong></div>
+<div class="chapter-summary-row"><span>XP Earned</span><strong id="chapterSummaryXp">+25 XP</strong></div>
+<div class="chapter-summary-row"><span>Progress</span><strong id="chapterSummaryMilestone">Saved</strong></div>
+</div>
 <div class="chapter-reward">
 Chapter complete!
 </div>
@@ -3790,7 +3833,6 @@ saveLifeState();
 
 function loseLife(){
 
-reconcileLives();
 
 if(lifeState.lives<=0){
     return false;
@@ -3807,7 +3849,6 @@ if(
 }
 
 saveLifeState();
-updateLifeUI();
 
 return true;
 }
@@ -3818,12 +3859,10 @@ lifeState.lives=MAX_LIVES;
 lifeState.nextLifeAt=null;
 
 saveLifeState();
-updateLifeUI();
 }
 
 function addLife(amount=1){
 
-reconcileLives();
 
 lifeState.lives=
     Math.min(
@@ -3839,7 +3878,6 @@ if(lifeState.lives>=MAX_LIVES){
 }
 
 saveLifeState();
-updateLifeUI();
 }
 
 function formatCountdown(ms){
@@ -3932,11 +3970,9 @@ return Math.max(
 
 function simulateRewardedAd(){
 
-reconcileLives();
 
 if(lifeState.lives>=MAX_LIVES){
-    updateLifeUI();
-    return;
+        return;
 }
 
 const history=
@@ -3946,8 +3982,7 @@ if(
     history.length>=
     MAX_AD_RESTORES_PER_WINDOW
 ){
-    updateLifeUI();
-    return;
+        return;
 }
 
 /*
@@ -3981,7 +4016,6 @@ if(
 
 function updateLifeUI(){
 
-reconcileLives();
 
 const hearts=
     heartString();
@@ -4183,8 +4217,7 @@ clearInterval(
 lifeTimerInterval=
     setInterval(
         ()=>{
-            updateLifeUI();
-
+            
             if(
                 document
                     .getElementById(
@@ -4741,12 +4774,10 @@ document.body.classList.toggle(
 );
 if(id==="homeScreen"){
 updateHomeStats();
-updateLifeUI();
 updateTestModeUI();
 }
 
 if(id==="levelScreen"){
-updateLifeUI();
 }
 }
 
@@ -4759,93 +4790,120 @@ document.getElementById("homeStars").textContent=totalStars;
 }
 
 function openLevels(){
-reconcileLives();
 renderLevelSelect();
 showScreen("levelScreen");
-updateLifeUI();
+scrollToCurrentChapter();
+}
+
+
+const CHAPTER_COLLAPSE_KEY="numbleChapterCollapseV1";
+
+function loadChapterCollapse(){
+try{
+ return JSON.parse(localStorage.getItem(CHAPTER_COLLAPSE_KEY)||"{}");
+}catch(e){return{}}
+}
+
+function saveChapterCollapse(state){
+localStorage.setItem(CHAPTER_COLLAPSE_KEY,JSON.stringify(state));
+}
+
+function chapterStats(chapter){
+ const levels=LEVELS.map((level,index)=>({level,index})).filter(x=>x.level.chapter===chapter);
+ const completed=levels.filter(x=>Number(progress.stars[x.index+1]||0)>0).length;
+ const stars=levels.reduce((sum,x)=>sum+Number(progress.stars[x.index+1]||0),0);
+ return{total:levels.length,completed,stars,maxStars:levels.length*3};
+}
+
+function currentCampaignChapter(){
+ const levelNumber=Math.min(Number(progress.unlocked||1),LEVELS.length);
+ return LEVELS[Math.max(0,levelNumber-1)]?.chapter||LEVELS[0].chapter;
+}
+
+function toggleChapterCollapse(chapter){
+ const state=loadChapterCollapse();
+ state[chapter]=!state[chapter];
+ saveChapterCollapse(state);
+ renderLevelSelect();
+}
+
+function scrollToCurrentChapter(){
+ requestAnimationFrame(()=>{
+  const el=document.querySelector(".chapter-title.current");
+  if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+ });
 }
 
 function renderLevelSelect(){
+
 const container=document.getElementById("levelGrid");
 container.innerHTML="";
 
-let lastChapter="";
+const collapse=loadChapterCollapse();
+const currentChapter=currentCampaignChapter();
+const chapters=[...new Set(LEVELS.map(level=>level.chapter))];
 
-LEVELS.forEach((level,index)=>{
+chapters.forEach((chapter,chapterIndex)=>{
 
-if(level.chapter!==lastChapter){
-    const heading=document.createElement("div");
-    heading.className="chapter-title";
-    const chapterOrder=[
-    "Add It Up",
-    "Take It Away",
-    "Multiply",
-    "Divide & Conquer",
-    "Bigger Numbers",
-    "Locked In",
-    "Bomb Squad",
-    "Triple Figures",
-    "Precision",
-    "Chain Reaction",
-    "Heavy Numbers",
-    "Mastery"
-];
+ const stats=chapterStats(chapter);
+ const isCurrent=chapter===currentChapter;
+ const completedChapter=stats.completed===stats.total;
 
-const chapterNumber=
-    chapterOrder.indexOf(level.chapter)+1;
+ let collapsed;
+ if(Object.prototype.hasOwnProperty.call(collapse,chapter)){
+   collapsed=!!collapse[chapter];
+ }else{
+   collapsed=completedChapter&&!isCurrent;
+ }
 
-heading.textContent=`Chapter ${chapterNumber} — ${level.chapter}`;
-    container.appendChild(heading);
-    lastChapter=level.chapter;
-}
+ const heading=document.createElement("div");
+ heading.className="chapter-title"+(isCurrent?" current":"");
+ heading.innerHTML=
+   `<div class="chapter-title-copy">
+      <strong>Chapter ${chapterIndex+1} — ${chapter}</strong>
+      <span>${stats.completed} / ${stats.total} levels · ${stats.stars} / ${stats.maxStars} ⭐</span>
+    </div>
+    <div class="chapter-toggle">${collapsed?"＋":"−"}</div>`;
+ heading.onclick=()=>toggleChapterCollapse(chapter);
+ container.appendChild(heading);
 
-const levelNumber=index+1;
-const unlocked=testMode||levelNumber<=progress.unlocked;
-const stars=Number(progress.stars[levelNumber]||0);
-const button=document.createElement("button");
-button.className="level-card";
+ LEVELS.forEach((level,index)=>{
+   if(level.chapter!==chapter)return;
 
-if(!unlocked){
-    button.classList.add("locked");
-}
+   const levelNumber=index+1;
+   const unlocked=testMode||levelNumber<=progress.unlocked;
+   const stars=Number(progress.stars[levelNumber]||0);
 
-const starText="★".repeat(stars)+"☆".repeat(3-stars);
+   const button=document.createElement("button");
+   button.className="level-card";
 
-button.innerHTML=`
-<div class="level-number">${unlocked?levelNumber:"🔒"}</div>
-<div class="level-target">${unlocked?`Make ${level.target}`:"Locked"}</div>
-<div class="level-stars">${unlocked?starText:""}</div>`;
+   if(collapsed)button.style.display="none";
+   if(!unlocked)button.classList.add("locked");
 
-if(unlocked){
+   const isCurrentLevel=
+      !testMode &&
+      unlocked &&
+      stars===0 &&
+      levelNumber===Math.min(Number(progress.unlocked||1),LEVELS.length);
 
-    const completed=
-        Boolean(
-            progress.stars[
-                levelNumber
-            ]
-        );
+   if(isCurrentLevel)button.classList.add("current-level");
 
-    if(
-        !testMode &&
-        !completed &&
-        lifeState.lives<=0
-    ){
-        button.classList.add(
-            "no-lives"
-        );
+   const starText="★".repeat(stars)+"☆".repeat(3-stars);
 
-        button.innerHTML+=
-            `<div class="life-lock-note">Need a life</div>`;
-    }else{
-        button.onclick=
-            ()=>numbleSafeAction(
-                "start campaign level",
-                function(){startLevel(index)}
-            );
-    }
-}
+   button.innerHTML=`
+      <div class="level-number">${unlocked?levelNumber:"🔒"}</div>
+      <div class="level-target">${unlocked?`Make ${level.target}`:"Locked"}</div>
+      <div class="level-stars">${unlocked?starText:""}</div>`;
 
-container.appendChild(button);
+   if(unlocked){
+      button.onclick=()=>numbleSafeAction(
+         "start campaign level",
+         function(){startLevel(index)}
+      );
+   }
+
+   container.appendChild(button);
+ });
 });
 }
 
@@ -4856,14 +4914,11 @@ campaignHintsUsed=0;
 
 gameMode="campaign";
 clearModeTimer();
-reconcileLives();
 
 if(!canStartLevel(index)){
     openLevels();
     return;
 }
-
-lifeLostThisFailure=false;
 mistakesThisLevel=0;
 expressionTokens=[];
 expressionTileIndexes=[];
@@ -6530,6 +6585,18 @@ if(unlockingNextChapterNow){
         .textContent=
         `${chapterStars}/${chapterLevels.length*3}`;
 
+    const summaryStars=document.getElementById("chapterSummaryStars");
+    if(summaryStars)summaryStars.textContent=`${chapterStars} / ${chapterLevels.length*3} ⭐`;
+
+    const summaryXp=document.getElementById("chapterSummaryXp");
+    if(summaryXp)summaryXp.textContent="+25 XP";
+
+    const summaryMilestone=document.getElementById("chapterSummaryMilestone");
+    if(summaryMilestone){
+        const milestone=PLAYER_MILESTONES.find(m=>m.level===playerProgress.level);
+        summaryMilestone.textContent=milestone?milestone.label:"Progress saved";
+    }
+
     document
         .getElementById(
             "unlockedChapterName"
@@ -6541,8 +6608,7 @@ if(unlockingNextChapterNow){
         "chapterCompleteScreen"
     );
 
-    updateLifeUI();
-
+    
     return;
 }
 
@@ -6710,19 +6776,14 @@ if(!testMode){
 startLevel(LEVELS.length-1);
 }
 
-reconcileLives();
 updateHomeStats();
-updateLifeUI();
 updateTestModeUI();
-startLifeTicker();
 
 document.addEventListener(
     "visibilitychange",
     ()=>{
         if(!document.hidden){
-            reconcileLives();
-            updateLifeUI();
-
+                        
             if(
                 document
                     .getElementById(
@@ -6837,6 +6898,6 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.24.1</div>
+<div class="build-marker">NUMBLE BUILD v0.25</div>
 </body>
 </html>
