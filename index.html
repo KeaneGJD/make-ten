@@ -1442,6 +1442,96 @@ body.special-tile-skin .tile::after{
 .chapter-summary-row{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--soft);font-size:11px;font-weight:900}
 .life-strip,.life-ad-btn,.failed-hearts,.failed-life-copy{display:none!important}
 
+
+/* v0.26 — First-Time User Experience */
+.help-btn{
+    border:0;
+    border-radius:12px;
+    width:38px;
+    height:38px;
+    background:var(--soft);
+    color:var(--text);
+    font-weight:1000;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+}
+
+.tutorial-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:12500;
+    background:rgba(0,0,0,.48);
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+}
+
+.tutorial-card{
+    width:min(420px,100%);
+    border-radius:22px;
+    background:var(--panel);
+    color:var(--text);
+    border:1px solid var(--border);
+    box-shadow:0 22px 54px rgba(0,0,0,.28);
+    padding:20px;
+    text-align:left;
+}
+
+.tutorial-icon{
+    width:54px;
+    height:54px;
+    border-radius:16px;
+    background:var(--soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    margin-bottom:12px;
+}
+
+.tutorial-card h2{
+    margin:0 0 8px;
+    font-size:22px;
+}
+
+.tutorial-card p{
+    margin:0 0 12px;
+    color:var(--muted);
+    line-height:1.5;
+    font-size:13px;
+}
+
+.tutorial-list{
+    margin:10px 0 16px;
+    padding-left:18px;
+    color:var(--text);
+    font-size:12px;
+    line-height:1.55;
+}
+
+.howto-section{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:var(--panel);
+    padding:14px;
+    margin-top:10px;
+    text-align:left;
+}
+
+.howto-section strong{
+    display:block;
+    margin-bottom:5px;
+    font-size:13px;
+}
+
+.howto-section span{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.5;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1634,7 +1724,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.25</strong><br>
+<strong>Numble v0.26</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1767,7 +1857,10 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <section class="screen" id="gameScreen">
 <div class="game-top">
 <div class="stat-box" id="solutionsStatBox"><div class="stat-label">SOLUTIONS</div><div class="stat-value"><span id="solutionsDone">0</span>/<span id="solutionsGoal">0</span></div></div>
+<div style="display:flex;gap:7px;align-items:center">
+<button class="help-btn" onclick="openContextHelp()">?</button>
 <button class="game-menu-btn" onclick="exitModeOrLevel()">✕</button>
+</div>
 <div class="stat-box right" id="movesStatBox"><div class="stat-label">MOVES</div><div class="stat-value" id="movesDisplay">0</div></div>
 </div>
 <div class="level-title" id="levelTitle">LEVEL 1</div>
@@ -3282,6 +3375,7 @@ if(gameMode==="arcade"){
  arcadeTimeBonuses={};
  if(Math.random()<0.42){
    arcadeTimeBonuses[Math.floor(Math.random()*tiles.length)]=5;
+   setTimeout(()=>openTutorialOverlay("arcade_time"),220);
  }
  if(Math.random()<0.16){
    const i=Math.floor(Math.random()*tiles.length);
@@ -3351,6 +3445,7 @@ if(gameMode==="arcade"){
 }
 
 function startArcadeMode(){
+openTutorialOverlay("arcade");
 gameMode="arcade";modeScore=0;modeCombo=0;modeBestCombo=0;modeSolved=0;modeMistakes=0;modeTimeLeft=60;arcadeContinueUsed=false;arcadeRunActive=true;
 startModePuzzle(makeModeLevel("arcade",0),"ARCADE");
 clearModeTimer();
@@ -3408,6 +3503,7 @@ modeTimer=setInterval(()=>{
 },1000);
 }
 function startEndlessMode(){
+openTutorialOverlay("endless");
 gameMode="endless";modeSolved=0;modeMistakes=0;modeScore=0;
 startModePuzzle(makeModeLevel("endless",0),"ENDLESS");
 }
@@ -3601,6 +3697,7 @@ return shuffle(board);
 
 
 function startDailyMode(){
+openTutorialOverlay("daily");
 gameMode="daily";modeSolved=0;modeMistakes=0;dailyPuzzleNumber=0;dailyResults=[];dailyHearts=3;
 const d=dateSeed();dailyDateKey=d.key;
 dailyOfficialAttempt=modeStats.lastDailyDate!==dailyDateKey;
@@ -4764,6 +4861,274 @@ checkAchievements();
 renderAchievements();
 showScreen("achievementsScreen");
 }
+
+const TUTORIAL_SEEN_KEY="numbleTutorialSeenV1";
+
+function loadTutorialSeen(){
+try{
+    return JSON.parse(
+        localStorage.getItem(
+            TUTORIAL_SEEN_KEY
+        )||"{}"
+    );
+}catch(e){
+    return {};
+}
+}
+
+function markTutorialSeen(id){
+const seen=loadTutorialSeen();
+seen[id]=true;
+localStorage.setItem(
+    TUTORIAL_SEEN_KEY,
+    JSON.stringify(seen)
+);
+}
+
+function tutorialWasSeen(id){
+return !!loadTutorialSeen()[id];
+}
+
+function tutorialContent(id){
+
+const map={
+
+    campaign_intro:{
+        icon:"🗺️",
+        title:"Campaign",
+        copy:"Make the target number while following the rule shown above the board.",
+        list:[
+            "Important rules such as EXACTLY 3 TILES are highlighted.",
+            "Fewer mistakes usually means more stars.",
+            "Hints are available only in Campaign."
+        ]
+    },
+
+    stars:{
+        icon:"⭐",
+        title:"Stars & Hints",
+        copy:"Hints help you get unstuck, but they reduce the maximum stars you can earn on that level.",
+        list:[
+            "No hints: up to 3 stars.",
+            "1 hint used: maximum 2 stars.",
+            "2 or more hints used: maximum 1 star.",
+            "Replay the level without hints to improve your result."
+        ]
+    },
+
+    hints:{
+        icon:"💡",
+        title:"Campaign Hints",
+        copy:"You have two different hint types, each with 2 charges.",
+        list:[
+            "Solve reveals one valid equation.",
+            "Narrow dims tiles outside one valid solution.",
+            "A used charge regenerates after 1 hour.",
+            "At 0/2, the hint button becomes a rewarded-ad restore option."
+        ]
+    },
+
+    subtraction:{
+        icon:"➖",
+        title:"Subtraction Unlocked",
+        copy:"Subtraction is now available in Campaign.",
+        list:[
+            "Order matters: 2 − 10 = −8.",
+            "Read the highlighted level instruction before building your equation."
+        ]
+    },
+
+    multiplication:{
+        icon:"✖️",
+        title:"Multiplication Unlocked",
+        copy:"You can now multiply values as part of an equation.",
+        list:[
+            "Numble uses standard order of operations.",
+            "× and ÷ are calculated before + and −."
+        ]
+    },
+
+    division:{
+        icon:"➗",
+        title:"Division Unlocked",
+        copy:"Division is now part of your Campaign toolkit.",
+        list:[
+            "Division must follow the puzzle's whole-number rules.",
+            "Mixed equations use standard order of operations."
+        ]
+    },
+
+    locks:{
+        icon:"🔒",
+        title:"Locked Tiles",
+        copy:"Locked tiles are compulsory.",
+        list:[
+            "A valid answer must include every required locked tile.",
+            "The highlighted instruction tells you when one or both locks must be used."
+        ]
+    },
+
+    bombs:{
+        icon:"💣",
+        title:"Bomb Tiles",
+        copy:"Bombs add pressure to your equation choices.",
+        list:[
+            "Use a bomb tile before its fuse expires.",
+            "Bombs can return during the level.",
+            "A correct equation can still be a bad move if you ignore an urgent bomb."
+        ]
+    },
+
+    arcade:{
+        icon:"⏱️",
+        title:"Arcade",
+        copy:"Arcade is about speed, improvisation and keeping the run alive.",
+        list:[
+            "Use +, −, × and ÷ freely.",
+            "Build any valid equation you can.",
+            "+5s and +10s tiles only award time if used in a successful equation.",
+            "When time runs out, one rewarded-ad continue can restore 30 seconds."
+        ]
+    },
+
+    arcade_time:{
+        icon:"⏱️",
+        title:"Bonus Time Tile",
+        copy:"This Arcade board contains a bonus-time tile.",
+        list:[
+            "Use the marked tile in a successful equation.",
+            "+5s or +10s is added immediately to the clock.",
+            "You do not need to use the bonus tile if a faster solution is better."
+        ]
+    },
+
+    daily:{
+        icon:"📅",
+        title:"Daily Challenge",
+        copy:"Daily uses the full operator toolkit and is designed to be harder than normal play.",
+        list:[
+            "Daily ignores Campaign operator unlocks.",
+            "You have limited mistakes.",
+            "There are no Campaign hints here."
+        ]
+    },
+
+    endless:{
+        icon:"♾️",
+        title:"Endless",
+        copy:"Keep solving until the run ends.",
+        list:[
+            "There is no timer.",
+            "Difficulty increases as the run continues.",
+            "Endless still respects mechanics unlocked through Campaign."
+        ]
+    }
+};
+
+return map[id]||null;
+}
+
+function openTutorialOverlay(id,force=false){
+
+if(!force&&tutorialWasSeen(id)){
+    return;
+}
+
+const data=tutorialContent(id);
+
+if(!data){
+    return;
+}
+
+document.getElementById(
+    "tutorialIcon"
+).textContent=data.icon;
+
+document.getElementById(
+    "tutorialTitle"
+).textContent=data.title;
+
+document.getElementById(
+    "tutorialCopy"
+).textContent=data.copy;
+
+document.getElementById(
+    "tutorialList"
+).innerHTML=
+    data.list
+    .map(item=>`<li>${item}</li>`)
+    .join("");
+
+document.getElementById(
+    "tutorialOverlay"
+).style.display="flex";
+
+markTutorialSeen(id);
+}
+
+function closeTutorialOverlay(){
+document.getElementById(
+    "tutorialOverlay"
+).style.display="none";
+}
+
+function openContextHelp(){
+
+if(gameMode==="arcade"){
+    openTutorialOverlay("arcade",true);
+    return;
+}
+
+if(gameMode==="daily"){
+    openTutorialOverlay("daily",true);
+    return;
+}
+
+if(gameMode==="endless"){
+    openTutorialOverlay("endless",true);
+    return;
+}
+
+if(gameMode==="campaign"){
+
+    if(currentLevel?.bombCount){
+        openTutorialOverlay("bombs",true);
+        return;
+    }
+
+    if(currentLevel?.lockedCount){
+        openTutorialOverlay("locks",true);
+        return;
+    }
+
+    if(
+        currentLevel?.operators?.includes("/")
+    ){
+        openTutorialOverlay("division",true);
+        return;
+    }
+
+    if(
+        currentLevel?.operators?.includes("*")
+    ){
+        openTutorialOverlay("multiplication",true);
+        return;
+    }
+
+    if(
+        currentLevel?.operators?.includes("-")
+    ){
+        openTutorialOverlay("subtraction",true);
+        return;
+    }
+
+    openTutorialOverlay(
+        "campaign_intro",
+        true
+    );
+}
+}
+
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -4999,6 +5364,55 @@ resetSelectionText();
 updateHUD();
 renderGrid();
 showScreen("gameScreen");
+setTimeout(()=>{
+
+    if(index===0){
+        openTutorialOverlay(
+            "campaign_intro"
+        );
+
+        setTimeout(
+            ()=>openTutorialOverlay(
+                "stars"
+            ),
+            300
+        );
+
+        setTimeout(
+            ()=>openTutorialOverlay(
+                "hints"
+            ),
+            600
+        );
+
+    }else if(index===5){
+        openTutorialOverlay(
+            "subtraction"
+        );
+
+    }else if(index===10){
+        openTutorialOverlay(
+            "multiplication"
+        );
+
+    }else if(index===15){
+        openTutorialOverlay(
+            "division"
+        );
+
+    }else if(index===25){
+        openTutorialOverlay(
+            "locks"
+        );
+
+    }else if(index===30){
+        openTutorialOverlay(
+            "bombs"
+        );
+    }
+
+},120);
+
 
 if(index===15&&!localStorage.getItem(SUBTRACTION_INTRO_KEY)){
     document.getElementById("mechanicOverlay").style.display="flex";
@@ -6898,6 +7312,16 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.25</div>
+<div class="build-marker">NUMBLE BUILD v0.26</div>
+
+<div class="tutorial-overlay" id="tutorialOverlay">
+<div class="tutorial-card">
+<div class="tutorial-icon" id="tutorialIcon">?</div>
+<h2 id="tutorialTitle">How to Play</h2>
+<p id="tutorialCopy"></p>
+<ul class="tutorial-list" id="tutorialList"></ul>
+<button class="main-btn" onclick="closeTutorialOverlay()">GOT IT</button>
+</div>
+</div>
 </body>
 </html>
