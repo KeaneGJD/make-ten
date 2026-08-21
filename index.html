@@ -1936,7 +1936,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.27.2</strong><br>
+<strong>Numble v0.27.3</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4591,14 +4591,31 @@ function hintAdHistory(){
  try{return JSON.parse(localStorage.getItem(HINT_AD_KEY)||"[]").filter(t=>Date.now()-Number(t)<HINT_AD_WINDOW)}catch(e){return[]}
 }
 function requestRewardedAd(placement,onReward){
-const provider=window.NumbleAdProvider;
-if(provider&&typeof provider.showRewarded==="function"){
- provider.showRewarded(placement,onReward);
- return;
+
+const provider=
+    window.NumbleAdProvider;
+
+/*
+Native/app build:
+use the installed rewarded-ad provider.
+*/
+if(
+    provider &&
+    typeof provider.showRewarded==="function"
+){
+    provider.showRewarded(
+        placement,
+        onReward
+    );
+    return;
 }
-if(testMode){
- onReward();
-}
+
+/*
+Browser/prototype build:
+the TEST AD completes instantly so all rewarded
+flows can be tested without requiring Test Mode.
+*/
+onReward();
 }
 
 function simulateHintRewardedAd(type){
@@ -7683,7 +7700,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.27.2</div>
+<div class="build-marker">NUMBLE BUILD v0.27.3</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
