@@ -1381,6 +1381,19 @@ body.special-tile-skin .tile::after{
     border-color:#78afd4!important;
 }
 
+
+.campaign-hints{margin:10px 0 4px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hint-btn,.hint-ad-btn{border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--panel);color:var(--text);font-weight:900;cursor:pointer}
+.hint-btn:disabled,.hint-ad-btn:disabled{opacity:.45}
+.hint-regen{grid-column:1/-1;text-align:center;font-size:10px;color:var(--muted);font-weight:800}
+.hint-ad-btn{grid-column:1/-1;background:var(--soft)}
+.tile.hint-impossible{opacity:.18;filter:grayscale(1)}
+.tile.arcade-time-5,.tile.arcade-time-10{position:relative}
+.tile.arcade-time-5::after,.tile.arcade-time-10::after{position:absolute;right:4px;top:3px;font-size:9px;font-weight:1000;padding:2px 4px;border-radius:999px;background:var(--panel);border:1px solid var(--border)}
+.tile.arcade-time-5::after{content:"+5s"}
+.tile.arcade-time-10::after{content:"+10s"}
+.arcade-time-burst{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:12000;font-size:22px;font-weight:1000;pointer-events:none;animation:xpToast .8s ease forwards}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1427,21 +1440,7 @@ body.special-tile-skin .tile::after{
 <div class="home-stat"><strong id="homeLevels">0</strong><span>Levels Cleared</span></div>
 <div class="home-stat"><strong id="homeStars">0</strong><span>Stars Earned</span></div>
 </div>
-<div class="life-strip">
-<div class="life-hearts" id="homeHearts">❤️ ×5</div>
-<div class="life-meta">
-<div class="life-count" id="homeLifeCount">5 / 5 Lives</div>
-<div class="life-timer" id="homeLifeTimer">Full</div>
-</div>
-</div>
 
-<button class="life-ad-btn" id="homeAdButton" onclick="simulateRewardedAd()">
-📺 TEST REWARDED AD · +1 LIFE
-</button>
-
-<div class="life-note" id="homeAdNote">
-Prototype only — this simulates the future rewarded-ad restore.
-</div>
 
 <button class="main-btn" onclick="openPlayMenu()">PLAY</button>
 <button class="secondary-btn" onclick="openHowToPlay()" style="margin-top:8px">HOW TO PLAY</button>
@@ -1450,7 +1449,7 @@ Prototype only — this simulates the future rewarded-ad restore.
 <button class="secondary-btn" onclick="openCustomise()" style="margin-top:8px">CUSTOMISE</button>
 <div class="dev-tools">
 <button class="dev-toggle" id="devToggleButton" onclick="toggleTestMode()">🛠 TEST MODE: OFF</button>
-<div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS & LIVES IGNORED</div>
+<div class="test-banner" id="testModeBanner">DEVELOPMENT MODE · PROGRESS IGNORED</div>
 <button class="dev-latest" id="latestTestButton" onclick="startLatestTest()">LATEST TEST → LEVEL 60</button>
 <button class="dev-latest" id="testCosmeticsButton" onclick="toggleTestCosmetics()" style="display:none">🎨 PREVIEW ALL COSMETICS: OFF</button>
 </div>
@@ -1587,7 +1586,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.22.1</strong><br>
+<strong>Numble v0.23</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -1699,6 +1698,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <p class="home-copy" id="modeCompleteCopy"></p>
 <div class="daily-results" id="dailyResults" style="display:none"></div>
 <div class="complete-actions">
+<button class="main-btn" id="arcadeContinueButton" onclick="simulateArcadeContinueAd()" style="display:none">📺 TEST AD · +30 SECONDS</button>
 <button class="main-btn" id="modeReplayButton">PLAY AGAIN</button>
 <button class="secondary-btn" onclick="openPlayMenu()">MODES</button>
 </div>
@@ -1711,13 +1711,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <h2>Choose Level</h2>
 <div style="width:42px"></div>
 </div>
-<div class="life-strip">
-<div class="life-hearts" id="levelHearts">❤️ ×5</div>
-<div class="life-meta">
-<div class="life-count" id="levelLifeCount">5 / 5 Lives</div>
-<div class="life-timer" id="levelLifeTimer">Full</div>
-</div>
-</div>
+
 
 <div class="level-grid" id="levelGrid"></div>
 </section>
@@ -1746,6 +1740,13 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 <div class="target-wrap"><div class="target-label">Make</div><div class="target-number" id="targetDisplay">10</div></div>
 <div class="objective" id="objectiveText"></div>
+<div class="campaign-hints" id="campaignHints" style="display:none">
+<button class="hint-btn" id="narrowHintButton" onclick="useCampaignHint('narrow')">🎯 NARROW <span id="narrowHintCount">2/2</span></button>
+<button class="hint-btn" id="solveHintButton" onclick="useCampaignHint('solve')">💡 SOLVE <span id="solveHintCount">2/2</span></button>
+<div class="hint-regen" id="hintRegenText"></div>
+<button class="hint-ad-btn" id="hintAdButton" onclick="simulateHintRewardedAd()">📺 TEST AD · +1 HINT</button>
+</div>
+
 
 <div class="operator-wrap" id="operatorWrap">
 <button class="operator-btn active" id="plusButton" onclick="setOperator('+')">+</button>
@@ -1813,7 +1814,7 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 
 <div class="chapter-reward">
-Full lives restored for your next chapter.
+Chapter complete!
 </div>
 
 <button class="main-btn" onclick="continueAfterChapter()">
@@ -1826,14 +1827,9 @@ CONTINUE
 <section class="screen" id="failedScreen">
 <div class="card failed-card">
 <h2>Out of Moves</h2>
-<p class="failed-copy">You were close. Running out of moves costs one life.</p>
+<p class="failed-copy">You were close. Try the puzzle again or return to Level Select.</p>
 
-<div class="failed-hearts" id="failedHearts">❤️ ×4</div>
-<div class="failed-life-copy" id="failedLifeCopy"></div>
 
-<button class="life-ad-btn" id="failedAdButton" onclick="simulateRewardedAd()">
-📺 TEST REWARDED AD · +1 LIFE
-</button>
 
 <div class="complete-actions" style="margin-top:10px">
 <button class="main-btn" onclick="restartLevel()">TRY AGAIN</button>
@@ -2546,6 +2542,17 @@ let pendingInterstitialNextIndex=null;
 let lockedIndexes=[];
 let pendingChapterNextIndex=null;
 let campaignLevelXpAwarded=false;
+let campaignHintsUsed=0;
+let arcadeTimeBonuses={};
+let arcadeContinueUsed=false;
+
+const HINT_KEY="numbleCampaignHintsV1";
+const HINT_MAX=2;
+const HINT_REGEN_MS=60*60*1000;
+const HINT_AD_KEY="numbleHintAdsV1";
+const HINT_AD_LIMIT=3;
+const HINT_AD_WINDOW=6*60*60*1000;
+let hintState=loadHintState();
 
 let gameMode="campaign";
 let selectedMenuMode="campaign";
@@ -2926,6 +2933,14 @@ document.getElementById("solutionsDone").textContent=0;
 document.getElementById("movesDisplay").textContent=gameMode==="arcade"?"∞":gameMode==="endless"?"❤":gameMode==="daily"?"5":"";
 document.getElementById("modeStatus").style.display="block";
 updateStandardHudVisibility();
+if(gameMode==="arcade"){
+ arcadeTimeBonuses={};
+ if(Math.random()<0.42)arcadeTimeBonuses[Math.floor(Math.random()*tiles.length)]=5;
+ if(Math.random()<0.16){
+  let i=Math.floor(Math.random()*tiles.length);
+  arcadeTimeBonuses[i]=10;
+ }
+}
 renderGrid();resetSelectionText();updateEquationBuilder();updateOperatorControls();showScreen("gameScreen");updateModeStatus();
 }
 function updateModeStatus(){
@@ -2982,7 +2997,7 @@ if(gameMode==="arcade"){
 }
 
 function startArcadeMode(){
-gameMode="arcade";modeScore=0;modeCombo=0;modeBestCombo=0;modeSolved=0;modeMistakes=0;modeTimeLeft=60;
+gameMode="arcade";modeScore=0;modeCombo=0;modeBestCombo=0;modeSolved=0;modeMistakes=0;modeTimeLeft=60;arcadeContinueUsed=false;
 startModePuzzle(makeModeLevel("arcade",0),"ARCADE");
 clearModeTimer();
 modeTimer=setInterval(()=>{modeTimeLeft--;updateModeStatus();if(modeTimeLeft<=0)finishArcade();},1000);
@@ -2996,6 +3011,16 @@ saveModeStats();
 achievementSetMax("bestArcadeScore",modeStats.arcadeBest);
 addPlayerXp(Math.max(15,Math.floor(modeScore/250)),"Arcade run");
 showModeComplete("⏱️","Arcade Complete",`Score: ${modeScore} · Solved: ${modeSolved} · Best combo: ×${modeBestCombo}`,startArcadeMode);
+const c=document.getElementById("arcadeContinueButton");
+if(c)c.style.display=arcadeContinueUsed?"none":"block";
+}
+function simulateArcadeContinueAd(){
+if(gameMode!=="arcade"||arcadeContinueUsed)return;
+arcadeContinueUsed=true;modeTimeLeft=30;inputLocked=false;
+document.getElementById("arcadeContinueButton").style.display="none";
+showScreen("gameScreen");updateModeStatus();
+clearModeTimer();
+modeTimer=setInterval(()=>{modeTimeLeft--;updateModeStatus();if(modeTimeLeft<=0)finishArcade();},1000);
 }
 function startEndlessMode(){
 gameMode="endless";modeSolved=0;modeMistakes=0;modeScore=0;
@@ -3280,6 +3305,7 @@ results.innerHTML=
 
 function showModeComplete(icon,title,copy,replay){
 clearModeTimer();
+const cont=document.getElementById("arcadeContinueButton");if(cont)cont.style.display="none";
 document.getElementById("modeCompleteIcon").textContent=icon;
 document.getElementById("modeCompleteTitle").textContent=title;
 document.getElementById("modeCompleteCopy").textContent=copy;
@@ -3793,27 +3819,7 @@ if(retry){
 }
 }
 
-function canStartLevel(index){
-
-if(testMode)return true;
-
-reconcileLives();
-
-const levelNumber=
-    index+1;
-
-const completed=
-    Boolean(
-        progress.stars[
-            levelNumber
-        ]
-    );
-
-return(
-    completed ||
-    lifeState.lives>0
-);
-}
+function canStartLevel(index){return true;}
 
 function startLifeTicker(){
 
@@ -3843,6 +3849,124 @@ lifeTimerInterval=
     );
 }
 
+
+
+function loadHintState(){
+try{
+ const s=JSON.parse(localStorage.getItem(HINT_KEY)||"{}");
+ return{
+  solve:Math.max(0,Math.min(HINT_MAX,Number(s.solve??HINT_MAX))),
+  narrow:Math.max(0,Math.min(HINT_MAX,Number(s.narrow??HINT_MAX))),
+  solveNext:Number(s.solveNext||0),
+  narrowNext:Number(s.narrowNext||0)
+ };
+}catch(e){return{solve:HINT_MAX,narrow:HINT_MAX,solveNext:0,narrowNext:0}}
+}
+function saveHintState(){localStorage.setItem(HINT_KEY,JSON.stringify(hintState))}
+function reconcileHints(){
+ const now=Date.now();
+ ["solve","narrow"].forEach(k=>{
+  const nk=k+"Next";
+  while(hintState[k]<HINT_MAX&&hintState[nk]&&now>=hintState[nk]){
+   hintState[k]++;
+   if(hintState[k]>=HINT_MAX)hintState[nk]=0;
+   else hintState[nk]+=HINT_REGEN_MS;
+  }
+ });
+ saveHintState();
+}
+function spendHint(k){
+ reconcileHints();
+ if(hintState[k]<=0)return false;
+ hintState[k]--;
+ if(!hintState[k+"Next"])hintState[k+"Next"]=Date.now()+HINT_REGEN_MS;
+ campaignHintsUsed++;
+ saveHintState();updateHintUI();return true;
+}
+function hintAdHistory(){
+ try{return JSON.parse(localStorage.getItem(HINT_AD_KEY)||"[]").filter(t=>Date.now()-Number(t)<HINT_AD_WINDOW)}catch(e){return[]}
+}
+function simulateHintRewardedAd(){
+ let h=hintAdHistory();
+ if(h.length>=HINT_AD_LIMIT)return;
+ reconcileHints();
+ const target=hintState.solve<=hintState.narrow?"solve":"narrow";
+ if(hintState[target]>=HINT_MAX)return;
+ hintState[target]++;
+ if(hintState[target]>=HINT_MAX)hintState[target+"Next"]=0;
+ h.push(Date.now());localStorage.setItem(HINT_AD_KEY,JSON.stringify(h));
+ saveHintState();updateHintUI();
+}
+function updateHintUI(){
+ reconcileHints();
+ const wrap=document.getElementById("campaignHints");
+ if(wrap)wrap.style.display=gameMode==="campaign"?"grid":"none";
+ const s=document.getElementById("solveHintCount"),n=document.getElementById("narrowHintCount");
+ if(s)s.textContent=`${hintState.solve}/${HINT_MAX}`;
+ if(n)n.textContent=`${hintState.narrow}/${HINT_MAX}`;
+ const sb=document.getElementById("solveHintButton"),nb=document.getElementById("narrowHintButton");
+ if(sb)sb.disabled=hintState.solve<=0;
+ if(nb)nb.disabled=hintState.narrow<=0;
+ const waits=["solve","narrow"].filter(k=>hintState[k]<HINT_MAX&&hintState[k+"Next"]).map(k=>`${k==="solve"?"Solve":"Narrow"}: ${formatCountdown(hintState[k+"Next"]-Date.now())}`);
+ const rt=document.getElementById("hintRegenText");if(rt)rt.textContent=waits.length?"Regenerating · "+waits.join(" · "):"Hints full";
+ const ad=document.getElementById("hintAdButton");if(ad){const rem=HINT_AD_LIMIT-hintAdHistory().length;ad.disabled=rem<=0||(hintState.solve>=HINT_MAX&&hintState.narrow>=HINT_MAX);ad.textContent=`📺 TEST AD · +1 HINT (${Math.max(0,rem)} LEFT)`;}
+}
+function findSimpleHintSolution(){
+ const ops=currentLevel.operators||["+"];
+ for(let i=0;i<tiles.length;i++)for(let j=0;j<tiles.length;j++){
+  if(i===j)continue;
+  for(const op of ops){
+   let v;
+   if(op==="+")v=tiles[i]+tiles[j];
+   if(op==="-")v=tiles[i]-tiles[j];
+   if(op==="*")v=tiles[i]*tiles[j];
+   if(op==="/"&&tiles[j]!==0)v=tiles[i]/tiles[j];
+   if(v===currentLevel.target)return{indexes:[i,j],text:`${tiles[i]} ${op==="*"?"×":op==="-"?"−":op==="\/"?"÷":op} ${tiles[j]} = ${currentLevel.target}`};
+  }
+ }
+ return null;
+}
+function findHintSolution(){
+ const simple=findSimpleHintSolution();if(simple)return simple;
+ // fallback uses the board's own guaranteed-solution machinery by searching combinations up to 5
+ const ops=currentLevel.operators||["+"];
+ const max=Math.min(currentLevel.maxTiles||currentLevel.selectionCount||5,5);
+ const idx=[...tiles.keys()];
+ function rec(chosen){
+  if(chosen.length>=2){
+   const vals=chosen.map(i=>tiles[i]);
+   const perm=(a)=>{
+    if(a.length===1)return [{v:a[0],s:String(a[0])}];
+    const out=[];
+    for(let cut=1;cut<a.length;cut++){
+     for(const L of perm(a.slice(0,cut)))for(const R of perm(a.slice(cut)))for(const op of ops){
+      if(op==="/"&&R.v===0)continue;
+      let v=op==="+"?L.v+R.v:op==="-"?L.v-R.v:op==="*"?L.v*R.v:L.v/R.v;
+      if(currentLevel.wholeDivision&&op==="/"&&!Number.isInteger(v))continue;
+      out.push({v,s:`${L.s} ${op==="*"?"×":op==="-"?"−":op==="/"?"÷":op} ${R.s}`});
+     }
+    } return out.slice(0,3000);
+   };
+   for(const r of perm(vals))if(r.v===currentLevel.target)return{indexes:[...chosen],text:`${r.s} = ${currentLevel.target}`};
+  }
+  if(chosen.length===max)return null;
+  for(let i=(chosen.at(-1)??-1)+1;i<idx.length;i++){const r=rec([...chosen,i]);if(r)return r}
+  return null;
+ }
+ return rec([]);
+}
+function useCampaignHint(type){
+ if(gameMode!=="campaign"||!spendHint(type))return;
+ const sol=findHintSolution();
+ if(!sol){document.getElementById("feedback").textContent="No hint found — your hint was restored.";hintState[type]++;campaignHintsUsed--;saveHintState();updateHintUI();return}
+ if(type==="solve"){
+  document.getElementById("feedback").textContent="Hint: "+sol.text;
+  document.getElementById("feedback").className="feedback correct";
+ }else{
+  document.querySelectorAll(".tile").forEach((el,i)=>el.classList.toggle("hint-impossible",!sol.indexes.includes(i)));
+  document.getElementById("feedback").textContent="Tiles outside one valid solution have been dimmed.";
+ }
+}
 
 function defaultProgress(){return{unlocked:1,stars:{}}}
 
@@ -4358,6 +4482,7 @@ container.appendChild(button);
 function startLevel(index){
 achievementPuzzleStartedAt=Date.now();
 campaignLevelXpAwarded=false;
+campaignHintsUsed=0;
 
 gameMode="campaign";
 clearModeTimer();
@@ -4697,6 +4822,10 @@ tiles.forEach((value,index)=>{
 const button=document.createElement("button");
 button.className="tile";
 button.textContent=value;
+
+if(gameMode==="arcade"&&arcadeTimeBonuses[index]){
+    button.classList.add(`arcade-time-${arcadeTimeBonuses[index]}`);
+}
 
 if(selectedIndexes.includes(index)){
     button.classList.add("selected");
@@ -5443,6 +5572,14 @@ if(
         if(expressionTokens.includes("/"))achievementAdd("divisionSolves");
         document.getElementById("selectionText").innerHTML=
             `${equation} = <strong>${currentLevel.target}</strong>`;
+        if(gameMode==="arcade"){
+            const bonus=used.reduce((sum,i)=>sum+Number(arcadeTimeBonuses[i]||0),0);
+            if(bonus){
+                modeTimeLeft+=bonus;
+                const burst=document.createElement("div");burst.className="arcade-time-burst";burst.textContent=`+${bonus} SEC!`;document.body.appendChild(burst);setTimeout(()=>burst.remove(),850);
+                updateModeStatus();
+            }
+        }
         modeCorrect();
         return;
     }
@@ -5729,14 +5866,15 @@ if(movesLeft<=0&&solutionsDone<currentLevel.goal)failLevel();
 }
 
 function updateHUD(){
+updateHintUI();
 document.getElementById("solutionsDone").textContent=solutionsDone;
 document.getElementById("movesDisplay").textContent=movesLeft;
 }
 
 function calculateStars(){
-if(mistakesThisLevel===0)return 3;
-if(mistakesThisLevel===1)return 2;
-return 1;
+const hintCap=campaignHintsUsed===0?3:campaignHintsUsed===1?2:1;
+const mistakeStars=mistakesThisLevel===0?3:mistakesThisLevel===1?2:1;
+return Math.min(hintCap,mistakeStars);
 }
 
 
@@ -5795,9 +5933,7 @@ if(levelNumber<LEVELS.length){
         );
 }
 
-if(unlockingNextChapterNow){
-    refillLives();
-}
+
 
 saveProgress();
 syncCampaignAchievements();
@@ -5968,17 +6104,8 @@ startLevel(next);
 }
 
 function failLevel(){
-
 inputLocked=true;
-
-if(!lifeLostThisFailure){
-    if(!testMode)loseLife();
-    lifeLostThisFailure=true;
-}
-
 showScreen("failedScreen");
-updateLifeUI();
-updateFailedLifeState();
 }
 
 function nextLevel(){
@@ -6183,6 +6310,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.22.1</div>
+<div class="build-marker">NUMBLE BUILD v0.23</div>
 </body>
 </html>
