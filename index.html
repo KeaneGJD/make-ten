@@ -1936,7 +1936,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.27.1</strong><br>
+<strong>Numble v0.27.2</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2074,6 +2074,11 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <button class="help-btn" onclick="openContextHelp()">?</button>
 <button class="game-menu-btn" onclick="exitModeOrLevel()">✕</button>
 </div>
+</div>
+<div aria-hidden="true" style="display:none">
+<span id="solutionsDone">0</span>
+<span id="solutionsGoal">0</span>
+<span id="movesDisplay">0</span>
 </div>
 <div class="unlock-strip" id="modeStatus" style="display:none"></div>
 <div class="arcade-hud" id="arcadeHud">
@@ -3545,7 +3550,8 @@ successfulSolutionsSinceBombSpawn=0;
 initializeBombs();
 document.getElementById("levelTitle").textContent=title;
 document.getElementById("targetDisplay").textContent=level.target;
-document.getElementById("solutionsGoal").textContent=1;
+const modeSolutionsGoalEl=document.getElementById("solutionsGoal");
+if(modeSolutionsGoalEl)modeSolutionsGoalEl.textContent=1;
 setObjectiveHTML(
     gameMode==="daily"
     ? `DAILY · ${instructionEmphasis(`USE EXACTLY ${level.selectionCount} TILES`)}`
@@ -3555,8 +3561,19 @@ setObjectiveHTML(
         ? `${instructionEmphasis(`USE UP TO ${level.maxTiles} TILES`)}`
         : `${instructionEmphasis(`USE EXACTLY ${level.selectionCount} TILES`)}`
 );
-document.getElementById("solutionsDone").textContent=0;
-document.getElementById("movesDisplay").textContent=gameMode==="arcade"?"∞":gameMode==="endless"?"❤":gameMode==="daily"?"5":"";
+const modeSolutionsDoneEl=document.getElementById("solutionsDone");
+if(modeSolutionsDoneEl)modeSolutionsDoneEl.textContent=0;
+const modeMovesEl=document.getElementById("movesDisplay");
+if(modeMovesEl){
+    modeMovesEl.textContent=
+        gameMode==="arcade"
+        ? "∞"
+        : gameMode==="endless"
+          ? "❤"
+          : gameMode==="daily"
+            ? "5"
+            : "";
+}
 document.getElementById("modeStatus").style.display="block";
 updateStandardHudVisibility();
 if(gameMode==="arcade"){
@@ -5548,7 +5565,8 @@ document.getElementById("arcadeHud").style.display="none";
 updateStandardHudVisibility();
 document.getElementById("levelTitle").textContent=`LEVEL ${index+1}`;
 document.getElementById("targetDisplay").textContent=currentLevel.target;
-document.getElementById("solutionsGoal").textContent=currentLevel.goal;
+const solutionsGoalEl=document.getElementById("solutionsGoal");
+if(solutionsGoalEl)solutionsGoalEl.textContent=currentLevel.goal;
 
 if(currentLevel.expressionMode){
     let objectiveText="";
@@ -7103,8 +7121,26 @@ el.textContent="";
 function updateHUD(){
 updateCompactRunStat();
 updateHintUI();
-document.getElementById("solutionsDone").textContent=solutionsDone;
-document.getElementById("movesDisplay").textContent=movesLeft;
+
+const solutionsDoneEl=
+    document.getElementById(
+        "solutionsDone"
+    );
+
+const movesDisplayEl=
+    document.getElementById(
+        "movesDisplay"
+    );
+
+if(solutionsDoneEl){
+    solutionsDoneEl.textContent=
+        solutionsDone;
+}
+
+if(movesDisplayEl){
+    movesDisplayEl.textContent=
+        movesLeft;
+}
 }
 
 function calculateStars(){
@@ -7647,7 +7683,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.27.1</div>
+<div class="build-marker">NUMBLE BUILD v0.27.2</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
