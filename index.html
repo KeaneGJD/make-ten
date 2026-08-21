@@ -1596,7 +1596,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.23.4</strong><br>
+<strong>Numble v0.23.5</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2638,7 +2638,7 @@ const data={
         icon:"🗺️",
         art:"assets/campaign-illustration.png",
         title:"Campaign",
-        copy:`Work through ${LEVELS.length} levels, earn stars and unlock new mechanics for every other mode.`,
+        copy:`Work through ${LEVELS.length} levels, earn stars and unlock new mechanics and rewards.`,
         button:"PLAY CAMPAIGN"
     },
     daily:{
@@ -2652,7 +2652,7 @@ const data={
         icon:"⏱️",
         art:"assets/arcade-illustration.png",
         title:"Arcade",
-        copy:"You have 60 seconds. Build any valid equation you can, hunt bonus-time tiles, build your combo and chase a new high score.",
+        copy:"60 seconds. Use +, −, × and ÷ freely, hunt bonus-time tiles, build your combo and chase a new high score.",
         button:"PLAY ARCADE"
     },
     endless:{
@@ -2823,7 +2823,13 @@ if(seed!==null)return Math.floor(seededRandom(seed)*(max-min+1))+min;
 return Math.floor(Math.random()*(max-min+1))+min;
 }
 function makeModeLevel(kind,step=0,seed=null){
-const ops=unlockedOperators();
+// Arcade always gets the full core operator set.
+// Endless continues to respect Campaign progression.
+const ops=
+    kind==="arcade"
+    ? ["+","-","*","/"]
+    : unlockedOperators();
+
 const f=unlockedFeatureSet();
 const tileCount=step<3?2:step<8?3:4;
 const maxNumber=ops.includes("/")?24:ops.includes("*")?20:18;
@@ -6455,6 +6461,6 @@ applyCustomisation();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.23.4</div>
+<div class="build-marker">NUMBLE BUILD v0.23.5</div>
 </body>
 </html>
