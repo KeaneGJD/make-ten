@@ -2148,7 +2148,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.10</strong><br>
+<strong>Numble v0.28.11</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -3878,7 +3878,7 @@ if(gameMode==="arcade"){
 
 function startArcadeMode(){
 gameMode="arcade";
-updateHintUI();
+enforceHintPanelVisibility();
 openTutorialOverlay("arcade");
 modeScore=0;modeCombo=0;modeBestCombo=0;modeSolved=0;modeMistakes=0;modeTimeLeft=60;arcadeContinueUsed=false;arcadeRunActive=true;
 startModePuzzle(makeModeLevel("arcade",0),"ARCADE");
@@ -3950,7 +3950,7 @@ requestRewardedAd(
 
 function startEndlessMode(){
 gameMode="endless";
-updateHintUI();
+enforceHintPanelVisibility();
 openTutorialOverlay("endless");
 modeSolved=0;modeMistakes=0;modeScore=0;endlessHintPenalty=0;
 startModePuzzle(makeModeLevel("endless",0),"ENDLESS");
@@ -4146,7 +4146,7 @@ return shuffle(board);
 
 function startDailyMode(){
 gameMode="daily";
-updateHintUI();
+enforceHintPanelVisibility();
 openTutorialOverlay("daily");
 modeSolved=0;modeMistakes=0;dailyPuzzleNumber=0;dailyResults=[];dailyHearts=3;
 const d=dateSeed();dailyDateKey=d.key;
@@ -5039,10 +5039,21 @@ renderSingleHintTimer("narrow");
 
 
 function enforceHintPanelVisibility(){
-const wrap=document.getElementById("campaignHints");
-if(!wrap)return;
+
+const wrap=
+    document.getElementById(
+        "campaignHints"
+    );
+
+if(!wrap){
+    return;
+}
+
 wrap.style.display=
-    (gameMode==="campaign"||gameMode==="endless")
+    (
+        gameMode==="campaign" ||
+        gameMode==="endless"
+    )
     ? "grid"
     : "none";
 }
@@ -8165,7 +8176,7 @@ startHintCountdownTimer();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.10</div>
+<div class="build-marker">NUMBLE BUILD v0.28.11</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
