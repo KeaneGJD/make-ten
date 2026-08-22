@@ -2059,7 +2059,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28</strong><br>
+<strong>Numble v0.28.1</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -5525,7 +5525,7 @@ function updateFirstLaunchChoices(){const a=document.getElementById("firstSoundO
 function setFirstLaunchSound(v){firstLaunchSound=!!v;updateFirstLaunchChoices()}
 function setFirstLaunchTheme(v){firstLaunchTheme=v==="dark"?"dark":"light";updateFirstLaunchChoices()}
 function finishFirstLaunch(){if(typeof soundEnabled!=="undefined"){soundEnabled=firstLaunchSound}if(typeof setTheme==="function"){setTheme(firstLaunchTheme)}else{document.documentElement.dataset.theme=firstLaunchTheme}localStorage.setItem(FIRST_LAUNCH_KEY,"1");const o=document.getElementById("firstLaunchOverlay");if(o)o.style.display="none";if(typeof updateSettingsUI==="function")updateSettingsUI()}
-function runAppLaunchUX(){const s=document.getElementById("appSplash");setTimeout(()=>{if(s)s.classList.add("hidden");if(!localStorage.getItem(FIRST_LAUNCH_KEY)){firstLaunchSound=typeof soundEnabled!=="undefined"?!!soundEnabled:true;firstLaunchTheme=document.documentElement.dataset.theme==="dark"?"dark":"light";updateFirstLaunchChoices();const o=document.getElementById("firstLaunchOverlay");if(o)o.style.display="flex"}},650)}
+function runAppLaunchUX(){const s=document.getElementById("appSplash");setTimeout(()=>{if(s)s.classList.add("hidden");if(!localStorage.getItem(FIRST_LAUNCH_KEY)){firstLaunchSound=typeof soundEnabled!=="undefined"?!!soundEnabled:true;firstLaunchTheme=document.documentElement.dataset.theme==="dark"?"dark":"light";updateFirstLaunchChoices();const o=document.getElementById("firstLaunchOverlay");if(o)o.style.display="flex"}},2800)}
 function showAdUnavailable(){const t=document.getElementById("adUnavailableToast");if(!t)return;t.classList.add("show");clearTimeout(showAdUnavailable.timer);showAdUnavailable.timer=setTimeout(()=>t.classList.remove("show"),1800)}
 function handleAppBack(){const t=document.getElementById("tutorialOverlay");if(t&&t.style.display==="flex"){closeTutorialOverlay();return true}const f=document.getElementById("firstLaunchOverlay");if(f&&f.style.display==="flex")return true;const id=document.querySelector(".screen.active")?.id||"homeScreen";if(id==="gameScreen"){exitModeOrLevel();return true}if(id!=="homeScreen"){showScreen("homeScreen");return true}return false}
 window.numbleAndroidBack=handleAppBack;
@@ -7837,7 +7837,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28</div>
+<div class="build-marker">NUMBLE BUILD v0.28.1</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
