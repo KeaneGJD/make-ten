@@ -2059,7 +2059,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.1</strong><br>
+<strong>Numble v0.28.2</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -3023,6 +3023,7 @@ let modeBestCombo=0;
 let modeSolved=0;
 let modeMistakes=0;
 let modeTimeLeft=0;
+let endlessHintPenalty=0;
 let modeTimer=null;
 let dailyPuzzleNumber=0;
 let dailyDateKey="";
@@ -3848,7 +3849,7 @@ requestRewardedAd(
 
 function startEndlessMode(){
 openTutorialOverlay("endless");
-gameMode="endless";modeSolved=0;modeMistakes=0;modeScore=0;
+gameMode="endless";modeSolved=0;modeMistakes=0;modeScore=0;endlessHintPenalty=0;
 startModePuzzle(makeModeLevel("endless",0),"ENDLESS");
 }
 function finishEndless(){
@@ -4168,8 +4169,29 @@ if(gameMode==="arcade"){
 }
 if(gameMode==="endless"){
  modeSolved++;
+
+ const basePoints=100;
+ const earned=Math.max(
+     0,
+     Math.round(
+         basePoints*(1-endlessHintPenalty)
+     )
+ );
+
+ modeScore+=earned;
+ endlessHintPenalty=0;
+
  achievementSetMax("bestEndlessRun",modeSolved);
- setTimeout(()=>startModePuzzle(makeModeLevel("endless",modeSolved),"ENDLESS"),260);
+ updateModeStatus();
+
+ setTimeout(
+     ()=>startModePuzzle(
+         makeModeLevel("endless",modeSolved),
+         "ENDLESS"
+     ),
+     260
+ );
+
  return true;
 }
 if(gameMode==="daily"){
@@ -4765,7 +4787,7 @@ requestRewardedAd(
 function updateHintUI(){
  reconcileHints();
  const wrap=document.getElementById("campaignHints");
- if(wrap)wrap.style.display=gameMode==="campaign"?"grid":"none";
+ if(wrap)wrap.style.display=(gameMode==="campaign"||gameMode==="endless")?"grid":"none";
 
  const remainingAds=Math.max(0,HINT_AD_LIMIT-hintAdHistory().length);
 
@@ -4835,7 +4857,15 @@ simulateHintRewardedAd(type);
 }
 
 function useCampaignHint(type){
- if(gameMode!=="campaign"||!spendHint(type))return;
+ if((gameMode!=="campaign"&&gameMode!=="endless")||!spendHint(type))return;
+
+ if(gameMode==="endless"){
+     endlessHintPenalty=
+         type==="solve"
+         ? .25
+         : .10;
+ }
+
  const sol=findHintSolution();
  if(!sol){document.getElementById("feedback").textContent="No hint found — your hint was restored.";hintState[type]++;campaignHintsUsed--;saveHintState();updateHintUI();return}
  if(type==="solve"){
@@ -5409,7 +5439,9 @@ const map={
         list:[
             "There is no timer.",
             "Difficulty increases as the run continues.",
-            "Endless still respects mechanics unlocked through Campaign."
+            "Endless still respects mechanics unlocked through Campaign.",
+            "Solve and Narrow hints share the same inventory as Campaign.",
+            "Narrow reduces points for that puzzle by 10%; Solve reduces them by 25%."
         ]
     }
 };
@@ -7837,7 +7869,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.1</div>
+<div class="build-marker">NUMBLE BUILD v0.28.2</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
