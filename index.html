@@ -2148,7 +2148,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.8</strong><br>
+<strong>Numble v0.28.9</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4825,7 +4825,10 @@ function spendHint(k){
  hintState[k]--;
  if(!hintState[k+"Next"])hintState[k+"Next"]=Date.now()+HINT_REGEN_MS;
  campaignHintsUsed++;
- saveHintState();updateHintUI();return true;
+ saveHintState();
+ updateHintUI();
+ startHintCountdownTimer();
+ return true;
 }
 function hintAdHistory(){
  try{return JSON.parse(localStorage.getItem(HINT_AD_KEY)||"[]").filter(t=>Date.now()-Number(t)<HINT_AD_WINDOW)}catch(e){return[]}
@@ -4875,102 +4878,153 @@ requestRewardedAd(
   localStorage.setItem(HINT_AD_KEY,JSON.stringify(history));
   saveHintState();
   updateHintUI();
+  startHintCountdownTimer();
  }
 );
 }
 
 
-let hintCountdownFrame=null;
-let hintCountdownLastSecond=-1;
+let solveHintTimerInterval=null;
+let narrowHintTimerInterval=null;
 
-function updateHintCountdownLabels(){
+function renderSingleHintTimer(type){
 
-["solve","narrow"].forEach(type=>{
+const timer=
+    document.getElementById(
+        type+"HintTimer"
+    );
 
-    const timer=
-        document.getElementById(
-            type+"HintTimer"
+if(!timer){
+    return;
+}
+
+const next=
+    Number(
+        hintState[
+            type+"Next"
+        ]||0
+    );
+
+if(
+    hintState[type]<
+        HINT_MAX &&
+    next>0
+){
+
+    const remaining=
+        Math.max(
+            0,
+            next-Date.now()
         );
 
-    if(!timer){
-        return;
+    timer.textContent=
+        `⏳ ${formatCountdown(
+            remaining
+        )}`;
+
+    timer.classList.add(
+        "active"
+    );
+
+}else{
+
+    timer.textContent="";
+    timer.classList.remove(
+        "active"
+    );
+}
+}
+
+function startSingleHintTimer(type){
+
+const key=
+    type==="solve"
+    ? "solveHintTimerInterval"
+    : "narrowHintTimerInterval";
+
+if(type==="solve"){
+
+    if(solveHintTimerInterval){
+        clearInterval(
+            solveHintTimerInterval
+        );
     }
 
-    const next=
-        Number(
-            hintState[
-                type+"Next"
-            ]||0
-        );
+    renderSingleHintTimer(
+        "solve"
+    );
 
-    if(
-        hintState[type]<HINT_MAX &&
-        next>0
-    ){
+    solveHintTimerInterval=
+        setInterval(()=>{
 
-        const remaining=
-            Math.max(
-                0,
-                next-Date.now()
+            const before=
+                hintState.solve;
+
+            reconcileHints();
+
+            if(
+                before!==
+                hintState.solve
+            ){
+                updateHintUI();
+            }
+
+            renderSingleHintTimer(
+                "solve"
             );
 
-        timer.textContent=
-            `⏳ ${formatCountdown(remaining)}`;
+        },1000);
 
-        timer.classList.add(
-            "active"
-        );
+}else{
 
-    }else{
-
-        timer.textContent="";
-        timer.classList.remove(
-            "active"
+    if(narrowHintTimerInterval){
+        clearInterval(
+            narrowHintTimerInterval
         );
     }
-});
-}
 
-function runHintCountdownLoop(){
-
-const now=Date.now();
-const second=Math.floor(now/1000);
-
-if(second!==hintCountdownLastSecond){
-
-    hintCountdownLastSecond=second;
-
-    const beforeSolve=hintState.solve;
-    const beforeNarrow=hintState.narrow;
-
-    reconcileHints();
-
-    if(
-        beforeSolve!==hintState.solve ||
-        beforeNarrow!==hintState.narrow
-    ){
-        updateHintUI();
-    }else{
-        updateHintCountdownLabels();
-    }
-}
-
-hintCountdownFrame=
-    requestAnimationFrame(
-        runHintCountdownLoop
+    renderSingleHintTimer(
+        "narrow"
     );
+
+    narrowHintTimerInterval=
+        setInterval(()=>{
+
+            const before=
+                hintState.narrow;
+
+            reconcileHints();
+
+            if(
+                before!==
+                hintState.narrow
+            ){
+                updateHintUI();
+            }
+
+            renderSingleHintTimer(
+                "narrow"
+            );
+
+        },1000);
+}
 }
 
 function startHintCountdownTimer(){
 
-if(hintCountdownFrame){
-    cancelAnimationFrame(
-        hintCountdownFrame
-    );
+startSingleHintTimer(
+    "solve"
+);
+
+startSingleHintTimer(
+    "narrow"
+);
 }
 
-hintCountdownLastSecond=-1;
-runHintCountdownLoop();
+
+function updateHintCountdownLabels(){
+renderSingleHintTimer("solve");
+renderSingleHintTimer("narrow");
 }
 
 function updateHintUI(){
@@ -8091,7 +8145,7 @@ startHintCountdownTimer();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.8</div>
+<div class="build-marker">NUMBLE BUILD v0.28.9</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
