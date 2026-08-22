@@ -2148,7 +2148,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.6</strong><br>
+<strong>Numble v0.28.7</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4882,6 +4882,54 @@ requestRewardedAd(
 
 let hintCountdownTimer=null;
 
+function updateHintCountdownLabels(){
+
+["solve","narrow"].forEach(type=>{
+
+    const timer=
+        document.getElementById(
+            type+"HintTimer"
+        );
+
+    if(!timer){
+        return;
+    }
+
+    const next=
+        Number(
+            hintState[
+                type+"Next"
+            ]||0
+        );
+
+    if(
+        hintState[type]<HINT_MAX &&
+        next>0
+    ){
+
+        const remaining=
+            Math.max(
+                0,
+                next-Date.now()
+            );
+
+        timer.textContent=
+            `⏳ ${formatCountdown(remaining)}`;
+
+        timer.classList.add(
+            "active"
+        );
+
+    }else{
+
+        timer.textContent="";
+        timer.classList.remove(
+            "active"
+        );
+    }
+});
+}
+
 function startHintCountdownTimer(){
 
 if(hintCountdownTimer){
@@ -4890,15 +4938,32 @@ if(hintCountdownTimer){
     );
 }
 
+updateHintCountdownLabels();
+
 hintCountdownTimer=
     setInterval(()=>{
 
+        /*
+        Keep regeneration state accurate, but update the
+        visible floating clocks directly instead of
+        rebuilding the whole hint UI every second.
+        */
+        const beforeSolve=
+            hintState.solve;
+
+        const beforeNarrow=
+            hintState.narrow;
+
+        reconcileHints();
+
         if(
-            gameMode==="campaign" ||
-            gameMode==="endless"
+            beforeSolve!==hintState.solve ||
+            beforeNarrow!==hintState.narrow
         ){
             updateHintUI();
         }
+
+        updateHintCountdownLabels();
 
     },1000);
 }
@@ -4943,16 +5008,9 @@ function updateHintUI(){
    }
 
    if(timer){
-     const next=hintState[type+"Next"];
-
-     if(hintState[type]<HINT_MAX&&next){
-       timer.textContent=
-         `⏳ ${formatCountdown(next-Date.now())}`;
-       timer.classList.add("active");
-     }else{
-       timer.textContent="";
-       timer.classList.remove("active");
-     }
+     /*
+     Timer text is refreshed by updateHintCountdownLabels().
+     */
    }
  });
 
@@ -4964,6 +5022,8 @@ function updateHintUI(){
  if(rt){
    rt.textContent="";
  }
+
+ updateHintCountdownLabels();
 }
 
 function findSimpleHintSolution(){
@@ -8025,7 +8085,7 @@ startHintCountdownTimer();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.6</div>
+<div class="build-marker">NUMBLE BUILD v0.28.7</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
