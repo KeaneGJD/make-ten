@@ -1912,6 +1912,46 @@ body.gameplay-active #gameScreen .hint-regen{
     text-overflow:ellipsis;
 }
 
+
+/* v0.28.6 — Per-button floating hint timers */
+body.gameplay-active #gameScreen .campaign-hints{
+    position:relative;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:8px;
+    padding-top:12px;
+}
+body.gameplay-active #gameScreen .hint-btn{
+    position:relative;
+    overflow:visible;
+}
+body.gameplay-active #gameScreen .hint-main{
+    display:block;
+}
+body.gameplay-active #gameScreen .hint-float-timer{
+    position:absolute;
+    left:50%;
+    top:-13px;
+    transform:translateX(-50%);
+    display:none;
+    padding:2px 6px;
+    border-radius:999px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    box-shadow:0 2px 7px rgba(0,0,0,.08);
+    color:var(--muted);
+    font-size:8px;
+    line-height:1.1;
+    font-weight:1000;
+    white-space:nowrap;
+    pointer-events:none;
+}
+body.gameplay-active #gameScreen .hint-float-timer.active{
+    display:block;
+}
+body.gameplay-active #gameScreen .hint-regen{
+    display:none!important;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -2108,7 +2148,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.5</strong><br>
+<strong>Numble v0.28.6</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -2271,8 +2311,14 @@ A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 <div class="objective" id="objectiveText"></div>
 <div id="puzzleInspector" style="display:none;margin:8px 0;padding:10px;border:1px dashed var(--border);border-radius:10px;font-size:10px;color:var(--muted);font-weight:800"></div>
 <div class="campaign-hints" id="campaignHints" style="display:none">
-<button class="hint-btn" id="narrowHintButton" onclick="handleHintButton('narrow')">🎯 NARROW <span id="narrowHintCount">2/2</span></button>
-<button class="hint-btn" id="solveHintButton" onclick="handleHintButton('solve')">💡 SOLVE <span id="solveHintCount">2/2</span></button>
+<button class="hint-btn" id="narrowHintButton" onclick="handleHintButton('narrow')">
+<span class="hint-main">🎯 NARROW <span id="narrowHintCount">2/2</span></span>
+<span class="hint-float-timer" id="narrowHintTimer"></span>
+</button>
+<button class="hint-btn" id="solveHintButton" onclick="handleHintButton('solve')">
+<span class="hint-main">💡 SOLVE <span id="solveHintCount">2/2</span></span>
+<span class="hint-float-timer" id="solveHintTimer"></span>
+</button>
 <div class="hint-regen" id="hintRegenText"></div>
 </div>
 <div class="operator-wrap" id="operatorWrap">
@@ -4868,15 +4914,45 @@ function updateHintUI(){
    const button=document.getElementById(type+"HintButton");
    if(!button)return;
 
+   const main=button.querySelector(".hint-main");
+   const timer=document.getElementById(type+"HintTimer");
+
    if(hintState[type]>0){
      button.classList.remove("ad-mode");
      button.disabled=false;
-     const label=type==="solve"?"💡 SOLVE":"🎯 NARROW";
-     button.innerHTML=`${label} <span id="${type}HintCount">${hintState[type]}/${HINT_MAX}</span>`;
+
+     const label=
+       type==="solve"
+       ? "💡 SOLVE"
+       : "🎯 NARROW";
+
+     if(main){
+       main.innerHTML=
+         `${label} <span id="${type}HintCount">${hintState[type]}/${HINT_MAX}</span>`;
+     }
    }else{
      button.classList.add("ad-mode");
-     button.textContent=type==="solve"?"📺 GET SOLVE HINT":"📺 GET NARROW HINT";
      button.disabled=remainingAds<=0;
+
+     if(main){
+       main.textContent=
+         type==="solve"
+         ? "📺 GET SOLVE HINT"
+         : "📺 GET NARROW HINT";
+     }
+   }
+
+   if(timer){
+     const next=hintState[type+"Next"];
+
+     if(hintState[type]<HINT_MAX&&next){
+       timer.textContent=
+         `⏳ ${formatCountdown(next-Date.now())}`;
+       timer.classList.add("active");
+     }else{
+       timer.textContent="";
+       timer.classList.remove("active");
+     }
    }
  });
 
@@ -4886,9 +4962,7 @@ function updateHintUI(){
 
  const rt=document.getElementById("hintRegenText");
  if(rt){
-   rt.textContent=waits.length
-     ? waits.join("  ·  ")
-     : (hintState.solve===HINT_MAX&&hintState.narrow===HINT_MAX ? "Hints full" : "");
+   rt.textContent="";
  }
 }
 
@@ -7951,7 +8025,7 @@ startHintCountdownTimer();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.5</div>
+<div class="build-marker">NUMBLE BUILD v0.28.6</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
