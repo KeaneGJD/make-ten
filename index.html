@@ -1842,6 +1842,27 @@ body.gameplay-active #gameScreen .feedback{
     body.gameplay-active #gameScreen .equation-builder{padding:5px}
 }
 
+
+/* v0.28 — Mobile App / Release UX */
+html{background:var(--bg);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{min-height:100dvh}
+button{-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button:active:not(:disabled){transform:scale(.97)}
+.app{padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+.app-splash,.first-launch-overlay{position:fixed;inset:0;z-index:20000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:max(22px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+.app-splash{transition:opacity .28s ease,visibility .28s ease}.app-splash.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.splash-inner{width:min(330px,82vw);text-align:center}.splash-logo{display:block;width:100%;height:auto;object-fit:contain}
+.splash-loader{width:54px;height:5px;margin:20px auto 0;border-radius:999px;overflow:hidden;background:var(--soft)}
+.splash-loader::after{content:"";display:block;width:45%;height:100%;border-radius:inherit;background:var(--accent);animation:numbleLoad 1s ease-in-out infinite alternate}
+@keyframes numbleLoad{from{transform:translateX(-30%)}to{transform:translateX(150%)}}
+.first-launch-overlay{display:none;background:rgba(0,0,0,.48)}
+.first-launch-card{width:min(420px,100%);border-radius:24px;border:1px solid var(--border);background:var(--panel);box-shadow:0 24px 60px rgba(0,0,0,.28);padding:22px;text-align:left}
+.first-launch-logo{width:min(230px,70%);display:block;margin:0 auto 14px}.first-launch-card h2{margin:0 0 6px;text-align:center;font-size:22px}.first-launch-card>p{margin:0 0 18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.45}
+.first-launch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--border)}.first-launch-row strong{display:block;font-size:12px}.first-launch-row span{display:block;margin-top:2px;color:var(--muted);font-size:10px}
+.first-launch-choice{display:flex;gap:5px}.first-launch-choice button{border:1px solid var(--border);background:var(--soft);color:var(--text);border-radius:10px;min-width:48px;min-height:38px;padding:7px 9px;font-weight:900}.first-launch-choice button.selected{outline:2px solid var(--accent);background:var(--panel)}.first-launch-card .main-btn{margin-top:16px}
+.ad-unavailable-toast{position:fixed;left:50%;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:21000;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:10px 14px;border-radius:999px;background:var(--text);color:var(--panel);font-size:11px;font-weight:900;transition:.2s ease;white-space:nowrap}.ad-unavailable-toast.show{opacity:1;transform:translate(-50%,0)}
+@media(orientation:landscape) and (max-height:600px){body::after{content:"Numble is designed for portrait play";position:fixed;inset:0;z-index:25000;display:flex;align-items:center;justify-content:center;padding:30px;background:var(--bg);color:var(--text);text-align:center;font-size:18px;font-weight:1000}}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -1862,8 +1883,12 @@ body.gameplay-active #gameScreen .feedback{
 
 @media(max-width:400px){.app{padding-left:12px;padding-right:12px}.grid{gap:8px}.tile{font-size:27px;border-radius:16px}.target-number{font-size:72px}}
 </style>
+<meta name="theme-color" content="#553179"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body class="numble-home-bg">
+<div class="app-splash" id="appSplash"><div class="splash-inner"><img src="assets/numble-logo.png" alt="Numble" class="splash-logo"><div class="splash-loader"></div></div></div>
+<div class="first-launch-overlay" id="firstLaunchOverlay"><div class="first-launch-card"><img src="assets/numble-logo.png" alt="Numble" class="first-launch-logo"><h2>Welcome to Numble</h2><p>Choose a couple of preferences, then you're ready to play.</p><div class="first-launch-row"><div><strong>Sound Effects</strong><span>You can change this later in Settings.</span></div><div class="first-launch-choice"><button id="firstSoundOn" onclick="setFirstLaunchSound(true)">🔊 ON</button><button id="firstSoundOff" onclick="setFirstLaunchSound(false)">🔇 OFF</button></div></div><div class="first-launch-row"><div><strong>Theme</strong><span>Pick the appearance you prefer.</span></div><div class="first-launch-choice"><button id="firstThemeLight" onclick="setFirstLaunchTheme('light')">☀️</button><button id="firstThemeDark" onclick="setFirstLaunchTheme('dark')">🌙</button></div></div><button class="main-btn" onclick="finishFirstLaunch()">LET'S PLAY</button></div></div>
+<div class="ad-unavailable-toast" id="adUnavailableToast">Ad unavailable — try again later</div>
 <div class="app">
 <div class="brand numble-brand">
 <img src="assets/numble-logo.png" alt="Numble" class="numble-logo">
@@ -2034,7 +2059,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.27.4</strong><br>
+<strong>Numble v0.28</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -5493,6 +5518,18 @@ if(gameMode==="campaign"){
 }
 }
 
+const FIRST_LAUNCH_KEY="numbleFirstLaunchV1";
+let firstLaunchSound=true;
+let firstLaunchTheme="light";
+function updateFirstLaunchChoices(){const a=document.getElementById("firstSoundOn"),b=document.getElementById("firstSoundOff"),c=document.getElementById("firstThemeLight"),d=document.getElementById("firstThemeDark");if(a)a.classList.toggle("selected",firstLaunchSound);if(b)b.classList.toggle("selected",!firstLaunchSound);if(c)c.classList.toggle("selected",firstLaunchTheme==="light");if(d)d.classList.toggle("selected",firstLaunchTheme==="dark")}
+function setFirstLaunchSound(v){firstLaunchSound=!!v;updateFirstLaunchChoices()}
+function setFirstLaunchTheme(v){firstLaunchTheme=v==="dark"?"dark":"light";updateFirstLaunchChoices()}
+function finishFirstLaunch(){if(typeof soundEnabled!=="undefined"){soundEnabled=firstLaunchSound}if(typeof setTheme==="function"){setTheme(firstLaunchTheme)}else{document.documentElement.dataset.theme=firstLaunchTheme}localStorage.setItem(FIRST_LAUNCH_KEY,"1");const o=document.getElementById("firstLaunchOverlay");if(o)o.style.display="none";if(typeof updateSettingsUI==="function")updateSettingsUI()}
+function runAppLaunchUX(){const s=document.getElementById("appSplash");setTimeout(()=>{if(s)s.classList.add("hidden");if(!localStorage.getItem(FIRST_LAUNCH_KEY)){firstLaunchSound=typeof soundEnabled!=="undefined"?!!soundEnabled:true;firstLaunchTheme=document.documentElement.dataset.theme==="dark"?"dark":"light";updateFirstLaunchChoices();const o=document.getElementById("firstLaunchOverlay");if(o)o.style.display="flex"}},650)}
+function showAdUnavailable(){const t=document.getElementById("adUnavailableToast");if(!t)return;t.classList.add("show");clearTimeout(showAdUnavailable.timer);showAdUnavailable.timer=setTimeout(()=>t.classList.remove("show"),1800)}
+function handleAppBack(){const t=document.getElementById("tutorialOverlay");if(t&&t.style.display==="flex"){closeTutorialOverlay();return true}const f=document.getElementById("firstLaunchOverlay");if(f&&f.style.display==="flex")return true;const id=document.querySelector(".screen.active")?.id||"homeScreen";if(id==="gameScreen"){exitModeOrLevel();return true}if(id!=="homeScreen"){showScreen("homeScreen");return true}return false}
+window.numbleAndroidBack=handleAppBack;
+
 function showScreen(id){
 document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
 document.getElementById(id).classList.add("active");
@@ -7700,6 +7737,8 @@ document.addEventListener(
     }
 );
 
+if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",runAppLaunchUX,{once:true});}else{runAppLaunchUX();}
+
 if(document.readyState==="loading"){
     document.addEventListener(
         "DOMContentLoaded",
@@ -7798,7 +7837,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.27.4</div>
+<div class="build-marker">NUMBLE BUILD v0.28</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
