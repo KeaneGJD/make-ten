@@ -1879,6 +1879,22 @@ body.gameplay-active #gameScreen .feedback.solve-hint .hint-prefix{
     margin-right:4px;
 }
 
+
+/* v0.28.4 — Hint regeneration countdown */
+body.gameplay-active #gameScreen .hint-regen{
+    display:block;
+    min-height:14px;
+    margin:1px 0 4px;
+    text-align:center;
+    font-size:9px;
+    line-height:1.2;
+    font-weight:900;
+    color:var(--muted);
+}
+body.gameplay-active #gameScreen .hint-regen:not(:empty)::before{
+    content:"⏳ ";
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -2075,7 +2091,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.3</strong><br>
+<strong>Numble v0.28.4</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4798,6 +4814,30 @@ requestRewardedAd(
   updateHintUI();
  }
 );
+}
+
+
+let hintCountdownTimer=null;
+
+function startHintCountdownTimer(){
+
+if(hintCountdownTimer){
+    clearInterval(
+        hintCountdownTimer
+    );
+}
+
+hintCountdownTimer=
+    setInterval(()=>{
+
+        if(
+            gameMode==="campaign" ||
+            gameMode==="endless"
+        ){
+            updateHintUI();
+        }
+
+    },1000);
 }
 
 function updateHintUI(){
@@ -7878,6 +7918,12 @@ if(testMode){
         );
     }
 }
+if(document.readyState==="loading"){
+document.addEventListener("DOMContentLoaded",startHintCountdownTimer,{once:true});
+}else{
+startHintCountdownTimer();
+}
+
 </script>
 <div class="unlock-celebration" id="unlockCelebration">
 <div class="unlock-card">
@@ -7888,7 +7934,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.3</div>
+<div class="build-marker">NUMBLE BUILD v0.28.4</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
