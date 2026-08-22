@@ -1863,6 +1863,22 @@ button:active:not(:disabled){transform:scale(.97)}
 .ad-unavailable-toast{position:fixed;left:50%;bottom:max(20px,calc(env(safe-area-inset-bottom) + 12px));z-index:21000;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:10px 14px;border-radius:999px;background:var(--text);color:var(--panel);font-size:11px;font-weight:900;transition:.2s ease;white-space:nowrap}.ad-unavailable-toast.show{opacity:1;transform:translate(-50%,0)}
 @media(orientation:landscape) and (max-height:600px){body::after{content:"Numble is designed for portrait play";position:fixed;inset:0;z-index:25000;display:flex;align-items:center;justify-content:center;padding:30px;background:var(--bg);color:var(--text);text-align:center;font-size:18px;font-weight:1000}}
 
+
+/* v0.28.3 — Solve hint visibility */
+body.gameplay-active #gameScreen .feedback.solve-hint{
+    font-size:clamp(16px,2.7vh,20px);
+    line-height:1.3;
+    min-height:26px;
+    margin-top:5px;
+    font-weight:1000;
+}
+body.gameplay-active #gameScreen .feedback.solve-hint .hint-prefix{
+    font-size:.72em;
+    letter-spacing:.6px;
+    opacity:.8;
+    margin-right:4px;
+}
+
 @media(max-width:400px){
     .mode-choice{padding-top:96px}
     .mode-choice-art{width:92px;height:80px}
@@ -2059,7 +2075,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.2</strong><br>
+<strong>Numble v0.28.3</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4869,11 +4885,14 @@ function useCampaignHint(type){
  const sol=findHintSolution();
  if(!sol){document.getElementById("feedback").textContent="No hint found — your hint was restored.";hintState[type]++;campaignHintsUsed--;saveHintState();updateHintUI();return}
  if(type==="solve"){
-  document.getElementById("feedback").textContent="Hint: "+sol.text;
-  document.getElementById("feedback").className="feedback correct";
+  const feedback=document.getElementById("feedback");
+  feedback.innerHTML=`<span class="hint-prefix">HINT:</span> ${sol.text}`;
+  feedback.className="feedback correct solve-hint";
  }else{
   document.querySelectorAll(".tile").forEach((el,i)=>el.classList.toggle("hint-impossible",!sol.indexes.includes(i)));
-  document.getElementById("feedback").textContent="Tiles outside one valid solution have been dimmed.";
+  const feedback=document.getElementById("feedback");
+  feedback.textContent="Tiles outside one valid solution have been dimmed.";
+  feedback.className="feedback";
  }
 }
 
@@ -7869,7 +7888,7 @@ if(testMode){
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.2</div>
+<div class="build-marker">NUMBLE BUILD v0.28.3</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
