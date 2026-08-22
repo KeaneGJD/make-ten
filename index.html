@@ -2148,7 +2148,7 @@ Default
 </div>
 
 <div class="settings-meta">
-<strong>Numble v0.28.7</strong><br>
+<strong>Numble v0.28.8</strong><br>
 A number puzzle game built around Campaign, Daily, Arcade and Endless modes.
 </div>
 </div>
@@ -4880,7 +4880,8 @@ requestRewardedAd(
 }
 
 
-let hintCountdownTimer=null;
+let hintCountdownFrame=null;
+let hintCountdownLastSecond=-1;
 
 function updateHintCountdownLabels(){
 
@@ -4930,42 +4931,46 @@ function updateHintCountdownLabels(){
 });
 }
 
-function startHintCountdownTimer(){
+function runHintCountdownLoop(){
 
-if(hintCountdownTimer){
-    clearInterval(
-        hintCountdownTimer
+const now=Date.now();
+const second=Math.floor(now/1000);
+
+if(second!==hintCountdownLastSecond){
+
+    hintCountdownLastSecond=second;
+
+    const beforeSolve=hintState.solve;
+    const beforeNarrow=hintState.narrow;
+
+    reconcileHints();
+
+    if(
+        beforeSolve!==hintState.solve ||
+        beforeNarrow!==hintState.narrow
+    ){
+        updateHintUI();
+    }else{
+        updateHintCountdownLabels();
+    }
+}
+
+hintCountdownFrame=
+    requestAnimationFrame(
+        runHintCountdownLoop
     );
 }
 
-updateHintCountdownLabels();
+function startHintCountdownTimer(){
 
-hintCountdownTimer=
-    setInterval(()=>{
+if(hintCountdownFrame){
+    cancelAnimationFrame(
+        hintCountdownFrame
+    );
+}
 
-        /*
-        Keep regeneration state accurate, but update the
-        visible floating clocks directly instead of
-        rebuilding the whole hint UI every second.
-        */
-        const beforeSolve=
-            hintState.solve;
-
-        const beforeNarrow=
-            hintState.narrow;
-
-        reconcileHints();
-
-        if(
-            beforeSolve!==hintState.solve ||
-            beforeNarrow!==hintState.narrow
-        ){
-            updateHintUI();
-        }
-
-        updateHintCountdownLabels();
-
-    },1000);
+hintCountdownLastSecond=-1;
+runHintCountdownLoop();
 }
 
 function updateHintUI(){
@@ -7942,6 +7947,7 @@ document.addEventListener(
 
         reconcileHints();
         updateHintUI();
+        startHintCountdownTimer();
 
         if(
             arcadePausedByVisibility &&
@@ -8085,7 +8091,7 @@ startHintCountdownTimer();
 </div>
 </div>
 <div class="runtime-error-banner" id="runtimeErrorBanner"></div>
-<div class="build-marker">NUMBLE BUILD v0.28.7</div>
+<div class="build-marker">NUMBLE BUILD v0.28.8</div>
 
 <div class="tutorial-overlay" id="tutorialOverlay">
 <div class="tutorial-card">
